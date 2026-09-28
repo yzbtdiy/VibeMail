@@ -195,7 +195,7 @@ fn todo_row(i){
     let t = todos[i]
     GestureView{width: Fill height: Fit padding: Inset{top: 8 bottom: 8} on_tap: |x, y| toggle(i)
         View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
-            RoundedView{width: 22 height: 22 draw_bg:{color: pick(t.done, blue, #x00000000) radius: 11.0 border: 1.0 border_color: hair} align: Align{x: 0.5 y: 0.5}
+            RoundedView{width: 22 height: 22 draw_bg:{color: pick(t.done, blue, #x2a3038) radius: 11.0} align: Align{x: 0.5 y: 0.5}
                 if t.done { Label{text: "✓" draw_text.color: #xffffffff draw_text.text_style.font_size: 12} }
             }
             View{width: Fill height: Fit flow: Down spacing: 2
