@@ -69,11 +69,20 @@ let aiink  = #xFDE8DD      // light orange summary card
 let aipurple = #x6C5CE7
 let teal   = #x3FBFAE
 
-// The script runtime has no hsv(); the reference avatar colours are fixed.
-fn mono_color(m){
-    if m.hue == 0 { return #xE8543F }
-    if m.hue == 1 { return #xF5B830 }
-    return #x8B7BE8
+// The script runtime has no hsv(); avatars are gradient SVG assets with
+// the surname baked in (no z-stacking in this widget DSL, so the monogram
+// lives inside the SVG, not on top of it).
+fn av_file(m){
+    if m.hue == 0 {
+        if m.mono == "张" { return "av-zhang.svg" }
+        return "av-chen.svg"
+    }
+    if m.hue == 1 {
+        if m.mono == "李" { return "av-li.svg" }
+        return "av-zhao.svg"
+    }
+    if m.mono == "王" { return "av-wang.svg" }
+    return "av-sun.svg"
 }
 // The widget DSL has no ternary in property position; pickers are plain fns.
 fn pick(c, a, b){ if c { return a } return b }
@@ -89,10 +98,8 @@ fn greeting(){
             Label{width: Fill text: "早上好,小林" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 24}}
             Label{width: Fill text: "今天是 9 月 28 日 · 有 2 封重要邮件待处理" draw_text.color: sub draw_text.text_style.font_size: 12}
         }
-        RoundedView{width: 60 height: 60 draw_bg +: {color: card border_radius: 30.0} align: Align{x: 0.5 y: 0.5}
-            RoundedView{width: 54 height: 54 draw_bg +: {color: teal border_radius: 27.0} align: Align{x: 0.5 y: 0.5}
-                Label{text: "林" draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: 20}}
-            }
+        RoundedView{width: 62 height: 62 draw_bg +: {color: card border_radius: 31.0} align: Align{x: 0.5 y: 0.5}
+            Image{width: 56 height: 56 src: http_resource("{{assets}}/assets/av-lin.svg") fit: ImageFit.CropToFill}
         }
     }
 }
@@ -107,13 +114,14 @@ fn search_bar(){
 }
 
 fn banner(){
-    RoundedView{width: Fill height: Fit padding: Inset{top: 18 bottom: 18 left: 20 right: 20} draw_bg +: {g1: orange g2: orange2 border_radius: 28.0} flow: Down spacing: 8
+    RoundedView{width: Fill height: Fit padding: Inset{top: 18 bottom: 18 left: 20 right: 20} draw_bg +: {g1: orange g2: orange2 border_radius: 28.0}
         View{width: Fill height: Fit flow: Right spacing: 12 align: Align{y: 0.5}
             Image{width: 40 height: 40 src: http_resource("{{assets}}/assets/ai-star.svg") fit: ImageFit.CropToFill}
             View{width: Fill height: Fit flow: Down spacing: 3
                 Label{width: Fill text: "AI 分诊" draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: 20}}
                 Label{width: Fill text: "3 封重要邮件,建议今天回复" draw_text.color: #xffffffff draw_text.text_style.font_size: 12}
             }
+            Image{width: 64 height: 64 src: http_resource("{{assets}}/assets/banner-art.svg") fit: ImageFit.CropToFill}
         }
     }
 }
@@ -146,9 +154,7 @@ fn mail_card(i){
     RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 14 left: 16 right: 16} draw_bg +: {color: card border_radius: 20.0}
         GestureView{width: Fill height: Fit on_tap: |x, y| open_mail(i)
             View{width: Fill height: Fit flow: Right spacing: 14 align: Align{y: 0.5}
-                RoundedView{width: 56 height: 56 draw_bg +: {color: mono_color(m) border_radius: 28.0} align: Align{x: 0.5 y: 0.5}
-                    Label{text: m.mono draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: 20}}
-                }
+                Image{width: 56 height: 56 src: http_resource("{{assets}}/assets/" + av_file(m)) fit: ImageFit.CropToFill}
                 View{width: Fill height: Fit flow: Down spacing: 4
                     View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
                         Label{width: Fill text: m.who + " · " + m.role draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 13}}
@@ -209,9 +215,7 @@ fn read_screen(m){
         }
         RoundedView{width: Fill height: Fit padding: Inset{top: 16 bottom: 16 left: 18 right: 18} draw_bg +: {color: card border_radius: 22.0} flow: Down spacing: 12
             View{width: Fill height: Fit flow: Right spacing: 12 align: Align{y: 0.5}
-                RoundedView{width: 54 height: 54 draw_bg +: {color: mono_color(m) border_radius: 27.0} align: Align{x: 0.5 y: 0.5}
-                    Label{text: m.mono draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: 20}}
-                }
+                Image{width: 54 height: 54 src: http_resource("{{assets}}/assets/" + av_file(m)) fit: ImageFit.CropToFill}
                 View{width: Fill height: Fit flow: Down spacing: 2
                     Label{width: Fill text: m.who + " · " + m.role draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 16}}
                     Label{width: Fill text: m.time draw_text.color: sub draw_text.text_style.font_size: 11}
@@ -343,17 +347,22 @@ fn me_screen(){
 
 // ---- bottom navigation: FOUR tabs per the reference ----------------------
 fn nav_tab(label, icon, target){
-    GestureView{width: Fill height: Fit padding: Inset{top: 7 bottom: 7} on_tap: |x, y| go(target)
-        View{width: Fill height: Fit flow: Down spacing: 3 align: Align{x: 0.5}
-            Image{width: 22 height: 22 src: http_resource("{{assets}}/assets/" + icon) fit: ImageFit.CropToFill}
-            Label{text: label draw_text.color: pick(screen == target, orange, #x3A3A3A) draw_text.text_style.font_size: 12}
+    GestureView{width: Fill height: Fit padding: Inset{top: 5 bottom: 5} on_tap: |x, y| go(target)
+        RoundedView{width: Fill height: Fit padding: Inset{top: 5 bottom: 5 left: 14 right: 14} draw_bg +: {color: pick(screen == target, #xFDEFD9, #x00000000) border_radius: 18.0} align: Align{x: 0.5}
+            View{width: Fill height: Fit flow: Down spacing: 3 align: Align{x: 0.5}
+                Image{width: 22 height: 22 src: http_resource("{{assets}}/assets/" + icon) fit: ImageFit.CropToFill}
+                Label{text: label draw_text.color: pick(screen == target, orange, #x3A3A3A) draw_text.text_style.font_size: 12}
+            }
         }
     }
 }
 
 // ---- root ---------------------------------------------------------------
+// The deco band is the FIRST child: this widget DSL has no z-order syntax,
+// so the background renders before the scrolling body and sits beneath it.
 SolidView{width: Fill height: Fill flow: Down draw_bg.color: ground
-    body := ScrollYView{width: Fill height: Fill flow: Down padding: Inset{top: 18 bottom: 10 left: 16 right: 16} spacing: 12 on_render: || {
+    Image{width: Fill height: 130 src: http_resource("{{assets}}/assets/bg-deco-top.svg") fit: ImageFit.CropToFill}
+    body := ScrollYView{width: Fill height: Fill flow: Down padding: Inset{top: 6 bottom: 10 left: 16 right: 16} spacing: 12 on_render: || {
         if screen == "inbox" { inbox_screen() }
         if screen == "read" { read_screen(mails[current]) }
         if screen == "write" { write_screen() }
