@@ -1,0 +1,262 @@
+// agentic-mail — a four-screen script app (blackboard entry #5).
+// Screens: 1 inbox digest, 2 mail reading with AI summary, 3 AI drafting,
+// 4 follow-up todos. All data is mock, in-memory state; no capabilities,
+// no hosts, Simplified Chinese copy throughout, dark theme, phone portrait.
+
+// ---- state -------------------------------------------------------------
+let screen = "inbox"          // inbox | read | write | todo
+let current = 0               // index of the mail being read
+
+let mails = [
+    {who: "财务周报" mono: "财" hue: 0.09 imp: "高" time: "09:12"
+     subject: "三季度营收复核——附件含汇报材料"
+     preview: "财务确认第三季度达成计划的 104%。"
+     body: "各位好:\n\n附上三季度营收复核材料。本季度营收达成计划的 104%,主要由企业级续约与两个新行业客户贡献。\n\n材料中标出了两项风险:其一,大客户集中度进一步上升;其二,回款周期较上季度延长 5 天。\n\n两项风险均需管理层在周五董事会前给出处置意见,详见材料第 4 页。"
+     points: ["营收达成计划的 104%,企业续约为主要贡献", "大客户集中度上升,为第一风险项", "回款周期延长 5 天,需财务跟进", "两项风险需周五董事会前签署意见"]
+     action: "建议行动:周五前审阅第 4 页风险处置页并签署意见。"}
+    {who: "平台团队" mono: "平" hue: 0.58 imp: "普通" time: "08:47"
+     subject: "发布窗口调整至 22:00"
+     preview: "今晚的发布因数据库维护推迟两小时。"
+     body: "团队:\n\n今晚的发布窗口因数据库主从切换维护,由 20:00 调整至 22:00。变更单已审批,值班表不变。\n\n除非你在值班,否则无需任何操作;次日早晨的冒烟测试照常进行。"
+     points: ["发布窗口 20:00 → 22:00,推迟两小时", "原因是数据库主从切换维护", "值班安排不变,无需额外操作"]
+     action: "建议行动:值班同学确认 22:00 在线即可。"}
+    {who: "设计公会" mono: "设" hue: 0.78 imp: "低" time: "昨天"
+     subject: "每周界面研究摘要"
+     preview: "三篇锁屏排版文章与两个摘要式布局案例。"
+     body: "本周精选:\n\n1. 锁屏排版字体的可读性研究(3 篇);\n2. 摘要式信息流布局的两个案例研究;\n3. 下周讨论主题:重要度色彩编码的语义一致性。"
+     points: ["锁屏排版字体研究 3 篇", "摘要式信息流布局案例 2 个", "下周主题:重要度色彩语义"]
+     action: "建议行动:有兴趣可标记下周讨论。"}
+]
+
+let draft_input = ""          // what the user tells the AI to write
+let draft_text = ""           // the generated draft
+let tone = "正式"             // 正式 | 友好 | 简洁
+
+let todos = [
+    {done: true  when: "今天" text: "签署三季度风险处置意见" from: "三季度营收复核" due: "周五 18:00"}
+    {done: false when: "今天" text: "确认 22:00 发布窗口值班" from: "发布窗口调整" due: "今天 21:00"}
+    {done: false when: "今天" text: "回复设计公会下周议题" from: "每周界面研究摘要" due: "今天 17:00"}
+    {done: false when: "明天" text: "审阅摘要式布局案例" from: "每周界面研究摘要" due: "明天 10:00"}
+]
+
+// ---- palette (dark) -----------------------------------------------------
+let ground = #x16181d
+let panel  = #x1f232b
+let panel2 = #x262b34
+let hair   = #x333a45
+let ink    = #xf2f4f8
+let dim    = #x9aa3b2
+let faint  = #x6b7480
+let amber  = #xf5b84f
+let blue   = #x6fa8f5
+
+fn imp_color(imp){
+    if imp == "高" { return amber }
+    if imp == "普通" { return dim }
+    return faint
+}
+
+// The widget DSL has no ternary in property position (a `cond ? a : b`
+// lowers the bool into the property and fails the type check), so these
+// pickers are plain if/return functions, like imp_color.
+fn pick(c, a, b){ if c { return a } return b }
+
+// ---- navigation ---------------------------------------------------------
+fn go(s){ screen = s; ui.body.render() }
+fn open_mail(i){ current = i; screen = "read"; ui.body.render() }
+
+// ---- screen 1: inbox ----------------------------------------------------
+fn banner(){
+    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14} draw_bg:{color: panel radius: 14.0} flow: Down spacing: 4
+        Label{width: Fill text: "✦ 已为你筛选 3/12 封 · 按重要度排序" draw_text.color: ink draw_text.text_style.font_size: 13}
+        Label{width: Fill text: "今日概览:1 封需签署,1 封涉值班,1 封为研究参考" draw_text.color: dim draw_text.text_style.font_size: 12}
+    }
+}
+
+fn mail_row(i){
+    let m = mails[i]
+    GestureView{width: Fill height: Fit padding: Inset{top: 8 bottom: 8} on_tap: |x, y| open_mail(i)
+        View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
+            RoundedView{width: 42 height: 42 draw_bg:{color: hsv(m.hue, 0.5, 0.72) radius: 21.0} align: Align{x: 0.5 y: 0.5}
+                Label{text: m.mono draw_text.color: #xffffffff draw_text.text_style.font_size: 16}
+            }
+            View{width: Fill height: Fit flow: Down spacing: 2
+                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                    Label{width: Fill text: m.who draw_text.color: ink draw_text.text_style.font_size: 14}
+                    Label{text: m.time draw_text.color: faint draw_text.text_style.font_size: 11}
+                }
+                Label{width: Fill text: m.subject draw_text.color: ink draw_text.text_style.font_size: 13}
+                Label{width: Fill text: m.preview draw_text.color: dim draw_text.text_style.font_size: 12}
+            }
+        }
+    }
+}
+
+// ---- screen 2: reading --------------------------------------------------
+fn read_screen(m){
+    View{width: Fill height: Fit flow: Down spacing: 12
+        View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
+            ButtonFlat{text: "‹ 返回" on_click: || go("inbox")
+                draw_bg +: {color: panel color_hover: panel2 color_down: panel border_radius: 14.0 border_size: 0.0}
+                draw_text +: {color: ink color_hover: ink color_down: ink}}
+            Label{width: Fill text: "邮件阅读" draw_text.color: dim draw_text.text_style.font_size: 12}
+        }
+        View{width: Fill height: Fit flow: Right spacing: 12 align: Align{y: 0.5}
+            RoundedView{width: 52 height: 52 draw_bg:{color: hsv(m.hue, 0.5, 0.72) radius: 26.0} align: Align{x: 0.5 y: 0.5}
+                Label{text: m.mono draw_text.color: #xffffffff draw_text.text_style.font_size: 20}
+            }
+            View{width: Fill height: Fit flow: Down spacing: 2
+                Label{width: Fill text: m.who draw_text.color: ink draw_text.text_style.font_size: 18}
+                Label{width: Fill text: m.subject draw_text.color: dim draw_text.text_style.font_size: 12}
+                Label{width: Fill text: m.time draw_text.color: faint draw_text.text_style.font_size: 11}
+            }
+        }
+        Label{width: Fill text: m.subject draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 17}}
+        Markdown{width: Fill text: m.body draw_text.color: ink}
+        ai_summary(m)
+        View{width: Fill height: Fit flow: Right spacing: 8 padding: Inset{top: 4}
+            ButtonFlat{width: Fill text: "回复" on_click: || go("write")
+                draw_bg +: {color: blue color_hover: blue color_down: blue border_radius: 14.0 border_size: 0.0}
+                draw_text +: {color: #xffffffff}}
+            ButtonFlat{width: Fill text: "转发" on_click: || go("write")
+                draw_bg +: {color: panel color_hover: panel2 color_down: panel border_radius: 14.0 border_size: 0.0}
+                draw_text +: {color: ink}}
+            ButtonFlat{width: Fill text: "归档" on_click: || go("inbox")
+                draw_bg +: {color: panel color_hover: panel2 color_down: panel border_radius: 14.0 border_size: 0.0}
+                draw_text +: {color: ink}}
+        }
+    }
+}
+
+fn ai_summary(m){
+    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14} draw_bg:{color: panel2 radius: 14.0} flow: Down spacing: 8
+        Label{width: Fill text: "✦ AI 摘要 · 要点提炼" draw_text.color: amber draw_text.text_style.font_size: 13}
+        for p in m.points {
+            View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                Label{text: "·" draw_text.color: dim draw_text.text_style.font_size: 12}
+                Label{width: Fill text: p draw_text.color: ink draw_text.text_style.font_size: 13}
+            }
+        }
+        Hr{}
+        Label{width: Fill text: m.action draw_text.color: dim draw_text.text_style.font_size: 12}
+    }
+}
+
+// ---- screen 3: AI drafting ----------------------------------------------
+fn set_tone(t){ tone = t; ui.body.render() }
+fn regen(){
+    let ask = draft_input
+    if ask == "" { ask = "一封通用商务邮件" }
+    draft_text = "(草稿 · " + tone + ")\n\n你好:\n\n关于「" + ask + "」,说明如下:本次沟通意在同步进展并确认下一步安排。如有疑问,欢迎随时回复讨论。\n\n顺祝商祺。"
+    ui.body.render()
+}
+fn insert_draft(){
+    if draft_text == "" { regen() }
+    go("read")
+}
+
+fn write_screen(){
+    View{width: Fill height: Fit flow: Down spacing: 12
+        Label{width: Fill text: "AI 起草" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 22}}
+        TextInput{width: Fill height: 84 empty_text: "告诉 AI 你想写什么…" on_change: |t| draft_input = t
+            draw_bg +: {color: panel color_hover: panel color_focus: panel2 color_empty: panel border_radius: 14.0}
+            draw_text +: {color: ink color_hover: ink color_focus: ink color_empty: dim color_empty_hover: dim}}
+        if draft_text != "" {
+            RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14} draw_bg:{color: panel2 radius: 14.0} flow: Down spacing: 6
+                Label{width: Fill text: "已生成草稿(可编辑)" draw_text.color: dim draw_text.text_style.font_size: 12}
+                TextInput{width: Fill height: Fit text: draft_text on_change: |t| draft_text = t
+                    draw_bg +: {color: #x00000000 color_hover: #x00000000 color_focus: #x00000000 border_radius: 8.0}
+                    draw_text +: {color: ink color_hover: ink color_focus: ink}}
+            }
+        }
+        Label{width: Fill text: "语气" draw_text.color: dim draw_text.text_style.font_size: 12}
+        View{width: Fill height: Fit flow: Right spacing: 8
+            for t in ["正式", "友好", "简洁"] {
+                ButtonFlat{text: t on_click: || set_tone(t)
+                    draw_bg +: {color: pick(t == tone, blue, panel) color_hover: panel2 color_down: panel border_radius: 16.0 border_size: 0.0}
+                    draw_text +: {color: pick(t == tone, #xffffffff, ink)}}
+            }
+        }
+        View{width: Fill height: Fit flow: Right spacing: 8
+            ButtonFlat{width: Fill text: "重新生成" on_click: || regen()
+                draw_bg +: {color: panel color_hover: panel2 color_down: panel border_radius: 14.0 border_size: 0.0}
+                draw_text +: {color: ink}}
+            ButtonFlat{width: Fill text: "插入草稿" on_click: || insert_draft()
+                draw_bg +: {color: blue color_hover: blue color_down: blue border_radius: 14.0 border_size: 0.0}
+                draw_text +: {color: #xffffffff}}
+        }
+    }
+}
+
+// ---- screen 4: todos ----------------------------------------------------
+fn toggle(i){ todos[i].done = !todos[i].done; ui.body.render() }
+
+fn todo_row(i){
+    let t = todos[i]
+    GestureView{width: Fill height: Fit padding: Inset{top: 8 bottom: 8} on_tap: |x, y| toggle(i)
+        View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
+            RoundedView{width: 22 height: 22 draw_bg:{color: pick(t.done, blue, #x00000000) radius: 11.0 border: 1.0 border_color: hair} align: Align{x: 0.5 y: 0.5}
+                if t.done { Label{text: "✓" draw_text.color: #xffffffff draw_text.text_style.font_size: 12} }
+            }
+            View{width: Fill height: Fit flow: Down spacing: 2
+                Label{width: Fill text: t.text draw_text.color: pick(t.done, faint, ink) draw_text.text_style.font_size: 13}
+                Label{width: Fill text: "来自:" + t.from draw_text.color: faint draw_text.text_style.font_size: 11}
+            }
+            Label{text: t.due draw_text.color: dim draw_text.text_style.font_size: 11}
+        }
+    }
+}
+
+fn todo_screen(){
+    let groups = ["今天", "明天"]
+    View{width: Fill height: Fit flow: Down spacing: 8
+        Label{width: Fill text: "跟进待办" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 22}}
+        Label{width: Fill text: "今日 3 项 · 已完成 1" draw_text.color: dim draw_text.text_style.font_size: 12}
+        for g in groups {
+            Label{width: Fill text: g draw_text.color: dim draw_text.text_style.font_size: 12}
+            RoundedView{width: Fill height: Fit padding: Inset{top: 4 bottom: 4 left: 12 right: 12} draw_bg:{color: panel radius: 14.0} flow: Down
+                for i in todos.len() {
+                    if todos[i].when == g {
+                        todo_row(i)
+                        if i < todos.len() - 1 { Hr{} }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---- bottom navigation --------------------------------------------------
+fn nav_tab(label, target){
+    ButtonFlat{width: Fill text: label on_click: || go(target)
+        draw_bg +: {color: pick(screen == target, panel2, ground) color_hover: panel color_down: panel border_radius: 12.0 border_size: 0.0}
+        draw_text +: {color: pick(screen == target, ink, dim) draw_text.text_style.font_size: 13}}
+}
+
+// ---- root ---------------------------------------------------------------
+SolidView{width: Fill height: Fill flow: Down draw_bg.color: ground
+    body := ScrollYView{width: Fill height: Fill flow: Down padding: Inset{top: 16 bottom: 8 left: 16 right: 16} spacing: 12 on_render: || {
+        if screen == "inbox" {
+            Label{width: Fill text: "智能邮件" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 22}}
+            banner()
+            for i in mails.len() {
+                mail_row(i)
+                if i < mails.len() - 1 { Hr{} }
+            }
+        }
+        if screen == "read" {
+            read_screen(mails[current])
+        }
+        if screen == "write" {
+            write_screen()
+        }
+        if screen == "todo" {
+            todo_screen()
+        }
+    }}
+    View{width: Fill height: Fit flow: Right spacing: 4 padding: Inset{top: 6 bottom: 6 left: 8 right: 8}
+        nav_tab("收件箱", "inbox")
+        nav_tab("写信", "write")
+        nav_tab("待办", "todo")
+    }
+}
