@@ -94,8 +94,11 @@ fn open_mail(i){ current = i; screen = "read"; ui.body.render() }
 // ---- screen 1: inbox ----------------------------------------------------
 fn banner(){
     RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 14 left: 16 right: 16} draw_bg +: {color: panel border_radius: 14.0} flow: Down spacing: 6
-        Label{width: Fill text: "✦ 已为你筛选 3/12 封 · 按重要度排序" draw_text.color: amber draw_text.text_style.font_size: 13}
-        Label{width: Fill text: "今日概览:1 封需签署,1 封涉值班,1 封为研究参考" draw_text.color: dim draw_text.text_style.font_size: 12}
+        View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
+            Image{width: 28 height: 28 src: http_resource("{{assets}}/assets/ai-logo.svg") fit: ImageFit.CropToFill}
+            Label{width: Fill text: "已为你筛选 6/12 封 · 按重要度排序" draw_text.color: amber draw_text.text_style: theme.font_bold{font_size: 13}}
+        }
+        Label{width: Fill text: "今日概览:2 封高优先级需处理,2 封普通,2 封参考" draw_text.color: dim draw_text.text_style.font_size: 12}
     }
 }
 
@@ -268,10 +271,16 @@ fn todo_screen(){
 }
 
 // ---- bottom navigation --------------------------------------------------
-fn nav_tab(label, target){
-    ButtonFlat{width: Fill text: label on_click: || go(target)
-        draw_bg +: {color: pick(screen == target, panel2, ground) color_hover: panel color_down: panel border_radius: 12.0 border_size: 0.0}
-        draw_text +: {color: pick(screen == target, ink, dim) draw_text.text_style.font_size: 13}}
+// Tabs are an icon plus a label (the reference design); the SVG set is
+// grey and the ACTIVE state is carried by the text colour, because one
+// asset cannot retint.
+fn nav_tab(label, icon, target){
+    GestureView{width: Fill height: Fit padding: Inset{top: 6 bottom: 6} on_tap: |x, y| go(target)
+        View{width: Fill height: Fit flow: Down spacing: 3 align: Align{x: 0.5}
+            Image{width: 22 height: 22 src: http_resource("{{assets}}/assets/" + icon) fit: ImageFit.CropToFill}
+            Label{text: label draw_text.color: pick(screen == target, ink, dim) draw_text.text_style.font_size: 12}
+        }
+    }
 }
 
 // ---- root ---------------------------------------------------------------
@@ -296,8 +305,8 @@ SolidView{width: Fill height: Fill flow: Down draw_bg.color: ground
         }
     }}
     View{width: Fill height: Fit flow: Right spacing: 4 padding: Inset{top: 6 bottom: 6 left: 8 right: 8}
-        nav_tab("收件箱", "inbox")
-        nav_tab("写信", "write")
-        nav_tab("待办", "todo")
+        nav_tab("收件箱", "nav-inbox.svg", "inbox")
+        nav_tab("写信", "nav-write.svg", "write")
+        nav_tab("待办", "nav-todo.svg", "todo")
     }
 }
