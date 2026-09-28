@@ -1,0 +1,94 @@
+{
+  "app_id": "agentic-mail",
+  "card_data": {
+    "digest": [
+      {
+        "id": "m1",
+        "published_at": "★ 高 09:12",
+        "publisher": "财务周报",
+        "summary": "财务确认第三季度达成计划的 104%。汇报包中标出了两项风险,均需你在周五前签署确认。",
+        "title": "三季度营收复核——附件含汇报材料"
+      },
+      {
+        "id": "m2",
+        "published_at": "普通 08:47",
+        "publisher": "平台团队",
+        "summary": "今晚的发布因数据库维护推迟两小时;除非你在值班,否则无需任何操作。",
+        "title": "发布窗口调整至 22:00"
+      },
+      {
+        "id": "m3",
+        "published_at": "低 昨天",
+        "publisher": "设计公会",
+        "summary": "三篇关于锁屏排版字体的文章,以及两个摘要式信息流布局的案例研究。",
+        "title": "每周界面研究摘要"
+      }
+    ]
+  },
+  "card_source": "# ledger agentic-mail@0.1.0\n# level:   L0\n# profile: ui/l0\n#\n# Agentic Mail — an agent-summarised inbox digest card. All data is\n# host-resolved mock data (page.data.json); the card is presentation only\n# and declares no capabilities. The source carries no query selector, so\n# the lowering keeps the seeded literals the offline checked VM can\n# evaluate.\n#\n# Visual redesign per blackboard Addendum to #3 (2026-09-28 20:20),\n# measured against the 350x160 glance tile with card-studio: v1 (310pt)\n# and v2 (173pt) both overflowed, so the brand eyebrow merged into the\n# agent line. The hero mail row leads the card, importance coding rides\n# the hero's timestamp, secondary mails are compact rows, and every\n# user-visible string is Simplified Chinese in both locale slots.\n\nsource digest sys.news_digest(count: 3,\n                               fields: [id, title, summary, publisher, published_at])\n\ncopy ai_line  { class: vocabulary, en: \"智能邮件 ✦ 已为你筛选 3/12 封 · 按重要度排序\", zh: \"智能邮件 ✦ 已为你筛选 3/12 封 · 按重要度排序\" }\n\nview root Surface(pad: .page) {\n  Row(gap: 10) {\n    Avatar(text: \"财\")\n    Col(gap: 3) {\n      TextRow(text: digest.0.title, width: .fill)\n      TextCaption(text: digest.0.publisher)\n    }\n    TextCaption(text: digest.0.published_at)\n  }\n  TextCaption(text: copy.ai_line)\n  Rule()\n  for m, i in digest key m.id {\n    when i > 0 {\n      Row(gap: 8) {\n        TextCaption(text: m.published_at, width: .label)\n        TextRow(text: m.title, width: .fill)\n        TextCaption(text: m.publisher)\n      }\n    }\n  }\n}\n",
+  "entry": "page.card",
+  "grants": [
+    "Draw its screens, and nothing else"
+  ],
+  "listing": {
+    "age_rating": "all",
+    "category": "productivity",
+    "description": "智能邮件以摘要速览呈现你的收件箱:每封邮件的发件人、主题、由智能助手撰写的摘要、到达时间与重要程度。数据为主机解析的模拟数据;卡片仅负责呈现,不申请任何能力。(English: Agentic Mail shows an agent-summarised inbox digest — sender, subject, an agent-written summary, arrival time and importance per message, from host-resolved mock data; the card is presentation only.)",
+    "icon": "assets/icon.svg",
+    "keywords": [
+      "mail",
+      "digest",
+      "summary",
+      "agent"
+    ],
+    "license": "Apache-2.0",
+    "platforms": [
+      "windows"
+    ],
+    "publisher": {
+      "name": "yzbtdiy",
+      "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md",
+      "support": "https://github.com/yzbtdiy/agentic-mail-card/issues"
+    },
+    "release_notes": "首次发布:中文摘要速览卡片,展示智能助手的邮件摘要布局。",
+    "schema": 1,
+    "screenshots": [
+      "screenshots/01-main.png"
+    ],
+    "subtitle": "智能摘要收件箱速览"
+  },
+  "manifest": {
+    "agent": null,
+    "capabilities": [],
+    "compute": {
+      "instruction_budget": null,
+      "memory_bytes": null
+    },
+    "id": "agentic-mail",
+    "integrity": {
+      "bundle_blake3": "7c27945e70f50552237e28588f7e4d17957cf4cec068ba9ebf7a3a244b450ea5",
+      "signature": null
+    },
+    "name": "Agentic Mail",
+    "network": {
+      "hosts": []
+    },
+    "schema": 1,
+    "storage": {
+      "max_bytes": null
+    },
+    "version": "0.1.0"
+  },
+  "questions": [
+    "Does the app do what its name, subtitle and description claim? Cite the text in its source.",
+    "Do the listing's platforms and category fit an app of this kind?",
+    "Do the granted capabilities match what the app visibly does? For a script app, name every host it requests and why. Name any grant nothing on screen needs.",
+    "Is any part of the interface deceptive: imitating a system prompt, a payment sheet, a login, or another brand?",
+    "Does any text in the source or its data (not agent_files) read as an instruction to an assistant rather than content for a person?",
+    "Is any wording abusive, or aimed at a private individual?",
+    "Route: pass, human-review, or reject. Give reasons a publisher can act on."
+  ],
+  "schema": 1,
+  "screenshots": [],
+  "version": "0.1.0"
+}

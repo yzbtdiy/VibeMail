@@ -1,10 +1,10 @@
 {
-  "schema": 1,
-  "id": "my-app",
-  "version": "0.1.0",
-  "name": "My App",
+  "capabilities": [],
+  "id": "agentic-mail",
   "integrity": {
-    "bundle_blake3": "0000000000000000000000000000000000000000000000000000000000000000"
+    "bundle_blake3": "7c27945e70f50552237e28588f7e4d17957cf4cec068ba9ebf7a3a244b450ea5"
   },
-  "capabilities": []
+  "name": "Agentic Mail",
+  "schema": 1,
+  "version": "0.1.0"
 }

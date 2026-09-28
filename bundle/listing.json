@@ -1,18 +1,18 @@
 {
   "schema": 1,
-  "subtitle": "Replace with your app's short description",
-  "description": "Replace with what your app does and who it helps.",
-  "category": "utilities",
-  "keywords": [],
+  "subtitle": "智能摘要收件箱速览",
+  "description": "智能邮件以摘要速览呈现你的收件箱:每封邮件的发件人、主题、由智能助手撰写的摘要、到达时间与重要程度。数据为主机解析的模拟数据;卡片仅负责呈现,不申请任何能力。(English: Agentic Mail shows an agent-summarised inbox digest — sender, subject, an agent-written summary, arrival time and importance per message, from host-resolved mock data; the card is presentation only.)",
+  "category": "productivity",
+  "keywords": ["mail", "digest", "summary", "agent"],
   "screenshots": ["screenshots/01-main.png"],
   "icon": "assets/icon.svg",
-  "platforms": ["android"],
+  "platforms": ["windows"],
   "publisher": {
-    "name": "Replace with your publisher name",
-    "support": "https://example.com/support",
-    "privacy_policy_url": "https://example.com/privacy"
+    "name": "yzbtdiy",
+    "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
+    "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
   },
-  "release_notes": "Replace with the changes in this version.",
+  "release_notes": "首次发布:中文摘要速览卡片,展示智能助手的邮件摘要布局。",
   "age_rating": "all",
   "license": "Apache-2.0"
 }
