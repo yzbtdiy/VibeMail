@@ -2,7 +2,7 @@
   "capabilities": [],
   "id": "agentic-mail",
   "integrity": {
-    "bundle_blake3": "10ea8784cccf5b2af71951305915e6542a07a3ac4e4efe6884ce49d5de18cce2"
+    "bundle_blake3": "932bb9cccea041ad3d0d908e6de6de071eda3b73ee172f61785a78de97a805c7"
   },
   "name": "Agentic Mail",
   "schema": 1,

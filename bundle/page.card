@@ -4,15 +4,11 @@
 #
 # Agentic Mail — an agent-summarised inbox digest card. All data is
 # host-resolved mock data (page.data.json); the card is presentation only
-# and declares no capabilities. Importance rides beside the arrival time,
-# because the helper's field catalog is closed (id, title, summary,
-# publisher, url, published_at).
-#
-# Rows read their fields directly in the loop body (like the magazine
-# reference card): a component holding a source record as a prop lowers
-# to a live host call, which the offline checked VM cannot make.
+# and declares no capabilities. The source carries no query selector, so
+# the lowering keeps the seeded literals the offline checked VM can
+# evaluate; importance rides beside the arrival time in the mock rows.
 
-source digest sys.news_digest(query: "inbox", count: 3,
+source digest sys.news_digest(count: 3,
                                fields: [id, title, summary, publisher, published_at])
 
 copy brand    { class: vocabulary, en: "AGENTIC MAIL", zh: "智能邮件" }
@@ -32,7 +28,7 @@ view header Col(gap: 4) {
 
 view list Col(gap: 4) {
   Panel {
-    for m, i in digest key m.id {
+    for m in digest key m.id {
       Card {
         TextRow(text: m.title, width: .fill)
         TextCaption(text: m.publisher)

@@ -25,7 +25,7 @@
       }
     ]
   },
-  "card_source": "# ledger agentic-mail@0.1.0\n# level:   L0\n# profile: ui/l0\n#\n# Agentic Mail — an agent-summarised inbox digest card. All data is\n# host-resolved mock data (page.data.json); the card is presentation only\n# and declares no capabilities. Importance rides beside the arrival time,\n# because the helper's field catalog is closed (id, title, summary,\n# publisher, url, published_at).\n#\n# Rows read their fields directly in the loop body (like the magazine\n# reference card): a component holding a source record as a prop lowers\n# to a live host call, which the offline checked VM cannot make.\n\nsource digest sys.news_digest(query: \"inbox\", count: 3,\n                               fields: [id, title, summary, publisher, published_at])\n\ncopy brand    { class: vocabulary, en: \"AGENTIC MAIL\", zh: \"智能邮件\" }\ncopy masthead { class: vocabulary, en: \"Inbox digest\", zh: \"收件箱摘要\" }\ncopy ai_note  { class: vocabulary, en: \"Summarised by your agent\", zh: \"由智能助手摘要\" }\n\nview root Surface(pad: .page) {\n  header\n  list\n  footnote\n}\n\nview header Col(gap: 4) {\n  TextEyebrow(text: copy.brand)\n  TextTitle(text: copy.masthead)\n}\n\nview list Col(gap: 4) {\n  Panel {\n    for m, i in digest key m.id {\n      Card {\n        TextRow(text: m.title, width: .fill)\n        TextCaption(text: m.publisher)\n        TextBody(text: m.summary, width: .fill)\n        TextCaption(text: m.published_at)\n      }\n    }\n  }\n}\n\nview footnote Row(gap: 6) {\n  TextCaption(text: copy.ai_note)\n}\n",
+  "card_source": "# ledger agentic-mail@0.1.0\n# level:   L0\n# profile: ui/l0\n#\n# Agentic Mail — an agent-summarised inbox digest card. All data is\n# host-resolved mock data (page.data.json); the card is presentation only\n# and declares no capabilities. The source carries no query selector, so\n# the lowering keeps the seeded literals the offline checked VM can\n# evaluate; importance rides beside the arrival time in the mock rows.\n\nsource digest sys.news_digest(count: 3,\n                               fields: [id, title, summary, publisher, published_at])\n\ncopy brand    { class: vocabulary, en: \"AGENTIC MAIL\", zh: \"智能邮件\" }\ncopy masthead { class: vocabulary, en: \"Inbox digest\", zh: \"收件箱摘要\" }\ncopy ai_note  { class: vocabulary, en: \"Summarised by your agent\", zh: \"由智能助手摘要\" }\n\nview root Surface(pad: .page) {\n  header\n  list\n  footnote\n}\n\nview header Col(gap: 4) {\n  TextEyebrow(text: copy.brand)\n  TextTitle(text: copy.masthead)\n}\n\nview list Col(gap: 4) {\n  Panel {\n    for m in digest key m.id {\n      Card {\n        TextRow(text: m.title, width: .fill)\n        TextCaption(text: m.publisher)\n        TextBody(text: m.summary, width: .fill)\n        TextCaption(text: m.published_at)\n      }\n    }\n  }\n}\n\nview footnote Row(gap: 6) {\n  TextCaption(text: copy.ai_note)\n}\n",
   "entry": "page.card",
   "grants": [
     "Draw its screens, and nothing else"
@@ -66,7 +66,7 @@
     },
     "id": "agentic-mail",
     "integrity": {
-      "bundle_blake3": "10ea8784cccf5b2af71951305915e6542a07a3ac4e4efe6884ce49d5de18cce2",
+      "bundle_blake3": "932bb9cccea041ad3d0d908e6de6de071eda3b73ee172f61785a78de97a805c7",
       "signature": null
     },
     "name": "Agentic Mail",
