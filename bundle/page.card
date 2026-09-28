@@ -1,0 +1,48 @@
+# ledger agentic-mail@0.1.0
+# level:   L0
+# profile: ui/l0
+#
+# Agentic Mail — an agent-summarised inbox digest card. All data is
+# host-resolved mock data (page.data.json); the card is presentation only
+# and declares no capabilities. Importance rides beside the arrival time,
+# because the helper's field catalog is closed (id, title, summary,
+# publisher, url, published_at).
+#
+# Rows read their fields directly in the loop body (like the magazine
+# reference card): a component holding a source record as a prop lowers
+# to a live host call, which the offline checked VM cannot make.
+
+source digest sys.news_digest(query: "inbox", count: 3,
+                               fields: [id, title, summary, publisher, published_at])
+
+copy brand    { class: vocabulary, en: "AGENTIC MAIL", zh: "智能邮件" }
+copy masthead { class: vocabulary, en: "Inbox digest", zh: "收件箱摘要" }
+copy ai_note  { class: vocabulary, en: "Summarised by your agent", zh: "由智能助手摘要" }
+
+view root Surface(pad: .page) {
+  header
+  list
+  footnote
+}
+
+view header Col(gap: 4) {
+  TextEyebrow(text: copy.brand)
+  TextTitle(text: copy.masthead)
+}
+
+view list Col(gap: 4) {
+  Panel {
+    for m, i in digest key m.id {
+      Card {
+        TextRow(text: m.title, width: .fill)
+        TextCaption(text: m.publisher)
+        TextBody(text: m.summary, width: .fill)
+        TextCaption(text: m.published_at)
+      }
+    }
+  }
+}
+
+view footnote Row(gap: 6) {
+  TextCaption(text: copy.ai_note)
+}

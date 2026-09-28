@@ -1,0 +1,25 @@
+{
+  "digest": [
+    {
+      "id": "m1",
+      "title": "Q3 revenue review — deck attached",
+      "summary": "Finance closed Q3 at 104% of plan. Two risks are flagged for the board pack; both need your sign-off before Friday.",
+      "publisher": "CFO Weekly",
+      "published_at": "★ High · Today 09:12"
+    },
+    {
+      "id": "m2",
+      "title": "Deploy window moved to 22:00",
+      "summary": "Tonight's release shifts two hours for database maintenance; no action needed unless you are on call.",
+      "publisher": "Platform Team",
+      "published_at": "Normal · Today 08:47"
+    },
+    {
+      "id": "m3",
+      "title": "Weekly interface studies",
+      "summary": "Three articles on glance-screen typography and two case studies of digest-style layouts.",
+      "publisher": "Design Guild",
+      "published_at": "Low · Yesterday"
+    }
+  ]
+}
