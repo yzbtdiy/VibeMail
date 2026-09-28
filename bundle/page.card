@@ -8,66 +8,35 @@
 # the lowering keeps the seeded literals the offline checked VM can
 # evaluate.
 #
-# Visual redesign per blackboard Addendum to #3 (2026-09-28 20:20):
-# one hierarchy (a hero mail + compact secondary rows), an explicit agent
-# identity (✦ signature line, "已为你筛选" triage data), importance colour
-# coding on the hero (tint: .amber), and every user-visible string in
-# Simplified Chinese with both locale slots carrying the same text.
+# Visual redesign per blackboard Addendum to #3 (2026-09-28 20:20),
+# measured against the 350x160 glance tile with card-studio: v1 (310pt)
+# and v2 (173pt) both overflowed, so the brand eyebrow merged into the
+# agent line. The hero mail row leads the card, importance coding rides
+# the hero's timestamp, secondary mails are compact rows, and every
+# user-visible string is Simplified Chinese in both locale slots.
 
 source digest sys.news_digest(count: 3,
                                fields: [id, title, summary, publisher, published_at])
 
-copy brand    { class: vocabulary, en: "智能邮件", zh: "智能邮件" }
-copy masthead { class: vocabulary, en: "收件箱摘要", zh: "收件箱摘要" }
-copy ai_sign  { class: vocabulary, en: "✦ 由 AI 助手筛选并摘要", zh: "✦ 由 AI 助手筛选并摘要" }
-copy ai_stats { class: vocabulary, en: "已为你筛选 3/12 封 · 按重要度排序", zh: "已为你筛选 3/12 封 · 按重要度排序" }
+copy ai_line  { class: vocabulary, en: "智能邮件 ✦ 已为你筛选 3/12 封 · 按重要度排序", zh: "智能邮件 ✦ 已为你筛选 3/12 封 · 按重要度排序" }
 
 view root Surface(pad: .page) {
-  header
-  triage
-  hero
-  rest
-}
-
-view header Col(gap: 4) {
-  TextEyebrow(text: copy.brand)
-  TextTitle(text: copy.masthead)
-}
-
-# The agent's own visible presence: a signature line plus the triage data
-# of what it did (how many mails screened, ordered by importance).
-view triage Col(gap: 2) {
-  Row(gap: 6) {
-    TextCaption(text: copy.ai_sign)
-  }
-  TextCaption(text: copy.ai_stats)
-}
-
-# The single headline mail: large title, full summary, sender badge,
-# importance colour coding via the hero card's amber tint.
-view hero Card(tint: .amber) {
   Row(gap: 10) {
     Avatar(text: "财")
     Col(gap: 3) {
       TextRow(text: digest.0.title, width: .fill)
-      TextCaption(text: digest.0.published_at)
+      TextCaption(text: digest.0.publisher)
     }
+    TextCaption(text: digest.0.published_at)
   }
-  TextBody(text: digest.0.summary, width: .fill)
-}
-
-# Secondary mails: compact rows, clearly lower weight than the hero.
-view rest Col(gap: 4) {
-  Panel {
-    for m, i in digest key m.id {
-      when i > 0 {
-        Row(gap: 8) {
-          TextCaption(text: m.published_at, width: .label)
-          Col(gap: 2) {
-            TextRow(text: m.title, width: .fill)
-            TextCaption(text: m.publisher)
-          }
-        }
+  TextCaption(text: copy.ai_line)
+  Rule()
+  for m, i in digest key m.id {
+    when i > 0 {
+      Row(gap: 8) {
+        TextCaption(text: m.published_at, width: .label)
+        TextRow(text: m.title, width: .fill)
+        TextCaption(text: m.publisher)
       }
     }
   }
