@@ -1,18 +1,18 @@
 {
   "schema": 1,
-  "subtitle": "Replace with your app's short description",
-  "description": "Replace with what your app does and who it helps.",
-  "category": "utilities",
-  "keywords": [],
+  "subtitle": "Agent-summarised inbox digest",
+  "description": "Agentic Mail shows an intelligent digest of your inbox: sender, subject, an agent-written summary, arrival time and importance for each message. Data is host-resolved mock data; the card is presentation only and asks for no capabilities.",
+  "category": "productivity",
+  "keywords": ["mail", "digest", "summary", "agent"],
   "screenshots": ["screenshots/01-main.png"],
   "icon": "assets/icon.svg",
-  "platforms": ["android"],
+  "platforms": ["windows"],
   "publisher": {
-    "name": "Replace with your publisher name",
-    "support": "https://example.com/support",
-    "privacy_policy_url": "https://example.com/privacy"
+    "name": "yzbtdiy",
+    "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
+    "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
   },
-  "release_notes": "Replace with the changes in this version.",
+  "release_notes": "Initial release: mock inbox digest card with agent-summary layout.",
   "age_rating": "all",
   "license": "Apache-2.0"
 }
