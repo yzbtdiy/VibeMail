@@ -4,28 +4,28 @@
     "digest": [
       {
         "id": "m1",
-        "published_at": "★ High · Today 09:12",
-        "publisher": "CFO Weekly",
-        "summary": "Finance closed Q3 at 104% of plan. Two risks are flagged for the board pack; both need your sign-off before Friday.",
-        "title": "Q3 revenue review — deck attached"
+        "published_at": "★ 高 · 今天 09:12",
+        "publisher": "财务周报",
+        "summary": "财务确认第三季度达成计划的 104%。汇报包中标出了两项风险,均需你在周五前签署确认。",
+        "title": "三季度营收复核——附件含汇报材料"
       },
       {
         "id": "m2",
-        "published_at": "Normal · Today 08:47",
-        "publisher": "Platform Team",
-        "summary": "Tonight's release shifts two hours for database maintenance; no action needed unless you are on call.",
-        "title": "Deploy window moved to 22:00"
+        "published_at": "普通 · 今天 08:47",
+        "publisher": "平台团队",
+        "summary": "今晚的发布因数据库维护推迟两小时;除非你在值班,否则无需任何操作。",
+        "title": "发布窗口调整至 22:00"
       },
       {
         "id": "m3",
-        "published_at": "Low · Yesterday",
-        "publisher": "Design Guild",
-        "summary": "Three articles on glance-screen typography and two case studies of digest-style layouts.",
-        "title": "Weekly interface studies"
+        "published_at": "低 · 昨天",
+        "publisher": "设计公会",
+        "summary": "三篇关于锁屏排版字体的文章,以及两个摘要式信息流布局的案例研究。",
+        "title": "每周界面研究摘要"
       }
     ]
   },
-  "card_source": "# ledger agentic-mail@0.1.0\n# level:   L0\n# profile: ui/l0\n#\n# Agentic Mail — an agent-summarised inbox digest card. All data is\n# host-resolved mock data (page.data.json); the card is presentation only\n# and declares no capabilities. The source carries no query selector, so\n# the lowering keeps the seeded literals the offline checked VM can\n# evaluate; importance rides beside the arrival time in the mock rows.\n\nsource digest sys.news_digest(count: 3,\n                               fields: [id, title, summary, publisher, published_at])\n\ncopy brand    { class: vocabulary, en: \"AGENTIC MAIL\", zh: \"智能邮件\" }\ncopy masthead { class: vocabulary, en: \"Inbox digest\", zh: \"收件箱摘要\" }\ncopy ai_note  { class: vocabulary, en: \"Summarised by your agent\", zh: \"由智能助手摘要\" }\n\nview root Surface(pad: .page) {\n  header\n  list\n  footnote\n}\n\nview header Col(gap: 4) {\n  TextEyebrow(text: copy.brand)\n  TextTitle(text: copy.masthead)\n}\n\nview list Col(gap: 4) {\n  Panel {\n    for m in digest key m.id {\n      Card {\n        TextRow(text: m.title, width: .fill)\n        TextCaption(text: m.publisher)\n        TextBody(text: m.summary, width: .fill)\n        TextCaption(text: m.published_at)\n      }\n    }\n  }\n}\n\nview footnote Row(gap: 6) {\n  TextCaption(text: copy.ai_note)\n}\n",
+  "card_source": "# ledger agentic-mail@0.1.0\n# level:   L0\n# profile: ui/l0\n#\n# Agentic Mail — an agent-summarised inbox digest card. All data is\n# host-resolved mock data (page.data.json); the card is presentation only\n# and declares no capabilities. The source carries no query selector, so\n# the lowering keeps the seeded literals the offline checked VM can\n# evaluate. Per Addendum #3 every user-visible string is Simplified\n# Chinese: the vocabulary entries fill BOTH locale slots with the same\n# Chinese text, so the card renders Chinese regardless of host locale.\n\nsource digest sys.news_digest(count: 3,\n                               fields: [id, title, summary, publisher, published_at])\n\ncopy brand    { class: vocabulary, en: \"智能邮件\", zh: \"智能邮件\" }\ncopy masthead { class: vocabulary, en: \"收件箱摘要\", zh: \"收件箱摘要\" }\ncopy ai_note  { class: vocabulary, en: \"由智能助手摘要生成\", zh: \"由智能助手摘要生成\" }\n\nview root Surface(pad: .page) {\n  header\n  list\n  footnote\n}\n\nview header Col(gap: 4) {\n  TextEyebrow(text: copy.brand)\n  TextTitle(text: copy.masthead)\n}\n\nview list Col(gap: 4) {\n  Panel {\n    for m in digest key m.id {\n      Card {\n        TextRow(text: m.title, width: .fill)\n        TextCaption(text: m.publisher)\n        TextBody(text: m.summary, width: .fill)\n        TextCaption(text: m.published_at)\n      }\n    }\n  }\n}\n\nview footnote Row(gap: 6) {\n  TextCaption(text: copy.ai_note)\n}\n",
   "entry": "page.card",
   "grants": [
     "Draw its screens, and nothing else"
@@ -33,7 +33,7 @@
   "listing": {
     "age_rating": "all",
     "category": "productivity",
-    "description": "Agentic Mail shows an intelligent digest of your inbox: sender, subject, an agent-written summary, arrival time and importance for each message. Data is host-resolved mock data; the card is presentation only and asks for no capabilities.",
+    "description": "智能邮件以摘要速览呈现你的收件箱:每封邮件的发件人、主题、由智能助手撰写的摘要、到达时间与重要程度。数据为主机解析的模拟数据;卡片仅负责呈现,不申请任何能力。(English: Agentic Mail shows an agent-summarised inbox digest — sender, subject, an agent-written summary, arrival time and importance per message, from host-resolved mock data; the card is presentation only.)",
     "icon": "assets/icon.svg",
     "keywords": [
       "mail",
@@ -50,12 +50,12 @@
       "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md",
       "support": "https://github.com/yzbtdiy/agentic-mail-card/issues"
     },
-    "release_notes": "Initial release: mock inbox digest card with agent-summary layout.",
+    "release_notes": "首次发布:中文摘要速览卡片,展示智能助手的邮件摘要布局。",
     "schema": 1,
     "screenshots": [
       "screenshots/01-main.png"
     ],
-    "subtitle": "Agent-summarised inbox digest"
+    "subtitle": "智能摘要收件箱速览"
   },
   "manifest": {
     "agent": null,
@@ -66,7 +66,7 @@
     },
     "id": "agentic-mail",
     "integrity": {
-      "bundle_blake3": "932bb9cccea041ad3d0d908e6de6de071eda3b73ee172f61785a78de97a805c7",
+      "bundle_blake3": "9b44270538fbd74a41b570a23a7b6ccd1d01fd719f558af0e7be9439f643ffed",
       "signature": null
     },
     "name": "Agentic Mail",

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "subtitle": "Agent-summarised inbox digest",
-  "description": "Agentic Mail shows an intelligent digest of your inbox: sender, subject, an agent-written summary, arrival time and importance for each message. Data is host-resolved mock data; the card is presentation only and asks for no capabilities.",
+  "subtitle": "智能摘要收件箱速览",
+  "description": "智能邮件以摘要速览呈现你的收件箱:每封邮件的发件人、主题、由智能助手撰写的摘要、到达时间与重要程度。数据为主机解析的模拟数据;卡片仅负责呈现,不申请任何能力。(English: Agentic Mail shows an agent-summarised inbox digest — sender, subject, an agent-written summary, arrival time and importance per message, from host-resolved mock data; the card is presentation only.)",
   "category": "productivity",
   "keywords": ["mail", "digest", "summary", "agent"],
   "screenshots": ["screenshots/01-main.png"],
@@ -12,7 +12,7 @@
     "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
     "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
   },
-  "release_notes": "Initial release: mock inbox digest card with agent-summary layout.",
+  "release_notes": "首次发布:中文摘要速览卡片,展示智能助手的邮件摘要布局。",
   "age_rating": "all",
   "license": "Apache-2.0"
 }

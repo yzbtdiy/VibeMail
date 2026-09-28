@@ -6,14 +6,16 @@
 # host-resolved mock data (page.data.json); the card is presentation only
 # and declares no capabilities. The source carries no query selector, so
 # the lowering keeps the seeded literals the offline checked VM can
-# evaluate; importance rides beside the arrival time in the mock rows.
+# evaluate. Per Addendum #3 every user-visible string is Simplified
+# Chinese: the vocabulary entries fill BOTH locale slots with the same
+# Chinese text, so the card renders Chinese regardless of host locale.
 
 source digest sys.news_digest(count: 3,
                                fields: [id, title, summary, publisher, published_at])
 
-copy brand    { class: vocabulary, en: "AGENTIC MAIL", zh: "智能邮件" }
-copy masthead { class: vocabulary, en: "Inbox digest", zh: "收件箱摘要" }
-copy ai_note  { class: vocabulary, en: "Summarised by your agent", zh: "由智能助手摘要" }
+copy brand    { class: vocabulary, en: "智能邮件", zh: "智能邮件" }
+copy masthead { class: vocabulary, en: "收件箱摘要", zh: "收件箱摘要" }
+copy ai_note  { class: vocabulary, en: "由智能助手摘要生成", zh: "由智能助手摘要生成" }
 
 view root Surface(pad: .page) {
   header
