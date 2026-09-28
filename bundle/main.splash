@@ -112,7 +112,7 @@ fn read_screen(m){
             }
         }
         Label{width: Fill text: m.subject draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 17}}
-        Markdown{width: Fill text: m.body draw_text.color: ink}
+        Label{width: Fill text: m.body draw_text.color: ink draw_text.text_style.font_size: 14}
         ai_summary(m)
         View{width: Fill height: Fit flow: Right spacing: 8 padding: Inset{top: 4}
             ButtonFlat{width: Fill text: "回复" on_click: || go("write")
