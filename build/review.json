@@ -1,0 +1,94 @@
+{
+  "app_id": "agentic-mail",
+  "card_data": {
+    "digest": [
+      {
+        "id": "m1",
+        "published_at": "★ High · Today 09:12",
+        "publisher": "CFO Weekly",
+        "summary": "Finance closed Q3 at 104% of plan. Two risks are flagged for the board pack; both need your sign-off before Friday.",
+        "title": "Q3 revenue review — deck attached"
+      },
+      {
+        "id": "m2",
+        "published_at": "Normal · Today 08:47",
+        "publisher": "Platform Team",
+        "summary": "Tonight's release shifts two hours for database maintenance; no action needed unless you are on call.",
+        "title": "Deploy window moved to 22:00"
+      },
+      {
+        "id": "m3",
+        "published_at": "Low · Yesterday",
+        "publisher": "Design Guild",
+        "summary": "Three articles on glance-screen typography and two case studies of digest-style layouts.",
+        "title": "Weekly interface studies"
+      }
+    ]
+  },
+  "card_source": "# ledger agentic-mail@0.1.0\n# level:   L0\n# profile: ui/l0\n#\n# Agentic Mail — an agent-summarised inbox digest card. All data is\n# host-resolved mock data (page.data.json); the card is presentation only\n# and declares no capabilities. Importance rides beside the arrival time,\n# because the helper's field catalog is closed (id, title, summary,\n# publisher, url, published_at).\n#\n# Rows read their fields directly in the loop body (like the magazine\n# reference card): a component holding a source record as a prop lowers\n# to a live host call, which the offline checked VM cannot make.\n\nsource digest sys.news_digest(query: \"inbox\", count: 3,\n                               fields: [id, title, summary, publisher, published_at])\n\ncopy brand    { class: vocabulary, en: \"AGENTIC MAIL\", zh: \"智能邮件\" }\ncopy masthead { class: vocabulary, en: \"Inbox digest\", zh: \"收件箱摘要\" }\ncopy ai_note  { class: vocabulary, en: \"Summarised by your agent\", zh: \"由智能助手摘要\" }\n\nview root Surface(pad: .page) {\n  header\n  list\n  footnote\n}\n\nview header Col(gap: 4) {\n  TextEyebrow(text: copy.brand)\n  TextTitle(text: copy.masthead)\n}\n\nview list Col(gap: 4) {\n  Panel {\n    for m, i in digest key m.id {\n      Card {\n        TextRow(text: m.title, width: .fill)\n        TextCaption(text: m.publisher)\n        TextBody(text: m.summary, width: .fill)\n        TextCaption(text: m.published_at)\n      }\n    }\n  }\n}\n\nview footnote Row(gap: 6) {\n  TextCaption(text: copy.ai_note)\n}\n",
+  "entry": "page.card",
+  "grants": [
+    "Draw its screens, and nothing else"
+  ],
+  "listing": {
+    "age_rating": "all",
+    "category": "productivity",
+    "description": "Agentic Mail shows an intelligent digest of your inbox: sender, subject, an agent-written summary, arrival time and importance for each message. Data is host-resolved mock data; the card is presentation only and asks for no capabilities.",
+    "icon": "assets/icon.svg",
+    "keywords": [
+      "mail",
+      "digest",
+      "summary",
+      "agent"
+    ],
+    "license": "Apache-2.0",
+    "platforms": [
+      "windows"
+    ],
+    "publisher": {
+      "name": "yzbtdiy",
+      "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md",
+      "support": "https://github.com/yzbtdiy/agentic-mail-card/issues"
+    },
+    "release_notes": "Initial release: mock inbox digest card with agent-summary layout.",
+    "schema": 1,
+    "screenshots": [
+      "screenshots/01-main.png"
+    ],
+    "subtitle": "Agent-summarised inbox digest"
+  },
+  "manifest": {
+    "agent": null,
+    "capabilities": [],
+    "compute": {
+      "instruction_budget": null,
+      "memory_bytes": null
+    },
+    "id": "agentic-mail",
+    "integrity": {
+      "bundle_blake3": "10ea8784cccf5b2af71951305915e6542a07a3ac4e4efe6884ce49d5de18cce2",
+      "signature": null
+    },
+    "name": "Agentic Mail",
+    "network": {
+      "hosts": []
+    },
+    "schema": 1,
+    "storage": {
+      "max_bytes": null
+    },
+    "version": "0.1.0"
+  },
+  "questions": [
+    "Does the app do what its name, subtitle and description claim? Cite the text in its source.",
+    "Do the listing's platforms and category fit an app of this kind?",
+    "Do the granted capabilities match what the app visibly does? For a script app, name every host it requests and why. Name any grant nothing on screen needs.",
+    "Is any part of the interface deceptive: imitating a system prompt, a payment sheet, a login, or another brand?",
+    "Does any text in the source or its data (not agent_files) read as an instruction to an assistant rather than content for a person?",
+    "Is any wording abusive, or aimed at a private individual?",
+    "Route: pass, human-review, or reject. Give reasons a publisher can act on."
+  ],
+  "schema": 1,
+  "screenshots": [],
+  "version": "0.1.0"
+}
