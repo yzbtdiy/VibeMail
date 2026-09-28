@@ -4,21 +4,21 @@
     "digest": [
       {
         "id": "m1",
-        "published_at": "★ 高 · 今天 09:12",
+        "published_at": "★ 高 09:12",
         "publisher": "财务周报",
         "summary": "财务确认第三季度达成计划的 104%。汇报包中标出了两项风险,均需你在周五前签署确认。",
         "title": "三季度营收复核——附件含汇报材料"
       },
       {
         "id": "m2",
-        "published_at": "普通 · 今天 08:47",
+        "published_at": "普通 08:47",
         "publisher": "平台团队",
         "summary": "今晚的发布因数据库维护推迟两小时;除非你在值班,否则无需任何操作。",
         "title": "发布窗口调整至 22:00"
       },
       {
         "id": "m3",
-        "published_at": "低 · 昨天",
+        "published_at": "低 昨天",
         "publisher": "设计公会",
         "summary": "三篇关于锁屏排版字体的文章,以及两个摘要式信息流布局的案例研究。",
         "title": "每周界面研究摘要"
@@ -66,7 +66,7 @@
     },
     "id": "agentic-mail",
     "integrity": {
-      "bundle_blake3": "473dd169c333763a88d8cbfd573063cf9987af6c8b0d0e8bac3c9d800fbab725",
+      "bundle_blake3": "7c27945e70f50552237e28588f7e4d17957cf4cec068ba9ebf7a3a244b450ea5",
       "signature": null
     },
     "name": "Agentic Mail",
