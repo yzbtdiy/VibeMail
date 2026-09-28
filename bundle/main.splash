@@ -8,24 +8,42 @@ let screen = "inbox"          // inbox | read | write | todo
 let current = 0               // index of the mail being read
 
 let mails = [
-    {who: "财务周报" mono: "财" hue: 0.09 imp: "高" time: "09:12"
+    {who: "财务周报" mono: "财" hue: 0.09 imp: "高" time: "09:12" unread: true
      subject: "三季度营收复核——附件含汇报材料"
      preview: "财务确认第三季度达成计划的 104%。"
      body: "各位好:\n\n附上三季度营收复核材料。本季度营收达成计划的 104%,主要由企业级续约与两个新行业客户贡献。\n\n材料中标出了两项风险:其一,大客户集中度进一步上升;其二,回款周期较上季度延长 5 天。\n\n两项风险均需管理层在周五董事会前给出处置意见,详见材料第 4 页。"
      points: ["营收达成计划的 104%,企业续约为主要贡献", "大客户集中度上升,为第一风险项", "回款周期延长 5 天,需财务跟进", "两项风险需周五董事会前签署意见"]
      action: "建议行动:周五前审阅第 4 页风险处置页并签署意见。"}
-    {who: "平台团队" mono: "平" hue: 0.58 imp: "普通" time: "08:47"
+    {who: "平台团队" mono: "平" hue: 0.58 imp: "普通" time: "08:47" unread: false
      subject: "发布窗口调整至 22:00"
      preview: "今晚的发布因数据库维护推迟两小时。"
      body: "团队:\n\n今晚的发布窗口因数据库主从切换维护,由 20:00 调整至 22:00。变更单已审批,值班表不变。\n\n除非你在值班,否则无需任何操作;次日早晨的冒烟测试照常进行。"
      points: ["发布窗口 20:00 → 22:00,推迟两小时", "原因是数据库主从切换维护", "值班安排不变,无需额外操作"]
      action: "建议行动:值班同学确认 22:00 在线即可。"}
-    {who: "设计公会" mono: "设" hue: 0.78 imp: "低" time: "昨天"
+    {who: "设计公会" mono: "设" hue: 0.78 imp: "低" time: "昨天" unread: false
      subject: "每周界面研究摘要"
      preview: "三篇锁屏排版文章与两个摘要式布局案例。"
      body: "本周精选:\n\n1. 锁屏排版字体的可读性研究(3 篇);\n2. 摘要式信息流布局的两个案例研究;\n3. 下周讨论主题:重要度色彩编码的语义一致性。"
      points: ["锁屏排版字体研究 3 篇", "摘要式信息流布局案例 2 个", "下周主题:重要度色彩语义"]
      action: "建议行动:有兴趣可标记下周讨论。"}
+    {who: "IT 支持" mono: "I" hue: 0.68 imp: "高" time: "10:05" unread: true
+     subject: "VPN 证书今晚轮换"
+     preview: "旧证书 23:00 失效,请及时更新客户端。"
+     body: "全体:\n\nVPN 根证书今晚 23:00 起轮换,旧证书将失效。请在此之前打开客户端完成自动更新;出差同事建议提前一小时操作。\n\n如遇握手失败,重新导入附件中的根证书即可。"
+     points: ["VPN 根证书 23:00 轮换", "旧证书届时失效,客户端需更新", "出差同事建议提前一小时"]
+     action: "建议行动:今晚 22:00 前更新客户端。"}
+    {who: "客服中心" mono: "客" hue: 0.32 imp: "普通" time: "08:12" unread: false
+     subject: "会员权益续期提醒"
+     preview: "企业会员权益将于月底到期,续期享 9 折。"
+     body: "您好:\n\n贵司企业会员权益将于本月 30 日到期。本周期内续期可享 9 折优惠,并保留历史工单优先通道。\n\n如需发票抬头变更,请在续期时一并备注。"
+     points: ["会员权益本月 30 日到期", "续期享 9 折并保留优先通道", "发票变更需随续期备注"]
+     action: "建议行动:本周内决定是否续期。"}
+    {who: "市场部" mono: "市" hue: 0.02 imp: "低" time: "周一" unread: false
+     subject: "品牌升级方案初稿"
+     preview: "三套视觉方向初稿,附对比说明。"
+     body: "团队:\n\n品牌升级初稿已完成三套视觉方向:稳健延续、锐意对比、柔和过渡。每套含主色、字阶与图标样式的对比说明。\n\n下周例会逐套评审,欢迎提前批注。"
+     points: ["三套视觉方向初稿已完成", "每套含主色/字阶/图标对比", "下周例会逐套评审"]
+     action: "建议行动:会前完成初步倾向标注。"}
 ]
 
 let draft_input = ""          // what the user tells the AI to write
@@ -93,15 +111,16 @@ fn mail_row(i){
     GestureView{width: Fill height: Fit padding: Inset{top: 10 bottom: 10} on_tap: |x, y| open_mail(i)
         View{width: Fill height: Fit flow: Right spacing: 12 align: Align{y: 0.5}
             RoundedView{width: 46 height: 46 draw_bg +: {color: mono_color(m) border_radius: 23.0} align: Align{x: 0.5 y: 0.5}
-                Label{text: m.mono draw_text.color: #xffffffff draw_text.text_style.font_size: 17}
+                Label{text: m.mono draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: 17}}
             }
             View{width: Fill height: Fit flow: Down spacing: 3
                 View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                if m.unread { RoundedView{width: 8 height: 8 draw_bg +: {color: blue border_radius: 4.0} } }
                     Label{text: m.who draw_text.color: ink draw_text.text_style.font_size: 14}
                     imp_tag(m)
-                    Label{width: Fill text: m.time draw_text.color: faint draw_text.text_style.font_size: 11}
+                    Label{width: Fill text: m.time draw_text.color: pick(m.unread, ink, faint) draw_text.text_style.font_size: 11}
                 }
-                Label{width: Fill text: m.subject draw_text.color: ink draw_text.text_style.font_size: 13}
+                Label{width: Fill text: m.subject draw_text.color: pick(m.unread, ink, dim) draw_text.text_style: pick(m.unread, theme.font_bold{font_size: 13}, theme.font_regular{font_size: 13})}
                 Label{width: Fill text: m.preview draw_text.color: dim draw_text.text_style.font_size: 12}
             }
         }
