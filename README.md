@@ -1,33 +1,68 @@
-# Hub app starter
+# Agentic Mail (agentic-mail)
 
 English | [简体中文](README.zh-CN.md)
 
-Copy this directory into a new app repository, following
-[Build your first Hub app](https://github.com/OctoSense-org/OctoSense-App-Hub/blob/main/docs/FIRST-APP.md).
-This is a **metadata scaffold** for a card app, not a runnable or publishable
-demo. Building a script app (`main.splash`)? Use
-`tools/octo new` from
-[OctoScript-App-Design-Flow](https://github.com/OctoSense-org/OctoScript-App-Design-Flow)
-instead of this directory.
+A concept app for the Agentic App Hackathon 2026 (mail scene). Five screens —
+smart inbox, mail reading with an AI summary, AI drafting, follow-up todos and
+profile — implemented as a Splash script app (`bundle/main.splash`) from the
+four reference designs in `source/`, run for real in the App Hub `card-host`,
+driven by real input, captured by real screenshots. The layout follows the
+[OctoScript-App-Design-Flow examples](../OctoScript-App-Design-Flow/examples/README.md)
+conventions (source / artwork / service / scripts / evidence).
 
-Included: schema-1 manifest and complete listing fields, an example SVG icon,
-ignore rules, and agent instructions pointing to the shared authoring guides.
+**Capabilities & data**: the app requests `model` and `mail`.
+`mail`: real sending/receiving goes through the platform's mail host service
+(accounts are added on the host's own sheet; credentials stay in the system
+vault, never in the app); where no service answers (card-host) the banner
+says so and labelled practice data is used. `model`: AI summary and drafting
+go through the one-shot model service (schema-checked, daily per-app budget)
+using the model the person configured; keys never reach the app; fallbacks
+are labelled. Todos are practice data (no-facts rule).
 
-Before publication:
+## Layout
 
-- Replace the app ID/name and all example listing/publisher values. List only
-  platforms actually tested; choose the license for your own app.
-- Replace `bundle/assets/icon.svg` with your app's artwork.
-- Generate and review `bundle/page.card`, optional `page.data.json`, its `kit/`
-  directory and local assets using the image-to-card flow in
-  OctoScript-App-Design-Flow (`flows/image-to-card/FLOW.md`).
-- Run it in the reference host and capture `bundle/screenshots/01-main.png`.
-- Stamp, check, review, sign and submit the completed `bundle/` directory.
+```text
+source/        design sources: design-01..04.png + design-brief.md (palette,
+               per-screen spec, asset mapping, known deviations from the art)
+artwork/       working copies of the SVG assets (shipped copies in bundle/assets/)
+service/       reply-lifecycle reducer (controller.py — the verification twin of
+               the main.splash state machine) + unittest (8 cases)
+bridge/        DEV-ONLY: an IMAP/SMTP <-> loopback HTTP bridge (credentials live
+               only in bridge/config.json, gitignored; 5 parsing unit tests)
+dev/           DEV-ONLY: the bridge adapter that scripts/dev_bundle.py splices
+               over the MARKER:ADAPTER block (never part of the submission)
+scripts/       drive-demo.py — drives the real card-host window over the
+               Makepad remote bridge through the full demo task
+evidence/      run evidence: ev-01..08.png (reply lifecycle), final-snap.json,
+               final-log.txt, hub/ (scan packet + SUBMISSION.md answers),
+               l0-design/ (retired L0 card form), legacy/ (pre-redesign shots)
+bundle/        THE SUBMISSION — main.splash, assets/, listing.json,
+               manifest.json, screenshots/01..05 (hub check PASSED)
+```
 
-The initial digest is a placeholder; `hub stamp` writes the real value.
-The declared screenshot is intentionally missing. A stamped but otherwise
-untouched scaffold must fail `hub check`. Do not add a dummy screenshot just to
-make it pass. The gate does not substitute for native rendering and input tests.
+## Demo task (maps to the judging criteria)
 
-Keep this README, `AGENTS.md`, keys, tools, build output and application data
-outside `bundle/`. The same applies to the generated review packet.
+识别 (AI triage + summary + attachment) → 提议 (editable AI draft, explicit
+recipient, tone chips, quick replies) → 授权 (two-step confirmed send) →
+结果核验 (sent strip in the read view, synced pill in the inbox) → 失败处理
+(practice outage switch: send fails, draft kept, retry succeeds) → 真实模型调用
+(ev-09/ev-10: card-host honestly answers `no service answers "model"` and the
+UI says so; the same button produces real model output in an OctoSense desktop
+Shell built from main ≥ 2026-09-28 with AI providers configured).
+
+## Reproduce (Windows 10 26100 — the only platform tested)
+
+```sh
+python -m unittest discover -s service
+../OctoSense-App-Hub/target/release/card-host.exe --bundle bundle \
+    --app-data .local-state --allow-unsigned --stamp   # MAKEPAD_REMOTE=<port> for the bridge
+python scripts/drive-demo.py <port>
+../OctoSense-App-Hub/target/release/hub.exe check bundle --allow-unsigned
+```
+
+## Status
+
+- `hub check` — `agentic-mail 0.1.0 — PASSED` (unsigned warning only).
+- Remaining human steps (publisher): `hub keygen` → `hub sign-manifest` →
+  `hub check --publisher-key` → tag + open `Submit agentic-mail 0.1.0` on
+  OctoSense-App-Hub with `evidence/hub/SUBMISSION.md` attached.
