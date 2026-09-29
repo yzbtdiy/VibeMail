@@ -1,0 +1,131 @@
+// ---- mail data layer (DEV BRIDGE — development only, never submitted) ----
+// Replaces the official mail-service adapter via scripts/dev_bundle.py.
+// Same globals, same function signatures; fetches the local IMAP/SMTP bridge
+// (bridge/bridge.py) over loopback HTTP. The shipped bundle keeps the
+// host-service version: the store gate refuses http:// literals in source,
+// and the platform's own service is where real IMAP/SMTP belongs in a store
+// app. This overlay exists so the full real-mail flow can run and be captured
+// in card-host on a dev machine.
+let mail_src = "practice"      // practice | live  — where the list came from
+let mail_link = "checking"     // checking | no_service | no_account | error | live
+let link_error = ""
+let account_id = "bridge"
+let account_addr = ""
+let live_total = 0
+
+fn bridge_fetch(method, url, body){
+    let p = promise()
+    let req = net.HttpRequest{url: url method: method}
+    if body != "" {
+        req = net.HttpRequest{url: url method: method
+            headers: {"Content-Type": "application/json"}
+            body: body}
+    }
+    net.http_request(req) do net.HttpEvents{
+        on_response: |res| p.resolve(res)
+        on_error: |err| p.resolve(nil)
+    }
+    return p
+}
+fn mail_check(){
+    let p = bridge_fetch(net.HttpMethod.GET, "http://127.0.0.1:8443/health", "")
+    let res = p.await()
+    if res == nil {
+        mail_link = "no_service"
+        link_error = "网桥未启动 (python bridge/bridge.py)"
+        ui.body.render()
+        return
+    }
+    if res.status_code != 200 {
+        mail_link = "no_service"
+        link_error = "网桥异常 HTTP " + res.status_code
+        ui.body.render()
+        return
+    }
+    let d = res.body.to_string().parse_json()
+    if d == nil {
+        mail_link = "no_service"
+        link_error = "网桥响应无法解析"
+        ui.body.render()
+        return
+    }
+    if d.ready != true {
+        mail_link = "no_account"
+        link_error = d.error
+        ui.body.render()
+        return
+    }
+    account_addr = d.email
+    mail_link = "live"
+    mail_load()
+}
+fn mail_add_account(){
+    // the bridge has no host sheet: configuration lives in bridge/config.json
+    mail_link = "no_account"
+    link_error = "请在 bridge/config.json 填入邮箱授权码并重启网桥"
+    ui.body.render()
+}
+fn live_mail(m){
+    return {src: "live" id: m.id who: m.sender role: domain_of(m.address) address: m.address
+            av: av_for(m.sender) tag: domain_of(m.address) time: m.time unread: m.unread
+            group: "live" muted: false subject: m.subject preview: m.preview body: m.body
+            attach: "" points: [] action: "" quick: []
+            reply: "" reply_text: "" send_error: ""
+            summary_src: "practice" ai_points: [] ai_action: ""}
+}
+fn mail_load(){
+    let p = bridge_fetch(net.HttpMethod.GET, "http://127.0.0.1:8443/list?limit=20", "")
+    let res = p.await()
+    if res == nil { mail_link = "no_service"; link_error = "网桥不可达"; ui.body.render(); return }
+    if res.status_code != 200 {
+        mail_link = "error"
+        link_error = "HTTP " + res.status_code
+        ui.body.render()
+        return
+    }
+    let d = res.body.to_string().parse_json()
+    if d == nil { mail_link = "error"; link_error = "列表解析失败"; ui.body.render(); return }
+    let out = []
+    for i in d.messages.len() {
+        out.push(live_mail(d.messages[i]))
+    }
+    mails = out
+    mail_src = "live"
+    live_total = d.total
+    current = 0
+    ui.body.render()
+}
+fn mail_open_message(i){
+    // the bridge list already carries full bodies; nothing to fetch
+}
+fn mail_mark_read(i){
+    let b = ({id: mails[i].id}).to_json()
+    bridge_fetch(net.HttpMethod.POST, "http://127.0.0.1:8443/mark_read", b)
+}
+fn mail_send_live(i){
+    let m = mails[i]
+    let b = ({to: m.address subject: "回复:" + m.subject body: m.reply_text}).to_json()
+    let p = bridge_fetch(net.HttpMethod.POST, "http://127.0.0.1:8443/send", b)
+    let res = p.await()
+    if res == nil {
+        mails[i].reply = "failed"
+        mails[i].send_error = "网桥不可达"
+        ui.body.render()
+        return
+    }
+    if res.status_code != 200 {
+        mails[i].reply = "failed"
+        mails[i].send_error = "SMTP HTTP " + res.status_code
+        ui.body.render()
+        return
+    }
+    let d = res.body.to_string().parse_json()
+    if d != nil && d.accepted == true {
+        mails[i].reply = "sent"
+    } else {
+        mails[i].reply = "failed"
+        mails[i].send_error = "发送被拒绝"
+    }
+    ui.body.render()
+}
+// MARKER:ADAPTER-END

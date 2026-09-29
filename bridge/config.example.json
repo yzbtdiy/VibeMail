@@ -1,0 +1,6 @@
+{
+  "email": "you@example.com",
+  "auth_code": "your-authorization-code",
+  "imap": { "host": "imap.example.com", "port": 993, "ssl": true },
+  "smtp": { "host": "smtp.example.com", "port": 465, "ssl": true }
+}
