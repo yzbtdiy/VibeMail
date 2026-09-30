@@ -30,16 +30,20 @@ def visible_texts():
     """Everything currently in the (visible) tree."""
     return {w.get("t", "") for w in snap() if w.get("t") and w.get("ty") != "Splash"}
 
-def harvest_screen():
-    """Scroll an entire screen top-to-bottom, collecting every visible text."""
+def harvest_screen(w):
+    """Sweep each independently-scrolling pane top-to-bottom, collecting
+    every visible text (0.5.1: the panes scroll separately). The copilot
+    pane hugs the right edge, so its centre depends on the window width."""
+    cols = (450, 700, w - 155)
     seen = set()
-    for _ in range(3):                       # to top (wheel is heavily scaled)
-        get("/m?k=scroll&x=700&y=400&dy=-6000")
-        time.sleep(0.25)
-    for _ in range(14):                      # then down through the content
-        seen |= visible_texts()
-        get("/m?k=scroll&x=700&y=400&dy=520")
-        time.sleep(0.45)
+    for x in cols:
+        for _ in range(3):                   # to top (wheel is heavily scaled)
+            get(f"/m?k=scroll&x={x}&y=400&dy=-6000")
+            time.sleep(0.25)
+        for _ in range(14):                  # then down through the content
+            seen |= visible_texts()
+            get(f"/m?k=scroll&x={x}&y=400&dy=700")
+            time.sleep(0.4)
     seen |= visible_texts()
     return seen
 
@@ -71,7 +75,7 @@ def tap(text):
             time.sleep(1.4)
             return True
         dy = (-2400 if n % 2 == 0 else 600)
-        get(f"/m?k=scroll&x=700&y=400&dy={dy}")
+        get(f"/m?k=scroll&x={ (450, 700, CUR_W - 155)[n % 3] }&y=400&dy={dy}")
         time.sleep(0.5)
     return False
 
@@ -94,8 +98,9 @@ EXPECTED = {
         "沈括 · 数据平台", "数据看板权限申请已通过", "系统通知", "40",
         # desktop: the reader placeholder is visible before any selection
         "选择一封邮件开始阅读",
-        # right pane chrome
-        "AI COPILOT", "摘要", "AI 生成",
+        # right pane chrome — nothing selected: the Copilot shows its hint,
+        # never mail 0's data
+        "AI Copilot 就绪",
     ],
     "read-mail0": [
         # desktop: the reader pane fills IN PLACE — the list stays visible
@@ -145,7 +150,11 @@ EXPECTED = {
     ],
 }
 
+CUR_W = 1200
+
 def audit(width):
+    global CUR_W
+    CUR_W = width
     subprocess.run(["taskkill", "/im", "card-host.exe", "/f"], capture_output=True)
     time.sleep(1.5)
     env = dict(os.environ, MAKEPAD_REMOTE=PORT)
@@ -165,12 +174,12 @@ def audit(width):
     ctypes.windll.user32.SetCursorPos(ctypes.windll.user32.GetSystemMetrics(0)//2, ctypes.windll.user32.GetSystemMetrics(1)-12)
 
     missing = {}
-    seen = harvest_screen()
+    seen = harvest_screen(width)
     missing["inbox"] = [e for e in EXPECTED["inbox"] if not any(e in t for t in seen)]
 
     if tap("Re: Q4 联名方案"):
         time.sleep(1.0)
-        seen = harvest_screen()
+        seen = harvest_screen(width)
         missing["read-mail0"] = [e for e in EXPECTED["read-mail0"] if not any(e in t for t in seen)]
         # desktop: selecting a mail fills the reader pane in place; the
         # placeholder line below only exists when NOTHING is selected, so
@@ -180,13 +189,13 @@ def audit(width):
 
     if tap("写信"):
         time.sleep(1.0)
-        seen = harvest_screen()
+        seen = harvest_screen(width)
         missing["write"] = [e for e in EXPECTED["write"] if not any(e in t for t in seen)]
 
     # the nav bar is global — jump straight from wherever we are
     if tap_nav_agent():
         time.sleep(1.0)
-        seen = harvest_screen()
+        seen = harvest_screen(width)
         missing["agents"] = [e for e in EXPECTED["agents"] if not any(e in t for t in seen)]
 
     proc.kill()

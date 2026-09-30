@@ -907,8 +907,13 @@ fn preview_pane(){
     }
 }
 fn inbox_screen(){
-    View{width: Fill height: Fit flow: Right
-        RoundedView{width: 360 height: Fit flow: Down draw_bg +: {color: panel border_radius: 0.0}
+    // Three independently-scrolling panes on a fixed viewport. Column
+    // backgrounds are Overlay underlays so no black shows below shorter
+    // content when a pane scrolls.
+    View{width: Fill height: Fill flow: Right
+        View{width: 360 height: Fill flow: Overlay
+            RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
+            ScrollYView{width: Fill height: Fill flow: Down
             View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 14 bottom: 10 left: 18 right: 18}
                 View{width: Fill height: Fit flow: Right spacing: 9
                     RoundedView{width: 24 height: 24 draw_bg +: {color: violetBg border_radius: 8.0} align: Align{x: 0.5 y: 0.5}
@@ -931,6 +936,7 @@ fn inbox_screen(){
                     filter_chip("later", "可稍后", cnt("later"))
                 }
             }
+                RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
             RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
             View{width: Fill height: Fit flow: Down
                 for i in mails.len() {
@@ -939,14 +945,29 @@ fn inbox_screen(){
                 }
                 View{width: Fill height: 24}
             }
+            }
         }
-        RoundedView{width: 1 height: Fit draw_bg +: {color: line border_radius: 0.0}}
-        RoundedView{width: Fill height: Fit flow: Down draw_bg +: {color: space border_radius: 0.0}
+        RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
+        ScrollYView{width: Fill height: Fill flow: Down
             if selected { reading_pane(current) } else { preview_pane() }
         }
-        RoundedView{width: 1 height: Fit draw_bg +: {color: line border_radius: 0.0}}
-        RoundedView{width: 310 height: Fit flow: Down draw_bg +: {color: panel border_radius: 0.0}
-            copilot_panel(current)
+        RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
+        View{width: 310 height: Fill flow: Overlay
+            RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
+            ScrollYView{width: Fill height: Fill flow: Down
+                if selected { copilot_panel(current) } else { copilot_hint() }
+            }
+        }
+    }
+}
+
+// Placeholder rail: no mail selected yet — never pre-render mail 0's data.
+fn copilot_hint(){
+    View{width: Fill height: Fit flow: Down padding: Inset{top: 14 bottom: 20 left: 13 right: 13}
+        RoundedView{width: Fill height: Fit padding: Inset{top: 16 bottom: 16 left: 14 right: 14}
+            draw_bg +: {color: panel2 border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 9
+            Label{width: Fill text: "✦ AI Copilot 就绪" draw_text.color: violetT draw_text.text_style: theme.font_bold{font_size: 12}}
+            Label{width: Fill text: "选择一封邮件,摘要、待办提取、语气洞察与智能回复会出现在这里。" draw_text.color: ink55 draw_text.text_style.font_size: 11}
         }
     }
 }
@@ -1276,7 +1297,8 @@ fn ctx_row(text, on){
     }
 }
 fn write_screen(){
-    RoundedView{width: Fill height: Fit flow: Right draw_bg +: {color: space border_radius: 0.0}
+    View{width: Fill height: Fill flow: Right
+        ScrollYView{width: Fill height: Fill flow: Down
         View{width: Fill height: Fit flow: Down padding: Inset{top: 20 bottom: 28 left: 30 right: 20}
             View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
                 Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 13}
@@ -1329,7 +1351,7 @@ fn write_screen(){
                                 Label{width: Fill text: "在右侧描述你想表达的内容,点「生成草稿」由模型起草;无模型服务时回退本地模板。" draw_text.color: ink55 draw_text.text_style.font_size: 11}
                             }
                             RoundedView{width: Fill height: Fit draw_bg +: {color: panel2 border_radius: 10.0 border_size: 1.0 border_color: line}
-                                TextInput{width: Fill height: 120 text: draft_text empty_text: "草稿会出现在这里…" on_change: |t| draft_text = t
+                                TextInput{width: Fill height: 240 text: draft_text empty_text: "草稿会出现在这里…" on_change: |t| draft_text = t
                                     draw_bg +: {color: #x00000000 color_hover: #x00000000 color_focus: #x00000000 border_radius: 10.0}
                                     draw_text +: {color: inkHi color_hover: inkHi color_focus: inkHi color_empty: ink38 color_empty_hover: ink38}}
                             }
@@ -1360,8 +1382,12 @@ fn write_screen(){
                 }
             }
         }
+        }
         RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
-        RoundedView{width: 340 height: Fit flow: Down draw_bg +: {color: panel border_radius: 0.0}
+        View{width: 340 height: Fill flow: Overlay
+            RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
+            ScrollYView{width: Fill height: Fill flow: Down
+        View{width: Fill height: Fit flow: Down
             View{width: Fill height: 50 flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 16 right: 14}
                 Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 12}
                 Label{text: "COMPOSE WITH AI" draw_text.color: violetT draw_text.text_style.font_size: 10}
@@ -1407,9 +1433,11 @@ fn write_screen(){
                         draw_bg +: {color: pick(simulate_outage, redBg, panel2) border_radius: 8.0 border_size: 1.0 border_color: pick(simulate_outage, redBd, line2)}
                         draw_text +: {color: pick(simulate_outage, redT, ink66) text_style.font_size: 10.5}}
                 }
-                View{width: Fill height: 240}
+                View{width: Fill height: 40}
             }
         }
+        }
+    }
     }
 }
 
@@ -1525,7 +1553,8 @@ fn act_row(i){
     }
 }
 fn agents_screen(){
-    RoundedView{width: Fill height: Fit flow: Down padding: Inset{top: 20 bottom: 30 left: 28 right: 24} spacing: 16 draw_bg +: {color: space border_radius: 0.0}
+    ScrollYView{width: Fill height: Fill flow: Down
+    View{width: Fill height: Fit flow: Down padding: Inset{top: 20 bottom: 30 left: 28 right: 24} spacing: 16
         View{width: Fill height: Fit flow: Right spacing: 10
             stat_cell("✦", "运行中的 AGENT", "" + running_cnt(), violet)
             stat_cell("✓", "今日已完成任务", "12", mint)
@@ -1587,6 +1616,7 @@ fn agents_screen(){
             }
         }
     }
+    }
 }
 
 // ---- root ---------------------------------------------------------------------
@@ -1605,7 +1635,12 @@ SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: #x161c1a
                 top_bar()
                 RoundedView{width: Fill height: 1 draw_bg +: {color: sepC border_radius: 0.0}}
             }}
-            body := ScrollYView{width: Fill height: Fill flow: Down padding: Inset{top: 0 bottom: 0 left: 0 right: 0} spacing: 0 on_render: || {
+            // body is a FIXED viewport area; each pane scrolls itself (the
+            // web design's overflow-y-auto columns) — one page scroll made
+            // the columns push each other around. The page ground is the
+            // first Overlay child here, under every screen.
+            body := View{width: Fill height: Fill flow: Overlay on_render: || {
+                RoundedView{width: Fill height: Fill draw_bg +: {color: space border_radius: 0.0}}
                 if screen == "inbox" { inbox_screen() }
                 if screen == "write" { write_screen() }
                 if screen == "agents" { agents_screen() }

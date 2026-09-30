@@ -1,7 +1,7 @@
-# vibemail 0.5.0 — submission packet
+# vibemail 0.5.1 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated for 0.5.0), plus the reproduction evidence for the hackathon
+regenerated for 0.5.1), plus the reproduction evidence for the hackathon
 ("Agentic App 黑客松 2026", scene 01 邮件场景). The publisher key, manifest
 signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
 
@@ -21,7 +21,9 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    autonomy dial, live activity stream with approvals). The reply
    lifecycle — 草稿待发送 → 确认 → 发送中 → 已发送/失败 → 重试 — lives on
    each mail object, so the inbox pill and the reader strip always agree.
-   0.5.0 is a full rebuild from the latest design: sidebar navigation
+   0.5.1 makes the three inbox panes scroll independently (list | reader
+   | Copilot — the web design's behavior) on a fixed viewport; 0.5.0 was
+   a full rebuild from the latest design: sidebar navigation
    (写信·AI 起草 / 收件箱 / Agent 小队, folders, AI clusters), a top bar with
    an agent-ask search and a theme pill, a three-pane inbox (list |
    in-place reader | AI Copilot: 摘要 / 待办提取 / 语气洞察 / 智能回复), a
@@ -107,7 +109,7 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    hub check output on the exact submitted bytes:
 
    ```
-   vibemail 0.5.0 — PASSED
+   vibemail 0.5.1 — PASSED
      grants: capabilities {"mail", "model"}, hosts {}, storage 16777216 bytes, agent none
    ```
 
@@ -148,7 +150,7 @@ Everything below is reproducible on Windows with the bundled scripts:
   installed through a local signed hub catalog
   (`../octosense-local-hub/`: `hub keygen`/`certify`/`publish`, anchor +
   `OCTOSENSE_APP_DATA` env; see its README), runs as a real window
-  manager client. ev-17: the app (0.5.0 UI) in the shell's desktop;
+  manager client. ev-17: the app (0.5.1 UI) in the shell's desktop;
   ev-18: the shell's own 「OctoSense · Add a mail account」 sheet; ev-19:
   the official Mail service's real IMAP login against `imap.qq.com`
   rejected — the sheet says so in its own words. Reproduce with
@@ -173,5 +175,5 @@ model output.
 
 - [ ] `hub keygen` + `hub sign-manifest` (publisher key stays outside the repo)
 - [ ] `hub check --publisher-key <id>=<hex>` → PASSED with no warning
-- [ ] Tag the commit, open `Submit vibemail 0.5.0` on OctoSense-App-Hub
+- [ ] Tag the commit, open `Submit vibemail 0.5.1` on OctoSense-App-Hub
       with this packet's answers attached

@@ -86,14 +86,26 @@ def settled_pos(text, exact=False, timeout=6.0):
         last = cur
     return last
 
+def wheel_x(hit):
+    """Wheel x for the pane containing the target (0.5.1: the three panes
+    scroll independently — the wheel must go to the pane that owns it)."""
+    if hit is None:
+        return 700
+    if hit[0] < 630:
+        return 450
+    if hit[0] < 945:
+        return 700
+    return 1000
+
 def to_top():
-    """Scroll the body back to the top. Wheel dy is heavily scaled by the
+    """Scroll every pane back to the top. Wheel dy is heavily scaled by the
     host (~0.15x), so a large negative delta is needed; widgets scrolled
     above the viewport are CLIPPED OUT of /snap entirely, which is how
     deep scroll offsets hide targets after screen switches."""
-    for _ in range(3):
-        get("/m?k=scroll&x=700&y=400&dy=-6000")
-        time.sleep(0.4)
+    for x in (450, 700, 1000):
+        for _ in range(3):
+            get(f"/m?k=scroll&x={x}&y=400&dy=-6000")
+            time.sleep(0.3)
 
 def tap(text, exact=False):
     """One tap attempt at the widget's current position, with scroll-to-reach.
@@ -109,7 +121,8 @@ def tap(text, exact=False):
         return p and (29 < p[1] < 766 or 776 < p[1] < 855)
     while (not in_range(hit)) and tries < 10:
         dy = 420 if (not hit or hit[1] >= 766) else -2400
-        get(f"/m?k=scroll&x=700&y=400&dy={dy}")
+        sx = wheel_x(hit) if hit else (450, 700, 1000)[tries % 3]
+        get(f"/m?k=scroll&x={sx}&y=400&dy={dy}")
         time.sleep(0.5)
         hit = find(text, exact)
         tries += 1
@@ -132,7 +145,7 @@ def search_for(text, exact=False, timeout=0):
     n = 0
     while time.time() - t0 < timeout:
         dy = -2400 if n % 2 == 0 else 620
-        get(f"/m?k=scroll&x=700&y=400&dy={dy}")
+        get(f"/m?k=scroll&x={(450, 700, 1000)[n % 3]}&y=400&dy={dy}")
         time.sleep(0.7)
         if find(text, exact):
             return True

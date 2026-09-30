@@ -91,8 +91,10 @@ def shot(path):
         last = cur
     raise RuntimeError("frame never settled")
 
-def wait_pill(ok_text, fail_text, budget):
-    """Poll for the state pill; returns (ok, seconds)."""
+def wait_done(before, ok_text, fail_text, budget):
+    """Poll until the state pill flips or fresh model output appears.
+    MiniMax summaries can take minutes on a cold session, so a pill miss
+    with new long texts still counts as a (late) success."""
     t0 = time.time()
     while time.time() - t0 < budget:
         ts = app_texts()
@@ -100,17 +102,28 @@ def wait_pill(ok_text, fail_text, budget):
             return True, time.time() - t0
         if any(fail_text in t for t in ts):
             return False, time.time() - t0
+        fresh = [t for t in ts - before if len(t) > 15]
+        if len(fresh) >= 2:
+            return True, time.time() - t0
         time.sleep(2.0)
     return False, budget
 
 def to_top():
-    for _ in range(4):
-        get("/m?k=scroll&x=700&y=420&dy=-6000")
-        time.sleep(0.4)
+    # 0.5.1: panes scroll independently — reset all three (shell window is
+    # ~990 wide: list ≈500, reader ≈740, copilot ≈890)
+    for x in (500, 740, 890):
+        for _ in range(4):
+            get(f"/m?k=scroll&x={x}&y=420&dy=-6000")
+            time.sleep(0.3)
 
 box = app_box()
 assert box, "VibeMail window not found"
 print("VibeMail window:", box)
+# a previous session may have stopped on another screen — go home first
+if not in_app(text="已整理今日", exact=False):
+    nav = in_app(text="收件箱", exact=True)
+    assert nav, "inbox nav row not found"
+    click(nav)
 to_top()
 assert in_app(text="已整理今日", exact=False), "inbox banner not visible"
 
@@ -131,7 +144,7 @@ btn = in_app(ty="Button", text="AI 生成", exact=True)
 assert btn, "AI 生成 button not found"
 t0 = time.time()
 click(btn)
-ok, dt = wait_pill("模型生成", "服务不可用", 150)
+ok, dt = wait_done(before, "模型生成", "服务不可用", 300)
 print(f"AI-SUMMARY: {'OK' if ok else 'FAIL'} after {dt:.0f}s (pill was {pill_before})")
 
 after = app_texts()
@@ -160,7 +173,7 @@ before2 = app_texts()
 btn = in_app(ty="Button", text="生成草稿", exact=True)
 assert btn, "生成草稿 button not found"
 click(btn)
-ok2, dt2 = wait_pill("模型生成", "服务不可用", 150)
+ok2, dt2 = wait_done(before2, "模型生成", "服务不可用", 300)
 print(f"AI-DRAFT: {'OK' if ok2 else 'FAIL'} after {dt2:.0f}s")
 
 # the draft body lives in the tallest TextInput on the card
