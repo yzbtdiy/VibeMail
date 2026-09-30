@@ -152,6 +152,7 @@ let simulate_outage = false    // practice switch: the next send fails
 let summary_error = ""
 let draft_status = "practice"
 let draft_error = ""
+let ai_model = ""              // display name the host reported (meta.model)
 
 // Agent squad + activity stream (practice data; approvals are local state)
 let agents = [
@@ -505,10 +506,14 @@ fn set_filter(f){ filter = f; repaint() }
 // sees providers or keys. In card-host nothing answers "model" — the UI says
 // so and keeps the local practice content.
 fn summary_pill_text(src){
-    if src == "asking" { return "生成中…" }
-    if src == "ai" { return "模型生成" }
-    if src == "unavailable" { return "服务不可用" }
-    return "练习数据"
+    let base = "练习数据"
+    if src == "asking" { base = "生成中…" }
+    if src == "ai" { base = "模型生成" }
+    if src == "unavailable" { base = "服务不可用" }
+    if src == "ai" {
+        if ai_model != "" { return base + " · " + ai_model }
+    }
+    return base
 }
 fn gen_summary(i){
     let m = mails[i]
@@ -530,6 +535,7 @@ fn gen_summary(i){
         }
         mails[i].ai_points = r.data.output.points
         mails[i].summary_src = "ai"
+        ai_model = r.data.meta.model
         repaint()
     })
 }
@@ -1332,6 +1338,7 @@ fn regen(){
         }
         draft_text = r.data.output.body
         draft_status = "ai"
+        ai_model = r.data.meta.model
         repaint()
     })
 }
@@ -1466,7 +1473,7 @@ fn write_screen(){
                     ButtonFlat{width: Fill height: 30 text: "生成草稿" on_click: || regen()
                         draw_bg +: {color: violet color_hover: violet color_down: cyan border_radius: 8.0 border_size: 0.0}
                         draw_text +: {color: accInk text_style.font_size: 11.5}}
-                    chip("GPT-Vibe 4", "violet")
+                    chip(pick(ai_model == "", "GPT-Vibe 4", ai_model), "violet")
                 }
                 section_label("试试这样开始")
                 View{width: Fill height: Fit flow: Down spacing: 7
