@@ -273,14 +273,28 @@ click_expect("✓ 批准", "已处理")
 shot(EVID / "ev-08-agents-approval.png")
 shot(SHOTS / "04-agents.png")                        # 4 Agent 小队(统计+开关+活动流)
 
-# dual theme: the top-bar pill flips the whole palette; same tree, content intact
+# dual theme: the top-bar pill flips the whole palette; same tree, content intact.
+# 0.5.2: the pill is icon-only — locate it relative to the agent pill's right
+# edge (pill + 12px gap + 58px track → centre ≈ right + 41).
+def theme_pill():
+    w = find("VIBE AGENT · 运行中")
+    if not w:
+        return None
+    x, y = w
+    # find() returns the centre; the pill is ~150 wide → right edge ≈ x + 75
+    return (x + 75 + 41, y)
+
 to_top()
 click_expect("收件箱", "已整理今日", exact=True)
-click_expect("日", "月")                              # dark -> light
+tp = theme_pill()
+assert tp, "theme pill not locatable"
+get(f"/click?x={tp[0]:.0f}&y={tp[1]:.0f}&wait=1")
+time.sleep(1.5)
 assert has("已整理今日"), "banner must survive the theme switch"
 shot(SHOTS / "05-light.png")                         # 5 亮色主题(自由切换)
 shot(EVID / "ev-21-theme-light.png")
-click_expect("月", "日")                              # back to deep-space dark
+get(f"/click?x={tp[0]:.0f}&y={tp[1]:.0f}&wait=1")    # back to deep-space dark
+time.sleep(1.5)
 
 (EVID / "final-snap.json").write_bytes(get("/snap"))
 (EVID / "final-log.txt").write_bytes(get("/log?n=200"))
