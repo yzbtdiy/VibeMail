@@ -1,64 +1,88 @@
-# agentic-mail 0.1.0 — submission packet
+# vibemail 0.2.1 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-generated 2026-09-29), plus the reproduction evidence for the hackathon
+regenerated for 0.2.1), plus the reproduction evidence for the hackathon
 ("Agentic App 黑客松 2026", scene 01 邮件场景). The publisher key, manifest
 signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
 
 ## The seven scan questions
 
 1. **Does the app do what its name, subtitle and description claim?**
-   Yes. `bundle/main.splash` implements exactly the five screens the listing
-   names: 智能收件箱 (`inbox_screen`: AI 分诊 banner, 重要邮件 / 稍后处理
-   groups), 邮件阅读 (`read_screen`: AI 摘要 card with bullet points and a
-   suggested action, attachment card, quick-reply chips), AI 写信起草
-   (`write_screen`: prompt input, 语气选择 chips, editable AI draft),
-   跟进待办 (`todo_screen`: segmented tabs 待跟进 / 我承诺的 / 已完成),
-   and 我的 (`me_screen`, which also carries the practice-data disclosure).
+   Yes. `bundle/main.splash` implements exactly what the listing names: a
+   **responsive** agentic mail app with three views — 智能收件箱
+   (`inbox_screen`: AI 分诊 banner with live counts, filter chips, priority
+   meters, label chips; on wide windows a list-plus-placeholder
+   master-detail), 邮件阅读 (`read_screen`: AI 摘要 card with points,
+   suggested actions, meeting detection and sentiment; one-tap smart
+   replies; five-state reply strip; on wide windows a reader-plus-list
+   master-detail), AI 写信 (`write_screen`: tone chips, prompt panel,
+   editable AI draft with source pill), and Agent 小队 (`agents_screen`:
+   stats, toggles, autonomy dial, live activity stream with approvals).
    The reply lifecycle — 草稿待发送 → 确认 → 发送中 → 已发送/失败 → 重试 —
    lives on each mail object, so the inbox pill and the read strip always
-   agree. Every screenshot in the listing is a real capture of these screens
-   (see evidence below).
+   agree. Phone and desktop widths come from ONE widget tree (the layout
+   math is the media query — see `source/design-brief.md`). Every
+   screenshot in the listing is a real capture of these screens.
 
 2. **Do the listing's platforms and category fit?**
    Yes. `productivity` matches a mail app. `platforms: ["windows"]` is the
    only platform actually tested: every capture and interaction in this
-   packet ran on Windows 10 (26100) against the App Hub `card-host.exe`
-   built 2026-09-28. No other platform was tested, so none is claimed.
+   packet ran on Windows 10 (26100) — in the App Hub `card-host.exe`
+   (local build 2026-09-30, which registers the mail host service from
+   `crates/mail-service`) at BOTH 412×860 and 1200×860, and in the
+   OctoSense desktop shell itself (local build of the OctoSense repo,
+   app-hub feature, with the bundle installed from a local signed
+   catalog). No other platform was tested, so none is claimed.
 
 3. **Do the granted capabilities match what the app visibly does?**
    Yes — the app requests exactly two capabilities: `model` and `mail`
    (`grants: capabilities {"mail", "model"}, hosts {}`; no network hosts).
    - `model` backs two visible features: the 「AI 生成」 button on the read
-     view (summary points + suggested action) and 「重新生成」 on the
-     drafting screen, both one-shot `model.complete` calls with a JSON
-     schema (fast class; OctoSense#95, merged 2026-09-28 — the host picks
-     the model from the person's own providers, daily per-app budget, keys
-     never reach the app). Where nothing answers "model" (verified in
-     card-host, shown verbatim on screen — ev-09, ev-10) the app falls
-     back to clearly labelled local templates.
+     view (summary points) and 「生成草稿」 on the compose screen, both
+     one-shot `model.complete` calls with a JSON schema (fast class;
+     OctoSense#95, merged 2026-09-28 — the host picks the model from the
+     person's own providers, daily per-app budget, keys never reach the
+     app). Where nothing answers "model" (verified in card-host, shown
+     verbatim on screen — ev-09, ev-10) the app falls back to clearly
+     labelled local templates.
    - `mail` backs the whole inbox/read/draft/send flow through the
-     platform's mail host service (`mail.accounts` / `mail.list` /
-     `mail.message` / `mail.mark_read` / `mail.send`): real IMAP/SMTP
-     happens in the service; accounts are added on the host's own sheet
-     and credentials stay in the system vault. card-host answers no
-     service, and the banner shows exactly that with practice data as the
-     labelled fallback (see 01-inbox.png); in an OctoSense desktop Shell
-     the same code path is live mail. Sending keeps the two-step confirm
-     and maps service refusals onto the same failed/retry strip.
+     platform's mail host service (`mail.accounts` / `mail.add_account` /
+     `mail.list` / `mail.message` / `mail.mark_read` / `mail.send`): real
+     IMAP/SMTP happens in the service; accounts are added on the host's own
+     sign-in sheet and the authorization code stays in the host's vault —
+     the app never sees a credential. Verified end to end in TWO hosts.
+     (a) **The real OctoSense desktop shell** (strongest evidence,
+     ev-17..19): a local hub instance (`hub keygen` → `certify` →
+     `sign-manifest` → `publish` to a local catalog; anchor via
+     `OCTOSENSE_HUB_ANCHOR`, install layout via `OCTOSENSE_APP_DATA`)
+     admitted the very same `vibemail` bundle through the store's
+     signature-verified catalog — launched with
+     `--test-action launch-hub:vibemail` — and the shell's OWN Mail
+     service answered: the banner's 添加账号 raised the official
+     「OctoSense · Add a mail account」 sheet, and a wrong password was
+     tested against the real `imap.qq.com:993`, which rejected it (ev-19
+     shows the service's own refusal text; the model service is registered
+     in that shell too). (b) A `card-host` build linking a reference mail
+     service (`OctoSense-App-Hub/crates/mail-service`, the documented
+     "Adding a new host service" path): the shipped bundle runs real mail
+     the same way (ev-13..16, with `imap.qq.com`'s verbatim NO in the
+     sheet). Where no service is registered (stock `card-host`), the
+     banner says so and practice data is the labelled fallback. Sending
+     keeps the two-step confirm and maps service refusals onto the same
+     failed/retry strip.
    The repository additionally contains a development-only harness
    (`bridge/` + `dev/adapter-bridge.splash` + `scripts/dev_bundle.py`)
-   that swaps the adapter for a loopback IMAP/SMTP bridge so the real
-   flow can be captured on a dev machine (ev-11 bridge off, ev-12 bridge
-   unconfigured). It is NOT part of the submitted bundle: the shipped
-   main.splash contains no `http://` literal (the store gate refuses
-   them) and speaks only to the platform service.
+   that swaps the adapter for a loopback IMAP/SMTP bridge (ev-11 bridge
+   off, ev-12 bridge unconfigured). It is NOT part of the submitted bundle
+   — the shipped main.splash contains no `http://` literal (the store gate
+   refuses them) and speaks only to the platform service — and is now
+   optional: the platform service route above supersedes it.
 
 4. **Is any part of the interface deceptive?**
    No. It imitates no system prompt, payment sheet, login or other brand.
    The simulated send-failure is clearly labelled a practice scenario
    (「练习场景:模拟服务中断」) and the AI features are labelled AI 摘要 /
-   AI 起草 with the disclosure that no real mail service is connected.
+   AI 草稿 with the disclosure that no real mail service is connected.
    No password/OTP inputs exist.
 
 5. **Does any text read as an instruction to an assistant rather than
@@ -66,16 +90,15 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    No. All strings are user-facing UI copy or practice mail content.
 
 6. **Is any wording abusive or aimed at a private individual?**
-   No. Sender names (张伟、李娜、王强、陈晨、小林) are generic fictional
-   practice personas.
+   No. Sender names (林晓薇、陈立群、沈括、妈妈 etc.) are generic fictional
+   practice personas from the reference design.
 
 7. **Route: pass, human-review, or reject?**
-   Pass. Static, capability-free, honest about being a concept demo. The
+   Pass. Static, capability-lean, honest about being a concept demo. The
    hub check output on the exact submitted bytes:
 
    ```
-   agentic-mail 0.1.0 — PASSED
-     [warning] publisher-signature: unsigned: accountability rests on the hub alone
+   vibemail 0.2.1 — PASSED
      grants: capabilities {"mail", "model"}, hosts {}, storage 16777216 bytes, agent none
    ```
 
@@ -85,31 +108,60 @@ Everything below is reproducible on Windows with the bundled scripts:
 
 - `scripts/drive-demo.py` drives the **real card-host window** over the
   Makepad remote bridge (`/snap`, `/click`, `/t`, `/m`, `/g`) through the
-  full task: open the urgent mail → AI draft → insert → **explicit confirm**
-  → sent (state visible in inbox as 已回复) → simulated outage → **send
-  fails, draft kept** → edit → **retry succeeds** → todo tabs → profile.
-  Each step asserts the expected screen text before capturing.
-- Captures: `bundle/screenshots/01..05` (the listing) and
-  `evidence/ev-01..ev-10` (lifecycle: pending draft, confirm sheet,
-  sent strip, inbox pill, failed send, kept draft, retry sent, todo tab;
-  model service: ev-09 summary-unavailable state, ev-10 draft fallback,
-  both showing the host's verbatim refusal). The driver asserts the
-  refusal text is on screen before finishing.
+  full task at the phone width: open the urgent mail → AI 生成 (honest
+  model refusal, verbatim on screen) → AI compose with prompt → smart
+  reply → **explicit confirm** → sent (state visible in inbox as 已回复)
+  → simulated outage → **send fails, draft kept** → re-enable →
+  **retry succeeds** → Agent squad approval. Each step asserts the
+  expected screen text before capturing; the driver parks the real mouse
+  cursor away from the driven window (OS cursor events otherwise eat the
+  synthetic taps).
+- Captures: `bundle/screenshots/01..04` (the listing: inbox, read, write,
+  agents) and `evidence/ev-01..ev-10` (lifecycle: pending draft, confirm
+  sheet, sent strip, inbox pill, failed send, kept draft, retry sent,
+  agents approval; model service: ev-09 summary-unavailable state, ev-10
+  draft fallback, both showing the host's verbatim refusal).
+- **Responsive proof**: run card-host with `--size 1200x860` — the inbox
+  becomes list + placeholder master-detail and the read view a
+  reader-plus-highlighted-list master-detail (geometry verified via
+  `/snap`; captured as ev-20). At `--size 412x860` the same tree is a
+  single column with push navigation.
+- `scripts/drive-mail.py` drives the **shipped bundle** in the same
+  card-host through the platform mail service: no-account banner
+  (ev-13) → 添加账号 raises the host's sign-in sheet (ev-14) → a wrong
+  authorization code is tested against the real `imap.qq.com` and the
+  sheet shows the server's refusal verbatim (ev-15) → 取消 drops the
+  sheet and the app returns to the no-account state (ev-16). The
+  service-side trace (`[mail] add_account / sheet.submit / sign-in
+  failed / sheet.retry / sheet.cancel`) confirms every hop.
+- **Inside the OctoSense desktop shell** (ev-17..19): the same bundle,
+  installed through a local signed hub catalog
+  (`../octosense-local-hub/`: `hub keygen`/`certify`/`publish`, anchor +
+  `OCTOSENSE_APP_DATA` env; see its README), runs as a real window
+  manager client. ev-17: the app (0.2.1 UI) in the shell's desktop;
+  ev-18: the shell's own 「OctoSense · Add a mail account」 sheet; ev-19:
+  the official Mail service's real IMAP login against `imap.qq.com`
+  rejected — the sheet says so in its own words. Reproduce with
+  `python scripts/official_sheet_run.py <port>` while the shell runs with
+  `MAKEPAD_REMOTE=<port>` and `--test-action launch-hub:vibemail`.
 - Final widget tree and host log: `evidence/final-snap.json`,
   `evidence/final-log.txt`.
 
-Practice-data boundary (per the hackathon FAQ): mail, todos, send and
-failure are local simulation — the app connects to no real mail service
-and fabricates no real-world facts. Model calls are REAL host requests
+Practice-data boundary (per the hackathon FAQ): the Agent squad, the
+activity stream and the send-failure simulation are local; the mail path
+is REAL — through the platform mail host service, with credentials
+collected on the host's sheet and kept host-side (ev-13..16 were recorded
+without a mailbox, so they show the honest no-account and
+rejected-sign-in states; a live mailbox needs only a valid authorization
+code typed into the host sheet). Model calls are REAL host requests
 (schema-checked, one-shot): in card-host the host honestly refuses and
-the UI shows it; in an OctoSense desktop Shell built from main ≥ 2026-09-28
-with AI providers configured, the same buttons produce real model output
-(rehearse via PUBLISHING §4; not captured in this packet, which was
-recorded on Windows card-host only).
+the UI shows it; in an OctoSense desktop Shell built from main ≥
+2026-09-28 with AI providers configured, the same buttons produce real
+model output.
 
 ## Remaining human steps
 
 - [ ] `hub keygen` + `hub sign-manifest` (publisher key stays outside the repo)
 - [ ] `hub check --publisher-key <id>=<hex>` → PASSED with no warning
-- [ ] Tag the commit, open `Submit agentic-mail 0.1.0` on OctoSense-App-Hub
+- [ ] Tag the commit, open `Submit vibemail 0.2.1` on OctoSense-App-Hub
       with this packet's answers attached

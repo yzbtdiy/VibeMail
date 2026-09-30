@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56">
-  <defs><radialGradient id="g" cx="0.35" cy="0.3" r="0.9">
-    <stop offset="0" stop-color="#6FDCCB"/><stop offset="1" stop-color="#2FA898"/>
-  </radialGradient></defs>
-  <circle cx="28" cy="28" r="28" fill="url(#g)"/>
-  <circle cx="19" cy="17" r="7" fill="#FFFFFF" opacity="0.25"/>
-  <text x="28" y="30" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF">林</text>
-</svg>

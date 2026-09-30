@@ -66,10 +66,15 @@ fn mail_add_account(){
     ui.body.render()
 }
 fn live_mail(m){
-    return {src: "live" id: m.id who: m.sender role: domain_of(m.address) address: m.address
-            av: av_for(m.sender) tag: domain_of(m.address) time: m.time unread: m.unread
-            group: "live" muted: false subject: m.subject preview: m.preview body: m.body
-            attach: "" points: [] action: "" quick: []
+    return {src: "live" id: m.id init: "✉" sender: m.sender address: m.address
+            subject: m.subject snippet: m.preview body: m.body
+            time: m.time unread: m.unread priority: 50 cluster: "工作"
+            av1: #x8642ff av2: #x4c1d95
+            labels: [{text: domain_of(m.address) tone: "cyan"}]
+            summary: [] actions: []
+            sent_label: "" sent_tone: "mint" sent_note: ""
+            replies: [] meeting_title: "" meeting_time: "" meeting_loc: ""
+            generating: false
             reply: "" reply_text: "" send_error: ""
             summary_src: "practice" ai_points: [] ai_action: ""}
 }

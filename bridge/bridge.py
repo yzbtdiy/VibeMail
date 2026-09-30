@@ -1,4 +1,4 @@
-"""agentic-mail bridge: IMAP/SMTP <-> plain HTTP JSON on 127.0.0.1.
+"""vibemail bridge: IMAP/SMTP <-> plain HTTP JSON on 127.0.0.1.
 
 Why this exists: a contained OctoSense app cannot speak IMAP/SMTP itself
 (no raw sockets for policed heaps, and it must never hold mail credentials).
@@ -208,7 +208,7 @@ class MailAccount:
 
 def make_handler(account):
     class Handler(BaseHTTPRequestHandler):
-        server_version = "agentic-mail-bridge/1.0"
+        server_version = "vibemail-bridge/1.0"
 
         def _json(self, code, obj):
             body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
@@ -298,7 +298,7 @@ def main():
     account = load_account()
     state = "mailbox configured" if account else "NO mailbox (copy config.example.json -> config.json)"
     srv = ThreadingHTTPServer((LISTEN_HOST, LISTEN_PORT), make_handler(account))
-    print(f"agentic-mail bridge on http://{LISTEN_HOST}:{LISTEN_PORT} — {state}")
+    print(f"vibemail bridge on http://{LISTEN_HOST}:{LISTEN_PORT} — {state}")
     srv.serve_forever()
 
 
