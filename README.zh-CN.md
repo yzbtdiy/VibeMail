@@ -25,22 +25,23 @@ card-host）如实显示不可用并回退练习数据。
 ```text
 source/                 设计源：重做所参照的网页源码 + design-brief.md
                         （调色板、逐视图要点、响应式规则）
-artwork/                退役 SVG 素材的工作副本（新版 UI 全原生绘制：渐变头像、
-                        字符块图标、圆角面板——运行时 SVG 在本栈栅格化为空白，
-                        因此不随包携带任何 SVG）
 service/                回复生命周期 reducer（controller.py，main.splash 状态机的
                         验证孪生）+ unittest（test_controller.py，8 用例）
 bridge/                 开发层（现为可选）：IMAP/SMTP ↔ 本机 HTTP 网桥（凭据只存
                         config.json，已 gitignore；5 个解析单测）——已被平台服务
                         路线取代，不进提交包
 dev/                    开发层：网桥适配器（替换 main.splash 的 MARKER:ADAPTER 块）
-scripts/                drive-demo.py：经 Makepad 远程桥驱动真实 card-host 窗口
-                        跑完整演示任务并截取全部证据（驱动会把真实鼠标停靠到
-                        远处——OS 光标事件会吞掉合成点击）
+scripts/                run_app.py：run.cmd 的内核（launch/demo/mail/shell/check
+                        各子命令）；drive-demo.py：经 Makepad 远程桥驱动真实
+                        card-host 窗口跑完整演示任务并截取全部证据（驱动会把
+                        真实鼠标停靠到远处——OS 光标事件会吞掉合成点击）
                         drive-mail.py：驱动提交包在 card-host 中走平台 mail 服务
                         （无账号态 → 宿主登录面板 → 真实拒绝 → 取消）
                         official_sheet_run.py：同一流程在 **OctoSense 桌面 Shell**
                         内（官方面板 + 官方服务的真实 imap.qq.com 拒绝）
+                        ai_test.py：Shell 内 AI 摘要/起草驱动（ev-22..24）；
+                        audit_missing/audit_overflow：宽度审计；dev_bundle.py：
+                        组装 build/dev-bundle（仅开发）
 evidence/               运行证据
   ev-01..08.png         回复生命周期证据（草稿/确认/已发送/收件箱胶囊同步/
                         失败/保留/重试成功/Agent 审批）
@@ -50,15 +51,14 @@ evidence/               运行证据
   ev-17..19.png         OctoSense 桌面 Shell 内（应用作为 WM 客户端运行/
                         官方 Add-a-mail-account 面板/官方服务真实 IMAP 拒绝）
   ev-20.png             桌面 1200px 宽度 master-detail（响应式布局证据）
+  ev-21..24.png         亮色主题 / Shell 内真实 AI 摘要与起草 / 模型名胶囊
   final-snap.json       演示结束时的完整组件树
   final-log.txt         card-host 日志
   hub/                  hub 流程工件：review.json（scan 问题包）、SUBMISSION.md
                         （七问书面回答 + 复现说明 + 剩余人工步骤）
-  l0-design/            早期 L0 摘要卡片形态的设计产物（image-to-card 流程，已退役）
-  legacy/               重设计前的旧版截图（va/vb，仅供历史对照）
 bundle/                 THE SUBMISSION（唯一提交部分；hub check PASSED）
   main.splash           响应式三视图脚本（回复生命周期状态机在邮件对象上）
-  assets/icon.svg  listing.json  manifest.json  screenshots/01..04
+  assets/icon.svg  listing.json  manifest.json  screenshots/01..05
 ```
 
 ## 核心演示任务（对应评分「任务完成 / 可靠运行 / 人机协作」）

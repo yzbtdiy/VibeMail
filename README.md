@@ -31,9 +31,6 @@ data (no-facts rule).
 ```text
 source/        design sources: the web reference the UI was rebuilt from,
                design-brief.md (palette, view specs, responsive rules)
-artwork/       working copies of the retired SVG assets (the shipped UI is
-               all-native: gradient avatars, glyph tiles, rounded panels —
-               runtime SVG rasterises blank in this stack, so nothing ships)
 service/       reply-lifecycle reducer (controller.py — the verification twin of
                the main.splash state machine) + unittest (8 cases)
 bridge/        DEV-ONLY, now optional: an IMAP/SMTP <-> loopback HTTP bridge
@@ -41,7 +38,9 @@ bridge/        DEV-ONLY, now optional: an IMAP/SMTP <-> loopback HTTP bridge
                5 parsing unit tests). Superseded by the platform route below.
 dev/           DEV-ONLY: the bridge adapter that scripts/dev_bundle.py splices
                over the MARKER:ADAPTER block (never part of the submission)
-scripts/       drive-demo.py — drives the real card-host window over the
+scripts/       run_app.py — the engine behind run.cmd (launch, demo, mail,
+               shell, check);
+               drive-demo.py — drives the real card-host window over the
                Makepad remote bridge through the full demo task (two widths
                for the responsive claims);
                drive-mail.py — drives the shipped bundle through the
@@ -49,17 +48,20 @@ scripts/       drive-demo.py — drives the real card-host window over the
                sheet → real rejection → cancel);
                official_sheet_run.py — the same flow inside the real
                OctoSense desktop shell (the official sheet, the
-               official service's real imap.qq.com rejection)
+               official service's real imap.qq.com rejection);
+               ai_test.py — the AI summary/draft driver inside the shell
+               (ev-22..24); audit_missing/audit_overflow — width audits;
+               dev_bundle.py — assembles build/dev-bundle (dev-only)
 evidence/      run evidence: ev-01..08.png (reply lifecycle, agents approval),
                ev-09/10 (model unavailable), ev-13..16 (store-form mail in
                card-host), ev-17..19 (the same bundle inside the OctoSense
                desktop shell: running, official sheet, official service's
                real IMAP rejection), ev-20 (desktop master-detail),
-               final-snap.json, final-log.txt, hub/ (scan packet +
-               SUBMISSION.md answers), l0-design/ (retired L0 card
-               form), legacy/ (pre-redesign shots)
+               ev-21 (light theme), ev-22..24 (real AI summary/draft in
+               the shell, model chip), final-snap.json, final-log.txt,
+               hub/ (scan packet + SUBMISSION.md answers)
 bundle/        THE SUBMISSION — main.splash, assets/icon.svg, listing.json,
-               manifest.json, screenshots/01..04 (hub check PASSED)
+               manifest.json, screenshots/01..05 (hub check PASSED)
 ```
 
 ## Demo task (maps to the judging criteria)
