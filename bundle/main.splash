@@ -28,7 +28,7 @@ let mails = [
      body: "你好:\n\n报价版本 v3 我这边已确认,财务也过了初审。法务只有一个修改意见:第 7 条的付款节点需要从预付 50% 改成 30 天账期,其余条款无变动。\n\n如果贵方接受这一调整,我们希望在本周五 18:00 前完成电子签署,这样 Q4 的联名排期可以按原计划在下周一启动。\n\n另外,kickoff 会议建议定在下周二上午 10:30,线上进行,我会让助理发出日历邀请。\n\n期待回复。"
      time: "09:42" unread: true priority: 94 cluster: "工作"
      av1: #x3e7355 av2: #x1f3a2a
-     labels: [{text: "合同" tone: "violet"} {text: "截止今天 18:00" tone: "red"} {text: "需回复" tone: "amber"}]
+     labels: [{text: "合同" tone: "violet"} {text: "今天 18:00" tone: "red"} {text: "需回复" tone: "amber"}]
      summary: ["对方已确认报价 v3,财务初审通过","唯一变更:第 7 条付款节点改为 30 天账期","希望本周五 18:00 前完成电子签署","提议下周二 10:30 线上 kickoff"]
      actions: [{text: "确认接受账期调整" due: "今天 18:00" done: false} {text: "回复签署排期意向" due: "今天 18:00" done: false} {text: "将 kickoff 加入日历" due: "下周二 10:30" done: false}]
      sent_label: "积极 · 推进中" sent_tone: "mint" sent_note: "对方措辞明确、时间导向强,成交意向高"
@@ -608,8 +608,8 @@ fn label_row(m){
 }
 // AI priority meter: fixed 62px footprint — the row's right edge anchor
 fn priority_meter(m){
-    View{width: 62 height: Fit flow: Right spacing: 5 align: Align{y: 0.5}
-        RoundedView{width: 36 height: 3 draw_bg +: {color: white7 border_radius: 2.0} flow: Overlay
+    View{width: 48 height: Fit flow: Right spacing: 4 align: Align{y: 0.5}
+        RoundedView{width: 26 height: 3 draw_bg +: {color: white7 border_radius: 2.0} flow: Overlay
             RoundedView{width: pri_w(m.priority) height: 3 draw_bg +: {color: pri_color(m.priority) border_radius: 2.0}}
         }
         Label{text: "" + m.priority draw_text.color: pri_color(m.priority) draw_text.text_style.font_size: 9}
@@ -903,7 +903,7 @@ fn top_bar(){
         Label{text: title_zh() draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 15}}
         Label{text: title_en() draw_text.color: ink45 draw_text.text_style.font_size: 9}
         View{width: Fill height: 1}
-        RoundedView{width: 380 height: 36 draw_bg +: {color: panel border_radius: 10.0 border_size: 1.0 border_color: line}
+        RoundedView{width: 340 height: 36 draw_bg +: {color: panel border_radius: 10.0 border_size: 1.0 border_color: line}
             View{width: Fill height: Fill flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 12 right: 8}
                 Label{text: "✦" draw_text.color: ink45 draw_text.text_style.font_size: 11}
                 Label{width: Fill text: "问 Vibe Agent:「上周报价相关邮件」" draw_text.color: ink55 draw_text.text_style.font_size: 11}
@@ -990,7 +990,7 @@ fn inbox_screen(){
     // backgrounds are Overlay underlays so no black shows below shorter
     // content when a pane scrolls.
     View{width: Fill height: Fill flow: Right
-        View{width: 360 height: Fill flow: Overlay
+        View{width: 310 height: Fill flow: Overlay
             RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
             ScrollYView{width: Fill height: Fill flow: Down
             View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 14 bottom: 10 left: 18 right: 18}
@@ -1031,7 +1031,7 @@ fn inbox_screen(){
             if selected { reading_pane(current) } else { preview_pane() }
         }
         RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
-        View{width: 310 height: Fill flow: Overlay
+        View{width: 260 height: Fill flow: Overlay
             RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
             ScrollYView{width: Fill height: Fill flow: Down
                 if selected { copilot_panel(current) } else { copilot_hint() }
@@ -1411,7 +1411,6 @@ fn write_screen(){
                         tone_chip("简洁")
                         tone_chip("有说服力")
                         RoundedView{width: 1 height: 14 draw_bg +: {color: line2 border_radius: 0.0}}
-                        Label{text: "长度:适中" draw_text.color: ink55 draw_text.text_style.font_size: 10.5}
                         Label{text: "已引用原始邮件" draw_text.color: cyanT draw_text.text_style.font_size: 10}
                     }
                     RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
@@ -1457,7 +1456,7 @@ fn write_screen(){
         }
         }
         RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
-        View{width: 340 height: Fill flow: Overlay
+        View{width: 300 height: Fill flow: Overlay
             RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
             ScrollYView{width: Fill height: Fill flow: Down
         View{width: Fill height: Fit flow: Down
@@ -1574,9 +1573,9 @@ fn agent_card(i){
         }
         Label{width: Fill text: a.desc draw_text.color: ink66 draw_text.text_style.font_size: 10.5}
         RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
-        View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+        View{width: Fill height: Fit flow: Down spacing: 2
             Label{width: Fill text: a.stat draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
-            Label{text: a.today draw_text.color: agent_color(a.color) draw_text.text_style.font_size: 9.5}
+            Label{width: Fill text: a.today draw_text.color: agent_color(a.color) draw_text.text_style.font_size: 9.5}
         }
     }
 }

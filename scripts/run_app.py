@@ -3,8 +3,8 @@
 
 modes
   mobile   (default) card-host, 412x860 — the phone layout
-  desktop  card-host, 1200x860 — inbox/read master-detail (see ev-20)
-  demo     mobile + scripts/drive-demo.py: the full evidence run
+  desktop  card-host, 1200x860 — inbox/read master-detail
+  demo     desktop width + scripts/drive-demo.py: the full evidence run
            (screenshots 01..04 + ev-01..10), fresh instance
   mail     mobile + scripts/drive-mail.py: store-form mail flow
            (no-account -> host sheet -> real imap.qq.com rejection -> cancel)
@@ -115,7 +115,7 @@ def wait_card_booted(port, timeout=25):
             )
             for w in snap.get("s", []):
                 t = w.get("t") or ""
-                if w.get("ty") != "Splash" and ("已分诊今日" in t or "未添加邮箱账号" in t):
+                if w.get("ty") != "Splash" and ("已整理今日" in t or "未添加邮箱账号" in t):
                     return True
         except OSError:
             pass

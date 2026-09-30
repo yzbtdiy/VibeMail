@@ -1,142 +1,233 @@
-# VibeMail (vibemail)
+# VibeMail(vibemail)
 
-English | [简体中文](README.zh-CN.md)
+「Agentic App 黑客松 2026」场景 01(邮件)参赛应用。VibeMail 是一个桌面横向布局的
+Agentic 邮件应用:左侧导航栏 + 邮件卡片列表 + 常驻阅读栏(点击卡片原地展开,无页面
+跳转),内置 AI 分诊、摘要、待办提取与回信起草;真实收发经平台 mail 宿主服务完成,
+AI 能力经宿主 model 服务完成——凭据与密钥始终留在宿主侧,不经过应用、不进提交包。
 
-A concept app for the Agentic App Hackathon 2026 (mail scene). 0.5.4 surfaces the ACTUAL model the host used — the model chip next to 生成草稿 and the summary pill read meta.model from the model.complete reply (a small host-side addition), so once a call succeeds the fictional GPT-Vibe 4 placeholder is replaced by the real configured model's name. 0.5.3 de-nests the compose inputs (prompt + AI draft render as a single box each, text on the card, like the web); 0.5.2 turns the theme pill and sidebar footer buttons into native-widget ICONS (sun/moon/calendar/sliders — no text glyphs); 0.5.1 refined the 0.5.0 full UI REBUILD: the three inbox panes (list | reader | AI Copilot) now scroll INDEPENDENTLY — like the web design — instead of one page scroll, and nothing shows below shorter panes. 0.5.0 was a FULL UI REBUILD from the latest design (`bundle/main.splash`): the forest-ink × warm-paper dual theme (deep forest dark by default, warm sand light — flipped from the top-bar pill), a sidebar (写信·AI 起草 / 收件箱 / Agent 小队 nav, mailbox folders, AI clusters, AGENT ACTIVE mini card), a top bar (agent-ask search, agent pill, theme toggle), a THREE-PANE inbox (mail list | in-place reader | AI Copilot with 摘要 / 待办提取 / 语气洞察 / 智能回复), a compose card with a COMPOSE WITH AI rail, and the agent squad panel (stats, toggles, autonomy, live activity stream). Clicking a card opens the mail IN PLACE — no screen push. Audited at 1200 and 1440 (run.cmd default 1200x860). AI summary and drafting verified against a REAL configured provider (MiniMax via the OctoSense shell) — ev-22/ev-23.
+| | |
+| --- | --- |
+| 应用 ID / 版本 | `vibemail` / **0.5.5** |
+| 门禁状态 | `hub check` — **PASSED**(仅余未签名警告,签名属人工步骤) |
+| 申请能力 | `mail` + `model`(共两项,按最小化原则) |
+| 实测平台 | Windows 10(26100)——唯一实测平台,布局审计宽度 1000 / 1200 / 1440 |
+| 提交物 | `bundle/`(manifest、listing、main.splash、icon、5 张真实截图) |
+| 类别 / 分级 | productivity / all |
 
-**Capabilities & data**: the app requests `model` and `mail`.
-`mail`: real IMAP/SMTP goes through the platform's mail host service —
-accounts are added on the host's own sign-in sheet and the authorization
-code stays in the host's vault, never in the app. Verified in **two**
-hosts. (1) The real **OctoSense desktop shell** (strongest, ev-17..19):
-the bundle — same id, same bytes — is admitted through a local signed
-hub catalog (`../octosense-local-hub/`, anchor via `OCTOSENSE_HUB_ANCHOR`,
-install via `OCTOSENSE_APP_DATA`), launches as a window-manager client,
-and the shell's own Mail service does the work: the official
-「OctoSense · Add a mail account」 sheet appears, and a wrong password is
-rejected by the real `imap.qq.com`. (2) A local `card-host` build that
-registers a reference mail service (`OctoSense-App-Hub/crates/mail-service`,
-the documented shell-extension path) — ev-13..16: 添加账号 opens the
-host sheet, a wrong code is rejected by the real `imap.qq.com` (verbatim
-server text), 取消 answers the app's add_account with an error. Where no
-service is registered (a stock card-host), the banner says so and
-labelled practice data is used. `model`: AI summary and drafting go
-through the one-shot model service (schema-checked, daily per-app
-budget) using the model the person configured; keys never reach the app;
-fallbacks are labelled. The Agent squad and activity stream are practice
-data (no-facts rule).
+## 目录
 
-## Layout
+- [功能特性](#功能特性)
+- [能力声明](#能力声明)
+- [目录结构](#目录结构)
+- [环境要求](#环境要求)
+- [快速开始](#快速开始)
+- [复现与验证](#复现与验证)
+- [在 OctoSense 桌面 Shell 中运行(最强演示)](#在-octosense-桌面-shell-中运行最强演示)
+- [运行证据](#运行证据)
+- [状态与剩余人工步骤](#状态与剩余人工步骤)
+- [隐私](#隐私)
+- [近期版本](#近期版本)
+
+## 功能特性
+
+- **智能收件箱**:AI 分诊横幅(实时计数)、筛选胶囊、优先级条、标签;邮件以卡片列表呈现
+- **三栏桌面布局**:邮件列表 | 原地阅读栏 | AI Copilot,三栏各自独立滚动(与网页版
+  参照一致);1200/1440 宽度下收件箱为「列表 + 占位卡」,阅读态为 master-detail
+- **阅读栏 + AI Copilot**:AI 摘要(要点 / 建议动作 / 会议识别 / 情绪标签)、待办
+  提取、语气洞察、一键智能回复
+- **AI 写信**:提示词起草、语气选择、可编辑 AI 草稿;模型不可用时回退本地模板并明确标注
+- **回复生命周期状态机**:草稿待发送 → 两步确认 → 发送中 → 已发送 / 失败(保留草稿
+  可重试),收件箱胶囊与阅读栏状态条始终一致(`service/controller.py` 为其验证孪生,
+  8 个单测)
+- **真实邮件**:经平台 mail 宿主服务走真实 IMAP/SMTP;账号在**宿主自己的登录面板**
+  添加,授权码只存宿主保险库;无该服务的环境(原版 card-host)如实显示不可用并回退
+  已标注的练习数据
+- **真实模型调用**:AI 摘要与起草为一次性 `model.complete` 调用(schema 校验、日
+  预算);0.5.4 起界面显示宿主**实际使用的模型名**(读取应答的 `meta.model`);0.5.5 针对高 DPI Shell 重排三栏(侧栏 240 / 列表 310 / 阅读栏自适应 / Copilot 260),1000 / 1200 / 1440 三档审计全绿
+- **双主题**:森林墨绿(默认)× 暖沙亮色,顶栏胶囊一键切换,内容与布局不变
+- **Agent 小队**:统计、开关、自动化程度、实时活动流与审批(练习数据,遵守
+  no-facts 原则)
+
+## 能力声明
+
+应用只申请实现功能所需的两项能力(未申请即未授予):
+
+| 能力 | 支撑的功能 | 不可用时的行为 |
+| --- | --- | --- |
+| `mail` | 收件箱 / 阅读 / 起草 / 发送全流程(`mail.accounts`、`mail.add_account`、`mail.list`、`mail.message`、`mail.mark_read`、`mail.send`) | 横幅如实显示「无服务应答」,回退已标注的练习数据 |
+| `model` | 「AI 生成」摘要与「生成草稿」两个按钮 | 宿主原文拒绝显示在界面上,回退明确标注的本地模板 |
+
+无网络主机声明(`hosts {}`)、无存储之外的额外请求。
+
+## 目录结构
 
 ```text
-source/        design sources: the web reference the UI was rebuilt from,
-               design-brief.md (palette, view specs, responsive rules)
-service/       reply-lifecycle reducer (controller.py — the verification twin of
-               the main.splash state machine) + unittest (8 cases)
-bridge/        DEV-ONLY, now optional: an IMAP/SMTP <-> loopback HTTP bridge
-               (credentials live only in bridge/config.json, gitignored;
-               5 parsing unit tests). Superseded by the platform route below.
-dev/           DEV-ONLY: the bridge adapter that scripts/dev_bundle.py splices
-               over the MARKER:ADAPTER block (never part of the submission)
-scripts/       run_app.py — the engine behind run.cmd (launch, demo, mail,
-               shell, check);
-               drive-demo.py — drives the real card-host window over the
-               Makepad remote bridge through the full demo task (two widths
-               for the responsive claims);
-               drive-mail.py — drives the shipped bundle through the
-               platform mail service in card-host (no-account → host
-               sheet → real rejection → cancel);
-               official_sheet_run.py — the same flow inside the real
-               OctoSense desktop shell (the official sheet, the
-               official service's real imap.qq.com rejection);
-               ai_test.py — the AI summary/draft driver inside the shell
-               (ev-22..24); audit_missing/audit_overflow — width audits;
-               dev_bundle.py — assembles build/dev-bundle (dev-only)
-evidence/      run evidence: ev-01..08.png (reply lifecycle, agents approval),
-               ev-09/10 (model unavailable), ev-13..16 (store-form mail in
-               card-host), ev-17..19 (the same bundle inside the OctoSense
-               desktop shell: running, official sheet, official service's
-               real IMAP rejection), ev-20 (desktop master-detail),
-               ev-21 (light theme), ev-22..24 (real AI summary/draft in
-               the shell, model chip), final-snap.json, final-log.txt,
-               hub/ (scan packet + SUBMISSION.md answers)
-bundle/        THE SUBMISSION — main.splash, assets/icon.svg, listing.json,
-               manifest.json, screenshots/01..05 (hub check PASSED)
+route_test.json 声明式路线测试:4 条点击路线(原地阅读与模型不可用态 /
+               两步确认发送 / 故障-保留-重试 / Agent 审批与主题切换)
+validation.json 机器可读状态清单:已验证项与未验证边界(诚实记录)
+source/        设计源:重做所参照的网页源码 + design-brief.md
+               (调色板、逐视图要点、响应式规则)
+service/       回复生命周期 reducer(controller.py,main.splash 状态机的
+               验证孪生)+ unittest(test_controller.py,8 用例)
+bridge/        开发层(现为可选):IMAP/SMTP ↔ 本机 HTTP 网桥(凭据只存
+               config.json,已 gitignore;5 个解析单测)——已被平台服务
+               路线取代,不进提交包
+dev/           开发层:网桥适配器(替换 main.splash 的 MARKER:ADAPTER 块)
+scripts/       run_app.py:run.cmd 的内核(launch / demo / mail / shell /
+               check / stop 各子命令)
+               drive-demo.py:经 Makepad 远程桥驱动真实 card-host 窗口
+               跑完整演示任务并截取全部证据(驱动会把真实鼠标停靠到
+               远处——OS 光标事件会吞掉合成点击)
+               drive-mail.py:驱动提交包在 card-host 中走平台 mail 服务
+               (无账号态 → 宿主登录面板 → 真实拒绝 → 取消;截图可再生)
+               official_sheet_run.py:同一流程在 OctoSense 桌面 Shell 内
+               (官方面板 + 官方服务的真实 imap.qq.com 拒绝)
+               ai_test.py:Shell 内 AI 摘要 / 起草驱动(ev-22..24)
+               audit_missing / audit_overflow:宽度审计
+               dev_bundle.py:组装 build/dev-bundle(仅开发,不入库)
+               run_routes.py:执行 route_test.json 的通用路线跑器
+               (失败时把截图 / 组件树 / 日志落到 evidence/routes/)
+evidence/      运行证据(见下文「运行证据」)
+bundle/        THE SUBMISSION —— 唯一提交部分
+  manifest.json    id、版本、能力、完整性哈希(hub stamp 写入)
+  listing.json     商店展示信息(副标题、描述、截图、发布者)
+  main.splash      应用本体(Splash 脚本,无编译步骤)
+  assets/icon.svg  图标(listing 所指)
+  screenshots/     01..05 真实截取(inbox / read / write / agents / light)
 ```
 
-## Demo task (maps to the judging criteria)
+## 环境要求
 
-识别 (AI triage banner + priority meters + summary card with points,
-suggested actions, meeting detection, sentiment) → 提议 (editable AI draft,
-explicit recipient, tone chips, one-tap smart replies) → 授权 (two-step
-confirmed send) → 结果核验 (sent strip in the read view, synced pill in the
-inbox) → 失败处理 (practice outage switch: send fails, draft kept, retry
-succeeds) → 真实模型调用 (ev-09/ev-10: card-host honestly answers
-`no service answers "model"` and the UI says so; the same button produces
-real model output in an OctoSense desktop Shell built from main ≥ 2026-09-28
-with AI providers configured).
+- Windows 10(26100)——唯一实测平台;其余平台未验证
+- Rust stable(rustup)——用于构建带 mail 服务的 card-host
+- Python 3.9+,无第三方依赖
+- 同级目录下的 [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub)
+  检出(`crates/card-host/src/host.rs` 已接好 `octosense_mail_service::register()`)
+- 桌面 Shell 演示另需:本地 [OctoSense](https://github.com/OctoSense-org/OctoSense)
+  检出与本地签名 hub 目录(`../octosense-local-hub/`,见其 README)
 
-## Reproduce (Windows 10 26100 — the only platform tested)
+## 快速开始
 
-Build the host with the mail service once (this repo's local hub checkout;
-`register()` is already wired into `crates/card-host/src/host.rs`):
+`run.cmd` 是一键入口(内核为 `scripts/run_app.py`):
+
+| 命令 | 作用 |
+| --- | --- |
+| `run.cmd` | 以桌面宽度(1200×860)在 card-host 中启动应用 |
+| `run.cmd mobile` | 以手机宽度(412×860)启动(不支持的布局,仅供对照) |
+| `run.cmd demo` | 桌面宽度 + 完整证据演示(drive-demo.py) |
+| `run.cmd mail` | 商店形态邮件流程(宿主面板 → 真实拒绝 → 取消) |
+| `run.cmd shell` | 启动真实 OctoSense 桌面 Shell(本地签名 hub) |
+| `run.cmd shell-drive` | Shell + official_sheet_run.py(ev-17..19 流程) |
+| `run.cmd check` | 单元测试 + hub stamp + hub 门禁检查 |
+| `run.cmd stop` | 结束全部测试实例(card-host / octosense) |
+
+## 复现与验证
+
+先构建带 mail 服务的宿主(一次性):
 
 ```sh
 cd ../OctoSense-App-Hub && cargo build --release -p octosense-card-host
-# the build lands in %CARGO_TARGET_DIR% (D:\Users\yzbtdiy\Cache\CARGO_TARGET)
+# 产物在 %CARGO_TARGET_DIR%(本机为 D:\Users\yzbtdiy\Cache\CARGO_TARGET)
 ```
 
-Then run the shipped bundle in it (both widths exercise the responsive
-layouts; the driver parks the real mouse cursor away from the driven
-window — OS cursor events otherwise eat the synthetic taps):
+再以提交包运行(路线回归与证据流各用一个全新实例;宽度 1200×860,
+手机宽度 412×860 为不支持的布局,仅供对照):
 
 ```sh
-python -m unittest discover -s service
+python -m unittest discover -s service      # 状态机单测
 set MAKEPAD_REMOTE=8146
+rem 路线回归:route_test.json 的 4 条路线,真实点击 + 逐步断言
 start "" D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe --bundle bundle ^
-    --app-data .local-state --allow-unsigned --stamp --size 412x860
-python scripts/drive-demo.py 8146      # full lifecycle + model-unavailable states
-python scripts/drive-mail.py 8146      # store-form mail: sheet, real rejection, cancel
-rem desktop width: relaunch with --size 1200x860 and click any mail —
-rem the inbox becomes list+placeholder, the read view a master-detail (ev-20)
+    --app-data .local-state --allow-unsigned --stamp --size 1200x860
+python scripts/run_routes.py 8146           # 4/4 路线通过则退出码 0
+curl -s 127.0.0.1:8146/quit
+rem 证据流:重起一个新实例,重写 bundle/screenshots 与 evidence/
+start "" D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe --bundle bundle ^
+    --app-data .local-state --allow-unsigned --stamp --size 1200x860
+python scripts/drive-demo.py 8146           # 完整生命周期 + 模型不可用态
+python scripts/drive-mail.py 8146           # 商店形态邮件:面板/真实拒绝/取消
 ../OctoSense-App-Hub/target/release/hub.exe stamp bundle
 ../OctoSense-App-Hub/target/release/hub.exe check bundle --allow-unsigned
 ```
 
-To go live with your own mailbox: run card-host, tap 添加账号, and type your
-address + the provider's 授权码 into the **host's** sheet (QQ/163/Gmail
-servers are auto-detected). The code is stored host-side under
-`.local-state/.host/mail/` and never enters the app or the bundle.
+接入自己的邮箱:运行 card-host,点「添加账号」,在**宿主面板**里输入邮箱地址和服务商
+授权码(QQ / 163 / Gmail 自动识别服务器)。授权码只存宿主侧
+(`.local-state/.host/mail/`),不经过应用,也绝不进入提交包。
 
-### Inside the real OctoSense desktop shell (strongest demo)
+核心演示任务(对应评分「任务完成 / 可靠运行 / 人机协作」):**识别**(AI 分诊横幅 +
+优先级条 + 摘要卡)→ **提议**(可编辑 AI 草稿、明确收件人、语气、一键智能回复)→
+**授权**(两步确认发送)→ **结果核验**(阅读页「已回复」状态条与收件箱胶囊同步)→
+**失败处理**(练习场景开关:发送失败 → 草稿保留 → 重试成功)→ **真实模型调用**
+(ev-09/ev-10:card-host 如实拒绝并显示在界面上;同一按钮在配置过 AI providers 的
+OctoSense 桌面 Shell 中产生真实模型输出)。
 
-One-time setup (see `../octosense-local-hub/README.md` for the full story):
-build the shell from the local OctoSense checkout
-(`python tools/setup.py`, then
+## 在 OctoSense 桌面 Shell 中运行(最强演示)
+
+一次性准备(完整说明见 `../octosense-local-hub/README.md`):从本地 OctoSense 检出
+构建 Shell(`python tools/setup.py` 后
 `cargo build --release -p octosense --no-default-features --features app-hub`),
-publish the bundle to the local hub, and launch with:
+把提交包发布到本地 hub,然后带环境变量启动:
 
 ```sh
 set MAKEPAD_REMOTE=8147
-set OCTOSENSE_HUB_ANCHOR=<anchor public hex from ../octosense-local-hub/README>
+set OCTOSENSE_HUB_ANCHOR=<../octosense-local-hub/README 中的 anchor 公钥>
 set OCTOSENSE_APP_DATA=D:\Coding\Rust\agenticapp26\octosense-local-hub\device
 start "" D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\octosense.exe --test-action launch-hub:vibemail
 python scripts/official_sheet_run.py 8147
 ```
 
-The shell admits the bundle through its signature-verified catalog,
-launches it as a window-manager client, and its own Mail service handles
-`mail.*`: 添加账号 raises the official 「OctoSense · Add a mail account」
-sheet (address / password / IMAP-vs-POP3 / server ports), and wrong
-credentials are rejected by the real mail server (ev-19). The shell also
-registers the `model` service, so in this environment the app's AI buttons
-reach a real one-shot model call whenever the shell has providers
-configured.
+Shell 经签名验证的目录准入提交包(同 id、同字节),将其作为窗口管理器客户端启动,
+并由**自带的 Mail 服务**处理 `mail.*`:「添加账号」唤起官方「OctoSense · Add a
+mail account」面板(地址 / 密码 / IMAP-POP3 / 服务器端口),错误凭据被真实
+`imap.qq.com:993` 拒绝(ev-19)。该 Shell 同时注册 `model` 服务——配置过 providers
+的话,应用的 AI 按钮在此环境中走真实一次性模型调用(AI 摘要与起草已在 Shell 中对
+接真实配置的 MiniMax 实测通过,见 ev-22/ev-23)。
 
-## Status
+## 运行证据
 
-- `hub check` — `vibemail 0.5.4 — PASSED` (signed by the local hub working
-  key; catalog sequence 2 in `../octosense-local-hub/`).
-- Remaining human steps (publisher): `hub keygen` → `hub sign-manifest` →
-  `hub check --publisher-key` → tag + open `Submit vibemail 0.5.4` on
-  OctoSense-App-Hub with `evidence/hub/SUBMISSION.md` attached.
+`evidence/` 下全部为真实运行截取 / 记录(截图逐张人工核验):
+
+| 证据 | 内容 |
+| --- | --- |
+| `ev-01..08.png` | 回复生命周期:草稿待发送 / 确认 / 已发送 / 收件箱胶囊同步 / 失败 / 草稿保留 / 重试成功 / Agent 审批 |
+| `ev-09/10.png` | 模型不可用态(宿主原文拒绝 + 本地回退标注) |
+| `ev-17..19.png` | OctoSense 桌面 Shell 内:应用作为 WM 客户端运行 / 官方 Add-a-mail-account 面板 / 官方服务真实 IMAP 拒绝 |
+| `ev-21..24.png` | 亮色主题 / Shell 内真实 AI 摘要与起草(MiniMax)/ 模型名胶囊 |
+| `ev-mail-log.txt` | card-host 邮件流程服务侧留痕(`add_account / sheet.submit / sign-in failed / sheet.retry / sheet.cancel`,含 imap.qq.com 原文拒绝) |
+| `ev-octosense-log.txt`、`ev-ai-test-log.txt` | Shell 运行与 AI 测试日志 |
+| `final-snap.json`、`final-log.txt` | 演示结束时的完整组件树与 card-host 日志 |
+| `hub/` | 评审包:`review.json`(hub scan 问题包)+ `SUBMISSION.md`(七问书面回答 + 复现说明) |
+
+练习数据边界(按黑客松 FAQ):Agent 小队、活动流与发送失败模拟为本地练习数据;邮件
+路径是**真实的**(平台 mail 宿主服务,凭据在宿主面板收集、宿主侧保存);模型调用是
+**真实的宿主请求**(一次性、schema 校验)。
+
+## 状态与剩余人工步骤
+
+- `hub check`:`vibemail 0.5.5 — PASSED`(本地 hub 工作密钥已签名;目录 sequence 2,
+  见 `../octosense-local-hub/`)
+- 机器可读的状态清单(已验证项 / 未验证边界)见 [validation.json](validation.json)
+- 剩余人工步骤(发布者本人):
+  1. `hub keygen`(密钥保存在仓库之外)
+  2. `hub sign-manifest bundle --key … --key-id <publisher-id>`
+  3. `hub check bundle --publisher-key <id>=<hex>` → 无警告 PASSED
+  4. 打 tag 并在 [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub/issues)
+     开 `Submit vibemail 0.5.5` issue(附 `evidence/hub/SUBMISSION.md`)
+
+## 隐私
+
+见 [PRIVACY.md](PRIVACY.md);商店 listing 中的隐私政策 URL 指向本仓库同一文件。
+
+## 近期版本
+
+- **0.5.5** —— 高 DPI Shell 宽度适配:侧栏 240 / 列表 310 / 阅读栏自适应 / Copilot 260,优先级计分器紧凑化,写信工具栏精简
+- **0.5.4** —— 模型胶囊与摘要胶囊显示宿主实际使用的模型名(`meta.model`),替换
+  GPT-Vibe 4 占位名
+- **0.5.3** —— 去掉写信页输入框的多余嵌套(提示词与 AI 草稿各一层边框,文字直接
+  落在卡片上)
+- **0.5.2** —— 主题胶囊与侧栏底部按钮改为原生控件图形图标(太阳 / 月牙 / 日历 /
+  滑杆)
+- **0.5.1** —— 三栏各自独立滚动,固定视口,修掉短栏下方露黑底;AI 服务商(MiniMax)
+  在 Shell 中实测通过
+- **0.5.0** —— 按最新设计完全重构:森林墨绿 × 暖沙双主题、侧栏导航、三栏收件箱、
+  COMPOSE WITH AI 栏、Agent 任务面板

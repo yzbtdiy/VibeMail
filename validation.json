@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "app": { "id": "vibemail", "version": "0.5.4" },
+  "form": "script-app (Splash bundle, card-host / OctoSense shell)",
+  "generated": "2026-09-30",
+  "counts": {
+    "routes": 4,
+    "route_steps": 32,
+    "service_unit_tests": 8,
+    "bridge_unit_tests": 5,
+    "listing_screenshots": 5,
+    "evidence_images": 17
+  },
+  "verified": [
+    {
+      "what": "App Hub gate",
+      "result": "PASSED (only the unsigned warning; signing is a human step)",
+      "command": "hub check bundle --allow-unsigned",
+      "where": "bundle/"
+    },
+    {
+      "what": "state-machine twin unit tests",
+      "result": "8/8 OK",
+      "command": "python -m unittest discover -s service",
+      "where": "service/"
+    },
+    {
+      "what": "dev bridge parsing unit tests",
+      "result": "5/5 OK",
+      "command": "python -m unittest discover -s bridge -p \"test_*.py\"",
+      "where": "bridge/"
+    },
+    {
+      "what": "declarative click-through routes over the real card-host window (hidden), 1200x860, Windows 10 26100",
+      "result": "4/4 routes passed (32 steps: in-place read, model-unavailable honesty, local-template fallback, two-step confirmed send, inbox pill sync, outage -> draft kept -> retry, agent approval, theme flip)",
+      "command": "python scripts/run_routes.py 8148",
+      "spec": "route_test.json",
+      "date": "2026-09-30"
+    },
+    {
+      "what": "mail flow with a real imap.qq.com rejection in card-host (reference mail service)",
+      "result": "recorded service-side trace with the server's verbatim NO; re-runnable",
+      "command": "python scripts/drive-mail.py <port>",
+      "where": "evidence/ev-mail-log.txt"
+    },
+    {
+      "what": "same bundle inside the real OctoSense desktop shell: official sign-in sheet, real IMAP rejection, real model calls (MiniMax)",
+      "result": "captures + logs",
+      "command": "python scripts/official_sheet_run.py <port>; python scripts/ai_test.py <port>",
+      "where": "evidence/ev-17..19.png, ev-22..24.png, ev-octosense-log.txt, ev-ai-test-log.txt"
+    }
+  ],
+  "not_verified": [
+    "platforms other than Windows 10 26100 (the listing claims windows only)",
+    "image-parity / visual-similarity gates (an image-to-card concept; not applicable to a script app — listing screenshots are real captures, human-reviewed)",
+    "publisher keygen, manifest signing and the OctoSense-App-Hub submission issue (human steps)"
+  ],
+  "practice_data": "the Agent squad, the activity stream and the send-failure switch are labelled local practice data; the mail and model paths are real host-service calls"
+}
