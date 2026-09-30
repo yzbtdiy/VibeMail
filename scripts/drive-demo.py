@@ -260,6 +260,15 @@ click_expect("✓ 批准", "已处理")
 shot(EVID / "ev-08-agents-approval.png")
 shot(SHOTS / "04-agents.png")                        # 4 Agent 小队(统计+开关+活动流)
 
+# dual theme: the rail tile flips the whole palette; same tree, content intact
+to_top()
+click_expect("收件箱", "已分诊今日", exact=True)
+click_expect("亮色", "暗色")                          # dark -> light
+assert has("已分诊今日"), "banner must survive the theme switch"
+shot(SHOTS / "05-light.png")                         # 5 亮色主题(自由切换)
+shot(EVID / "ev-21-theme-light.png")
+click_expect("暗色", "亮色")                          # back to deep-space dark
+
 (EVID / "final-snap.json").write_bytes(get("/snap"))
 (EVID / "final-log.txt").write_bytes(get("/log?n=200"))
 print("DONE")

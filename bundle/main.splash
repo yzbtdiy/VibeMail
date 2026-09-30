@@ -210,6 +210,90 @@ let red      = #xf87171
 let redT     = #xfca5a5
 let redBg    = #x22141b
 let white7   = #x161820      // track / hover base
+// second-generation surface vars (used by chips, rail, glow, inputs)
+let inkHi    = #xcecbc6      // near-primary text (subjects, input)
+let inkBody  = #xc0beba      // body paragraphs, summary points
+let violet2  = #x9a92d9      // violet-2 (later filter, low priority)
+let violetBgHv = #x1c1440    // violet chip hover
+let mintBd   = #x113a32      // mint border
+let badgeInk = #x052027      // text on the cyan count badge
+let inputBg  = #x0f0c22      // compose textarea ground
+let railPill   = #x120b26    // active rail tab pill
+let railPillBd = #x241640
+let railTile   = #x0e1322    // idle rail tile
+let railDiv    = #x1d1d33    // rail micro divider
+let sepC     = #x1c1e33      // rail <-> content separator
+let glowA    = #x1a0f38      // ambient blobs
+let glowB    = #x141132
+let glowC    = #x0a1c26
+
+// ---- dual theme ------------------------------------------------------------
+// Every palette binding is a plain `let` and every widget mints inside fns
+// that repaint() re-runs, so identifiers resolve at RE-MINT time. Switching
+// the theme is just reassigning the bindings and repainting the three
+// persistent roots (ground, chrome, body).
+let themeLight = false       // boot in deep-space dark
+
+fn apply_theme(l){
+    themeLight = l
+    space     = pick(l, #xf4f6fb, #x05070f)
+    panel     = pick(l, #xffffff, #x0b1120)
+    panel2    = pick(l, #xf1f3f9, #x0d1526)
+    glass     = pick(l, #xf9fafd, #x080c19)
+    line      = pick(l, #xe6e8f1, #x141523)
+    line2     = pick(l, #xc9cee0, #x26263b)
+    ink       = pick(l, #x212433, #xe9e6df)
+    ink66     = pick(l, #x4c5064, #x9b9a98)
+    ink55     = pick(l, #x676c80, #x828281)
+    ink45     = pick(l, #x868ca0, #x6c6b6d)
+    ink38     = pick(l, #x9aa1b4, #x5c5c5e)
+    ink32     = pick(l, #xb6bccd, #x4e4e52)
+    violet    = pick(l, #x8642ff, #x8642ff)
+    violetT   = pick(l, #x6d28d9, #xb7a8ff)
+    violetBg  = pick(l, #xf3eeff, #x170f31)
+    violetBgHv = pick(l, #xe9dfff, #x1c1440)
+    violetBd  = pick(l, #xd9c8ff, #x353350)
+    violetHi  = pick(l, #x6b21e8, #xc4b0ff)
+    cyan      = pick(l, #x0891b2, #x22d3ee)
+    cyanT     = pick(l, #x0e7490, #x67e8f9)
+    cyanBg    = pick(l, #xe6f5fb, #x081b25)
+    mint      = pick(l, #x0d9668, #x34d399)
+    mintT     = pick(l, #x047857, #x6ee7b7)
+    mintBg    = pick(l, #xe4f6ee, #x0a1b1d)
+    mintBd    = pick(l, #xbbe7d3, #x113a32)
+    amber     = pick(l, #xd97706, #xfbbf24)
+    amberT    = pick(l, #xb45309, #xfcd34d)
+    amberBg   = pick(l, #xfdf3de, #x1e1911)
+    red       = pick(l, #xdc2626, #xf87171)
+    redT      = pick(l, #xb91c1c, #xfca5a5)
+    redBg     = pick(l, #xfde8ea, #x22141b)
+    white7    = pick(l, #xe8ebf4, #x161820)
+    inkHi     = pick(l, #x2e3145, #xcecbc6)
+    inkBody   = pick(l, #x3a3e52, #xc0beba)
+    violet2   = pick(l, #x8b5cf6, #x9a92d9)
+    badgeInk  = pick(l, #xffffffff, #x052027)
+    inputBg   = pick(l, #xf7f8fd, #x0f0c22)
+    railPill   = pick(l, #xefe9ff, #x120b26)
+    railPillBd = pick(l, #xd9ccff, #x241640)
+    railTile   = pick(l, #xedeef6, #x0e1322)
+    railDiv    = pick(l, #xe2e4f0, #x1d1d33)
+    sepC      = pick(l, #xe4e6f0, #x1c1e33)
+    glowA     = pick(l, #xe9e3ff, #x1a0f38)
+    glowB     = pick(l, #xe8eaf6, #x141132)
+    glowC     = pick(l, #xdef1fa, #x0a1c26)
+}
+fn toggle_theme(){
+    apply_theme(!themeLight)
+    repaint()
+}
+// Repaint every persistent root: ground (page bg + glow), chrome (rail +
+// separator) and body (screens). Re-driving chrome is what moves the rail's
+// active pill — minting rail() once at load left it frozen on the boot tab.
+fn repaint(){
+    ui.ground.render()
+    ui.chrome.render()
+    ui.body.render()
+}
 
 // ---- helpers --------------------------------------------------------------
 fn pick(c, a, b){ if c { return a } return b }
@@ -228,7 +312,7 @@ fn chip_fg(tone){
     return mintT
 }
 fn chip_bg(tone){
-    if tone == "violet" { return #x140e2c }
+    if tone == "violet" { return violetBg }
     if tone == "cyan" { return cyanBg }
     if tone == "amber" { return amberBg }
     if tone == "red" { return redBg }
@@ -239,7 +323,7 @@ fn pri_color(p){
     if p >= 85 { return red }
     if p >= 65 { return amber }
     if p >= 45 { return cyan }
-    return #x9a92d9
+    return violet2
 }
 fn pri_w(p){
     if p >= 95 { return 34 }
@@ -296,19 +380,19 @@ fn mail_check(){
     if !host.has("mail") {
         mail_link = "no_service"
         link_error = "此环境未提供邮件服务(card-host)"
-        ui.body.render()
+        repaint()
         return
     }
     host.request("mail.accounts", {}, fn(r){
         if !r.is_ok {
             mail_link = "no_service"
             link_error = r.error
-            ui.body.render()
+            repaint()
             return
         }
         if r.data.len() == 0 {
             mail_link = "no_account"
-            ui.body.render()
+            repaint()
             return
         }
         account_id = r.data[0].id
@@ -322,7 +406,7 @@ fn mail_add_account(){
     host.request("mail.add_account", {}, fn(r){
         if r.is_ok { mail_check() return }
         link_error = r.error
-        ui.body.render()
+        repaint()
     })
 }
 fn live_mail(m){
@@ -343,7 +427,7 @@ fn mail_load(){
         if !r.is_ok {
             mail_link = "error"
             link_error = r.error
-            ui.body.render()
+            repaint()
             return
         }
         let out = []
@@ -354,7 +438,7 @@ fn mail_load(){
         mail_src = "live"
         live_total = r.data.total
         current = 0
-        ui.body.render()
+        repaint()
     })
 }
 fn mail_open_message(i){
@@ -362,7 +446,7 @@ fn mail_open_message(i){
     host.request("mail.message", {account: account_id message: mails[i].id}, fn(r){
         if r.is_ok {
             mails[i].body = r.data.body
-            ui.body.render()
+            repaint()
         }
     })
 }
@@ -379,7 +463,7 @@ fn mail_send_live(i){
             mails[i].reply = "failed"
             if !r.is_ok { mails[i].send_error = r.error } else { mails[i].send_error = "服务未接受" }
         }
-        ui.body.render()
+        repaint()
     })
 }
 // MARKER:ADAPTER-END
@@ -387,21 +471,21 @@ fn mail_send_live(i){
 // ---- navigation -----------------------------------------------------------
 // ui is injected only after the body evaluates, so the first frame draws an
 // empty body; a boot timeout re-renders it once ui exists (README pattern).
-fn boot(){ ui.body.render(); mail_check() }
+fn boot(){ repaint(); mail_check() }
 start_timeout(0.05, || boot())
 
-fn go(s){ screen = s; ui.body.render() }
+fn go(s){ screen = s; repaint() }
 fn open_mail(i){
     // desktop master-detail: selecting a mail fills the reader pane in place
     current = i
     selected = true
-    ui.body.render()
+    repaint()
     if mails[i].src == "live" {
         mail_open_message(i)
         mail_mark_read(i)
     }
 }
-fn set_filter(f){ filter = f; ui.body.render() }
+fn set_filter(f){ filter = f; repaint() }
 
 // ---- reply lifecycle: draft -> confirm -> sending -> sent / failed --------
 // ---- AI generation via the host's one-shot model service ------------------
@@ -419,7 +503,7 @@ fn gen_summary(i){
     let m = mails[i]
     mails[i].summary_src = "asking"
     summary_error = ""
-    ui.body.render()
+    repaint()
     host.request("model.complete", {
         task: "阅读这封中文邮件,给出最多3条要点,简洁客观,不编造原文没有的事实。"
         input: {subject: m.subject sender: m.sender body: m.body}
@@ -430,34 +514,34 @@ fn gen_summary(i){
         if !r.is_ok {
             mails[i].summary_src = "unavailable"
             summary_error = r.error
-            ui.body.render()
+            repaint()
             return
         }
         mails[i].ai_points = r.data.output.points
         mails[i].summary_src = "ai"
-        ui.body.render()
+        repaint()
     })
 }
 
 fn open_reply(){ compose_mode = "reply"; go("write") }
 fn open_forward(){ compose_mode = "forward"; go("write") }
 fn edit_draft(i){ draft_text = mails[i].reply_text; go("write") }
-fn ask_send(i){ mails[i].reply = "confirm"; ui.body.render() }
-fn cancel_send(i){ mails[i].reply = "pending"; ui.body.render() }
+fn ask_send(i){ mails[i].reply = "confirm"; repaint() }
+fn cancel_send(i){ mails[i].reply = "pending"; repaint() }
 fn do_send(i){
     mails[i].reply = "sending"
-    ui.body.render()
+    repaint()
     if mails[i].src == "live" { mail_send_live(i) return }
     let idx = i
     start_timeout(0.9, || finish_send(idx))
 }
 fn finish_send(i){
     if simulate_outage { mails[i].reply = "failed" } else { mails[i].reply = "sent" }
-    ui.body.render()
+    repaint()
 }
 fn retry_send(i){ do_send(i) }
-fn keep_draft(i){ mails[i].reply = "pending"; ui.body.render() }
-fn toggle_outage(){ simulate_outage = !simulate_outage; ui.body.render() }
+fn keep_draft(i){ mails[i].reply = "pending"; repaint() }
+fn toggle_outage(){ simulate_outage = !simulate_outage; repaint() }
 fn compose_target(){
     let m = mails[current]
     if compose_mode == "forward" { return "转发给: " + m.sender }
@@ -478,7 +562,7 @@ fn quick_reply(i, q){
     draft_text = "你好:\n\n关于「" + m.subject + "」:" + q + "。\n\n(智能回复草稿,可编辑后发送)"
     mails[i].reply_text = draft_text
     mails[i].reply = "pending"
-    ui.body.render()
+    repaint()
 }
 
 // ---- shared bits -----------------------------------------------------------
@@ -516,7 +600,7 @@ fn state_pill(m){
     } else {
         if m.reply == "pending" {
             RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
-                draw_bg +: {color: #x140e2c border_radius: 6.0 border_size: 1.0 border_color: violetT}
+                draw_bg +: {color: violetBg border_radius: 6.0 border_size: 1.0 border_color: violetT}
                 Label{text: "待发送" draw_text.color: violetT draw_text.text_style.font_size: 9}}
         } else {
             if m.reply == "failed" {
@@ -538,7 +622,7 @@ fn vibe_mark(size){
 // The mint status pill: a live agent is watching the inbox
 fn agent_pill(){
     RoundedView{width: Fit height: Fit padding: Inset{top: 4 bottom: 4 left: 10 right: 10}
-        draw_bg +: {color: mintBg border_radius: 12.0 border_size: 1.0 border_color: #x113a32}
+        draw_bg +: {color: mintBg border_radius: 12.0 border_size: 1.0 border_color: mintBd}
         View{width: Fit height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
             RoundedView{width: 5 height: 5 draw_bg +: {color: mint border_radius: 3.0}}
             Label{text: "VIBE AGENT · 运行中" draw_text.color: mintT draw_text.text_style.font_size: 9}
@@ -605,7 +689,7 @@ fn triage_banner(){
                     filter_chip("all", "全部", cnt("all"), ink)
                     filter_chip("urgent", "紧急", cnt("urgent"), redT)
                     filter_chip("reply", "需回复", cnt("reply"), amberT)
-                    filter_chip("later", "可稍后", cnt("later"), #x9a92d9)
+                    filter_chip("later", "可稍后", cnt("later"), violet2)
                 }
             }
         }
@@ -619,7 +703,7 @@ fn triage_banner(){
 fn mail_row(i, sel){
     let m = mails[i]
     RoundedView{width: Fill height: Fit padding: Inset{top: 11 bottom: 11 left: 12 right: 12}
-        draw_bg +: {color: pick(sel, #x170f31, panel) border_radius: 13.0 border_size: 1.0 border_color: pick(sel, violet, line)}
+        draw_bg +: {color: pick(sel, violetBg, panel) border_radius: 13.0 border_size: 1.0 border_color: pick(sel, violet, line)}
         GestureView{width: Fill height: Fit on_tap: |x, y| open_mail(i)
             View{width: Fill height: Fit flow: Right spacing: 11
                 View{width: Fit height: Fit flow: Overlay
@@ -633,18 +717,18 @@ fn mail_row(i, sel){
                 View{width: Fill height: Fit flow: Down spacing: 3
                     View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
                         Label{width: Fill text: m.sender
-                              draw_text.color: pick(m.unread, ink, #xb0aeab)
+                              draw_text.color: pick(m.unread, ink, ink66)
                               draw_text.text_style: theme.font_bold{font_size: 12}}
                         // fixed width: a Fit-width trailing label after a
                         // Fill sibling gets squeezed to slivers on narrow rows
                         Label{width: 44 text: m.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
                     }
-                    Label{width: Fill text: m.subject draw_text.color: pick(m.unread, #xcecbc6, #x9b9a98) draw_text.text_style.font_size: 12}
+                    Label{width: Fill text: m.subject draw_text.color: pick(m.unread, inkHi, ink66) draw_text.text_style.font_size: 12}
                     Label{width: Fill text: m.snippet draw_text.color: ink45 draw_text.text_style.font_size: 10}
                     View{width: Fill height: Fit flow: Right spacing: 4
                         if m.generating {
                             RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
-                                draw_bg +: {color: #x140e2c border_radius: 6.0 border_size: 1.0 border_color: violet}
+                                draw_bg +: {color: violetBg border_radius: 6.0 border_size: 1.0 border_color: violet}
                                 Label{text: "AI 摘要生成中…" draw_text.color: violetT draw_text.text_style.font_size: 9}}
                         } else {
                             // two labels max in the row: the full set lives on
@@ -710,7 +794,7 @@ fn ai_summary_card(i){
                 Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 11}
                 Label{text: "AI 摘要" draw_text.color: violetT draw_text.text_style: theme.font_bold{font_size: 12}}
                 RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 7 right: 7}
-                    draw_bg +: {color: #x140e2c border_radius: 9.0 border_size: 1.0 border_color: violetBd}
+                    draw_bg +: {color: violetBg border_radius: 9.0 border_size: 1.0 border_color: violetBd}
                     Label{text: summary_pill_text(m.summary_src) draw_text.color: violetT draw_text.text_style.font_size: 9}}
                 ButtonFlat{width: 64 height: 26 text: "AI 生成" on_click: || gen_summary(i)
                     draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
@@ -723,7 +807,7 @@ fn ai_summary_card(i){
             for p in pts {
                 View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
                     RoundedView{width: 5 height: 5 draw_bg +: {g1: violet g2: cyan border_radius: 3.0}}
-                    Label{width: Fill text: p draw_text.color: #xb7b5b1 draw_text.text_style.font_size: 11}
+                    Label{width: Fill text: p draw_text.color: inkBody draw_text.text_style.font_size: 11}
                 }
             }
             if m.actions.len() > 0 {
@@ -782,8 +866,8 @@ fn meeting_card(m){
 // the loop variable at CLICK time (late binding) and silently no-ops.
 fn reply_chip(i, q){
     ButtonFlat{height: 34 padding: Inset{left: 12 right: 12} text: "✦ " + q on_click: || quick_reply(i, q)
-        draw_bg +: {color: #x140e2c color_hover: #x1c1440 color_down: #x140e2c border_radius: 17.0 border_size: 1.0 border_color: violetBd}
-        draw_text +: {color: #xd6c8ff text_style.font_size: 11}}
+        draw_bg +: {color: violetBg color_hover: violetBgHv color_down: violetBg border_radius: 17.0 border_size: 1.0 border_color: violetBd}
+        draw_text +: {color: violetT text_style.font_size: 11}}
 }
 fn smart_replies(i, m){
     if m.replies.len() > 0 {
@@ -839,7 +923,7 @@ fn reply_strip(i){
     }
     if m.reply == "sent" {
         RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: #x113a32} flow: Down spacing: 5
+            draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: mintBd} flow: Down spacing: 5
             Label{width: Fill text: "已回复 · 刚刚发送,已写入会话" draw_text.color: mintT draw_text.text_style: theme.font_bold{font_size: 12}}
             Label{width: Fill text: first_line(m.reply_text) draw_text.color: ink55 draw_text.text_style.font_size: 11}
         }
@@ -885,7 +969,7 @@ fn reader_pane(){
             View{width: Fill height: Fit flow: Down spacing: 8
                 for p in m.body.split("\n\n") {
                     if p != "" {
-                        Label{width: Fill text: p draw_text.color: #xc0beba draw_text.text_style.font_size: 13}
+                        Label{width: Fill text: p draw_text.color: inkBody draw_text.text_style.font_size: 13}
                     }
                 }
             }
@@ -931,7 +1015,7 @@ fn reader_pane(){
                     }
                     if m.reply == "sent" {
                         RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-                            draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: #x113a32} flow: Down spacing: 5
+                            draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: mintBd} flow: Down spacing: 5
                             Label{width: Fill text: "已回复 · 刚刚发送,已写入会话" draw_text.color: mintT draw_text.text_style: theme.font_bold{font_size: 12}}
                             Label{width: Fill text: first_line(m.reply_text) draw_text.color: ink55 draw_text.text_style.font_size: 11}
                         }
@@ -970,7 +1054,7 @@ fn reader_pane(){
 }
 
 // ---- view 3: AI 写信 ----------------------------------------------------------
-fn set_tone(t){ tone = t; ui.body.render() }
+fn set_tone(t){ tone = t; repaint() }
 // The local template keeps the app fully usable when no model answers.
 fn local_draft(){
     let ask = draft_input
@@ -982,7 +1066,7 @@ fn regen(){
     if ask == "" { ask = "一封通用商务邮件" }
     draft_status = "asking"
     draft_error = ""
-    ui.body.render()
+    repaint()
     host.request("model.complete", {
         task: "按给定语气为一封中文邮件起草简短回复,只输出邮件正文,不编造事实。"
         input: {subject: mails[current].subject sender: mails[current].sender ask: ask tone: tone}
@@ -994,12 +1078,12 @@ fn regen(){
             draft_status = "unavailable"
             draft_error = r.error
             local_draft()
-            ui.body.render()
+            repaint()
             return
         }
         draft_text = r.data.output.body
         draft_status = "ai"
-        ui.body.render()
+        repaint()
     })
 }
 fn insert_draft(){
@@ -1016,8 +1100,8 @@ fn draft_pill_text(){
 }
 fn tone_chip(t){
     ButtonFlat{height: 28 padding: Inset{left: 10 right: 10} text: t on_click: || set_tone(t)
-        draw_bg +: {color: pick(t == tone, #x1c1440, #x00000000) color_hover: white7 color_down: white7 border_radius: 7.0 border_size: 1.0 border_color: pick(t == tone, violet, #x00000000)}
-        draw_text +: {color: pick(t == tone, #xd6c8ff, ink45)}}
+        draw_bg +: {color: pick(t == tone, violetBgHv, #x00000000) color_hover: white7 color_down: white7 border_radius: 7.0 border_size: 1.0 border_color: pick(t == tone, violet, #x00000000)}
+        draw_text +: {color: pick(t == tone, violetT, ink45)}}
 }
 fn write_screen(){
     View{width: Fill height: Fit flow: Right
@@ -1030,7 +1114,7 @@ fn write_screen(){
                 View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 10 bottom: 10 left: 14 right: 14}
                     Label{width: 40 text: "收件人" draw_text.color: ink38 draw_text.text_style.font_size: 10}
                     RoundedView{width: Fit height: Fit padding: Inset{top: 3 bottom: 3 left: 6 right: 10}
-                        draw_bg +: {color: #x140e2c border_radius: 11.0 border_size: 1.0 border_color: violetBd}
+                        draw_bg +: {color: violetBg border_radius: 11.0 border_size: 1.0 border_color: violetBd}
                         View{width: Fit height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
                             avatar(mails[current], 18)
                             Label{text: mails[current].sender draw_text.color: ink draw_text.text_style.font_size: 11}
@@ -1040,7 +1124,7 @@ fn write_screen(){
                 View{width: Fill height: 1 draw_bg.color: line}
                 View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 10 bottom: 10 left: 14 right: 14}
                     Label{width: 40 text: "主题" draw_text.color: ink38 draw_text.text_style.font_size: 10}
-                    Label{width: Fill text: compose_subject() draw_text.color: #xcecbc6 draw_text.text_style.font_size: 12}
+                    Label{width: Fill text: compose_subject() draw_text.color: inkHi draw_text.text_style.font_size: 12}
                 }
                 View{width: Fill height: 1 draw_bg.color: line}
                 View{width: Fill height: Fit flow: Right spacing: 5 padding: Inset{top: 8 bottom: 8 left: 14 right: 14}
@@ -1055,12 +1139,12 @@ fn write_screen(){
                 View{width: Fill height: 1 draw_bg.color: line}
                 View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 16 bottom: 12 left: 14 right: 14}
                     RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 12 left: 12 right: 12}
-                        draw_bg +: {color: #x0f0c22 border_radius: 12.0 border_size: 1.0 border_color: violetBd} flow: Down spacing: 9
+                        draw_bg +: {color: inputBg border_radius: 12.0 border_size: 1.0 border_color: violetBd} flow: Down spacing: 9
                         View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
                             Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 10}
                             Label{text: "AI 草稿 · 语气:" + tone draw_text.color: violetT draw_text.text_style.font_size: 10}
                             RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 7 right: 7}
-                                draw_bg +: {color: #x140e2c border_radius: 9.0 border_size: 1.0 border_color: violetBd}
+                                draw_bg +: {color: violetBg border_radius: 9.0 border_size: 1.0 border_color: violetBd}
                                 Label{text: draft_pill_text() draw_text.color: violetT draw_text.text_style.font_size: 9}}
                             View{width: Fill height: 1}
                         }
@@ -1070,12 +1154,12 @@ fn write_screen(){
                         RoundedView{width: Fill height: Fit draw_bg +: {color: panel2 border_radius: 10.0 border_size: 1.0 border_color: line}
                             TextInput{width: Fill height: 110 text: draft_text empty_text: "草稿会出现在这里…" on_change: |t| draft_text = t
                                 draw_bg +: {color: #x00000000 color_hover: #x00000000 color_focus: #x00000000 border_radius: 10.0}
-                                draw_text +: {color: #xcecbc6 color_hover: #xcecbc6 color_focus: #xcecbc6 color_empty: ink38 color_empty_hover: ink38}}
+                                draw_text +: {color: inkHi color_hover: inkHi color_focus: inkHi color_empty: ink38 color_empty_hover: ink38}}
                         }
                         View{width: Fill height: Fit flow: Right spacing: 8
                             ButtonFlat{height: 28 text: "✓ 采用草稿" on_click: || insert_draft()
-                                draw_bg +: {color: #x1c1440 color_hover: #x251a52 color_down: #x1c1440 border_radius: 7.0 border_size: 1.0 border_color: violet}
-                                draw_text +: {color: #xd6c8ff text_style.font_size: 10}}
+                                draw_bg +: {color: violetBgHv color_hover: violetBd color_down: violetBgHv border_radius: 7.0 border_size: 1.0 border_color: violet}
+                                draw_text +: {color: violetT text_style.font_size: 10}}
                             ButtonFlat{height: 28 text: "↻ 重新生成" on_click: || regen()
                                 draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 7.0 border_size: 1.0 border_color: line2}
                                 draw_text +: {color: ink55 text_style.font_size: 10}}
@@ -1128,7 +1212,7 @@ fn write_screen(){
 }
 
 // ---- view 4: Agent 小队 --------------------------------------------------------
-fn approve_act(i){ acts[i].handled = true; ui.body.render() }
+fn approve_act(i){ acts[i].handled = true; repaint() }
 fn stat_cell(label, value, color){
     RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 12 right: 12}
         draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 7
@@ -1187,12 +1271,12 @@ fn act_row(i){
                     }
                 }
             }
-            Label{width: Fill text: a.text draw_text.color: #xb7b5b1 draw_text.text_style.font_size: 11}
+            Label{width: Fill text: a.text draw_text.color: inkBody draw_text.text_style.font_size: 11}
             if a.status == "approval" {
                 if !a.handled {
                     View{width: Fill height: Fit flow: Right spacing: 6
                         ButtonFlat{height: 26 text: "✓ 批准" on_click: || approve_act(i)
-                            draw_bg +: {color: mintBg color_hover: #x0d2521 color_down: mintBg border_radius: 7.0 border_size: 1.0 border_color: mint}
+                            draw_bg +: {color: mintBg color_hover: mintBd color_down: mintBg border_radius: 7.0 border_size: 1.0 border_color: mint}
                             draw_text +: {color: mintT text_style.font_size: 10}}
                         ButtonFlat{height: 26 text: "✕ 忽略" on_click: || approve_act(i)
                             draw_bg +: {color: #x00000000 color_hover: redBg color_down: redBg border_radius: 7.0 border_size: 1.0 border_color: line2}
@@ -1275,15 +1359,15 @@ fn agents_screen(){
 fn rail_tab(label, glyph, target, badge){
     GestureView{width: Fill height: 64 on_tap: |x, y| go(target)
         View{width: Fill height: Fill flow: Overlay
-            RoundedView{width: Fill height: Fill draw_bg +: {color: pick(screen == target, #x120b26, #x00000000) border_radius: 15.0 border_size: 1.0 border_color: pick(screen == target, #x241640, #x00000000)}
+            RoundedView{width: Fill height: Fill draw_bg +: {color: pick(screen == target, railPill, #x00000000) border_radius: 15.0 border_size: 1.0 border_color: pick(screen == target, railPillBd, #x00000000)}
                 View{width: Fill height: Fill flow: Down spacing: 4 align: Align{x: 0.5 y: 0.5}
                     View{width: Fit height: Fit flow: Overlay
-                        RoundedView{width: 40 height: 40 draw_bg +: {color: pick(screen == target, violetBg, #x0e1322) border_radius: 13.0 border_size: 1.0 border_color: pick(screen == target, violet, line2)} align: Align{x: 0.5 y: 0.5}
+                        RoundedView{width: 40 height: 40 draw_bg +: {color: pick(screen == target, violetBg, railTile) border_radius: 13.0 border_size: 1.0 border_color: pick(screen == target, violet, line2)} align: Align{x: 0.5 y: 0.5}
                             Label{text: glyph draw_text.color: pick(screen == target, violetHi, ink55) draw_text.text_style.font_size: 15}}
                         if badge != "" {
                             View{width: Fill height: Fill align: Align{x: 1.0 y: 0.0}
                                 RoundedView{width: 16 height: 16 draw_bg +: {color: cyan border_radius: 8.0 border_size: 2.0 border_color: glass} align: Align{x: 0.5 y: 0.5}
-                                    Label{text: badge draw_text.color: #x052027 draw_text.text_style: theme.font_bold{font_size: 8}}
+                                    Label{text: badge draw_text.color: badgeInk draw_text.text_style: theme.font_bold{font_size: 8}}
                                 }
                             }
                         }
@@ -1297,11 +1381,19 @@ fn rail_tab(label, glyph, target, badge){
 fn rail(){
     View{width: 78 height: Fill flow: Down spacing: 6 align: Align{x: 0.5} padding: Inset{top: 16 bottom: 16 left: 9 right: 9} draw_bg.color: glass
         vibe_mark(34)
-        View{width: 26 height: 22 draw_bg.color: #x1d1d33}
+        View{width: 26 height: 22 draw_bg.color: railDiv}
         rail_tab("收件箱", "收", "inbox", "" + cnt("all"))
         rail_tab("写信", "写", "write", "")
         rail_tab("Agent", "队", "agents", "" + agents.len())
         View{width: 1 height: Fill}
+        // theme switch: in dark the tile offers 亮色 (sun), in light 暗色 (moon)
+        GestureView{width: Fill height: Fit padding: Inset{top: 4 bottom: 4} on_tap: |x, y| toggle_theme()
+            View{width: Fill height: Fit flow: Down spacing: 4 align: Align{x: 0.5}
+                RoundedView{width: 40 height: 40 draw_bg +: {color: railTile border_radius: 13.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
+                    Label{text: pick(themeLight, "月", "日") draw_text.color: ink55 draw_text.text_style.font_size: 15}}
+                Label{text: pick(themeLight, "暗色", "亮色") draw_text.color: ink55 draw_text.text_style.font_size: 8}
+            }
+        }
         View{width: Fit height: Fit flow: Overlay
             RoundedView{width: 34 height: 34 draw_bg +: {g1: violet g2: cyan border_radius: 17.0} align: Align{x: 0.5 y: 0.5}
                 Label{text: "林" draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: 14}}}
@@ -1314,21 +1406,29 @@ fn rail(){
 }
 
 // ---- root ------------------------------------------------------------------
-SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: space
-    View{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Right spacing: 0
-            RoundedView{width: 240 height: 240 draw_bg +: {color: #x1a0f38 border_radius: 120.0}}
-            View{width: Fill height: 1}
-            RoundedView{width: 160 height: 160 draw_bg +: {color: #x141132 border_radius: 80.0}}
+// The SolidView's own bg is the boot-time ground only; ground := re-mints the
+// themed page colour and glow blobs, chrome := re-mints rail + separator.
+// body stays a persistent sibling so its scroll position survives repaints.
+SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: #x05070f
+    ground := View{width: Fill height: Fill flow: Overlay on_render: || {
+        View{width: Fill height: Fill draw_bg.color: space}
+        View{width: Fill height: Fill flow: Down
+            View{width: Fill height: Fit flow: Right spacing: 0
+                RoundedView{width: 240 height: 240 draw_bg +: {color: glowA border_radius: 120.0}}
+                View{width: Fill height: 1}
+                RoundedView{width: 160 height: 160 draw_bg +: {color: glowB border_radius: 80.0}}
+            }
+            View{width: Fill height: Fill flow: Right align: Align{y: 1.0}
+                View{width: Fill height: 1}
+                RoundedView{width: 260 height: 200 draw_bg +: {color: glowC border_radius: 100.0}}
+            }
         }
-        View{width: Fill height: Fill flow: Right align: Align{y: 1.0}
-            View{width: Fill height: 1}
-            RoundedView{width: 260 height: 200 draw_bg +: {color: #x0a1c26 border_radius: 100.0}}
-        }
-    }
+    }}
     View{width: Fill height: Fill flow: Right
-        rail()
-        View{width: 1 height: Fill draw_bg.color: #x1c1e33}
+        chrome := View{width: Fit height: Fill flow: Right on_render: || {
+            rail()
+            View{width: 1 height: Fill draw_bg.color: sepC}
+        }}
         body := ScrollYView{width: Fill height: Fill flow: Down padding: Inset{top: 14 bottom: 16 left: 16 right: 16} spacing: 0 on_render: || {
             if screen == "inbox" { inbox_screen() }
             if screen == "write" { write_screen() }

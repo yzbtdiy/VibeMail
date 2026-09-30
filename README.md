@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A concept app for the Agentic App Hackathon 2026 (mail scene). 0.3.1 is a DESKTOP-LANDSCAPE card layout (`bundle/main.splash`): a left rail (centred capsule tabs with cyan count badges, gradient avatar with an online dot, a hairline separator from the content), a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail IN PLACE, no screen push. Compose and the Agent squad are centred columns. The portrait UI is retired; run at 1200x860 (run.cmd default).
+A concept app for the Agentic App Hackathon 2026 (mail scene). 0.4.0 is a DESKTOP-LANDSCAPE card layout (`bundle/main.splash`) with **two full themes** — deep-space dark (default) and a light counterpart — switchable any time from the rail's bottom tile; the whole palette (ground, cards, text, badges, ambient glow) flips in place, content and layout untouched. The layout: a left rail (centred capsule tabs with cyan count badges, gradient avatar with an online dot, a hairline separator from the content), a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail IN PLACE, no screen push. Compose and the Agent squad are centred columns. The portrait UI is retired; run at 1200x860 (run.cmd default).
 
 **Capabilities & data**: the app requests `model` and `mail`.
 `mail`: real IMAP/SMTP goes through the platform's mail host service —
@@ -133,8 +133,8 @@ configured.
 
 ## Status
 
-- `hub check` — `vibemail 0.3.1 — PASSED` (signed by the local hub working
+- `hub check` — `vibemail 0.4.0 — PASSED` (signed by the local hub working
   key; catalog sequence 2 in `../octosense-local-hub/`).
 - Remaining human steps (publisher): `hub keygen` → `hub sign-manifest` →
-  `hub check --publisher-key` → tag + open `Submit vibemail 0.3.1` on
+  `hub check --publisher-key` → tag + open `Submit vibemail 0.4.0` on
   OctoSense-App-Hub with `evidence/hub/SUBMISSION.md` attached.
