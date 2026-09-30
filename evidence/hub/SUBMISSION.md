@@ -1,7 +1,7 @@
-# vibemail 0.2.2 — submission packet
+# vibemail 0.3.0 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated for 0.2.2), plus the reproduction evidence for the hackathon
+regenerated for 0.3.0), plus the reproduction evidence for the hackathon
 ("Agentic App 黑客松 2026", scene 01 邮件场景). The publisher key, manifest
 signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
 
@@ -98,7 +98,7 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    hub check output on the exact submitted bytes:
 
    ```
-   vibemail 0.2.2 — PASSED
+   vibemail 0.3.0 — PASSED
      grants: capabilities {"mail", "model"}, hosts {}, storage 16777216 bytes, agent none
    ```
 
@@ -138,7 +138,7 @@ Everything below is reproducible on Windows with the bundled scripts:
   installed through a local signed hub catalog
   (`../octosense-local-hub/`: `hub keygen`/`certify`/`publish`, anchor +
   `OCTOSENSE_APP_DATA` env; see its README), runs as a real window
-  manager client. ev-17: the app (0.2.2 UI) in the shell's desktop;
+  manager client. ev-17: the app (0.3.0 UI) in the shell's desktop;
   ev-18: the shell's own 「OctoSense · Add a mail account」 sheet; ev-19:
   the official Mail service's real IMAP login against `imap.qq.com`
   rejected — the sheet says so in its own words. Reproduce with
@@ -163,5 +163,5 @@ model output.
 
 - [ ] `hub keygen` + `hub sign-manifest` (publisher key stays outside the repo)
 - [ ] `hub check --publisher-key <id>=<hex>` → PASSED with no warning
-- [ ] Tag the commit, open `Submit vibemail 0.2.2` on OctoSense-App-Hub
+- [ ] Tag the commit, open `Submit vibemail 0.3.0` on OctoSense-App-Hub
       with this packet's answers attached

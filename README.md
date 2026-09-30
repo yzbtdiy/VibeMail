@@ -2,17 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A concept app for the Agentic App Hackathon 2026 (mail scene), rebuilt in
-0.2.0 from a deep-space web reference into a **responsive** Splash app
-(`bundle/main.splash`): three views — a triaged smart inbox, an AI compose
-column, an Agent squad panel — that adapt between phone and desktop widths
-with one widget tree. Wide windows get a list-plus-reader master-detail and
-centred content columns; narrow windows collapse to a single column with
-push navigation. The script cannot read the window width, so the layout
-math *is* the media query (probed in card-host): a FIXED width clamps to
-its container and a Fill sibling collapses to zero — every screen is a
-`[Fill margin][fixed column][Fill margin]` row, full-bleed on a phone and
-centred on a desktop.
+A concept app for the Agentic App Hackathon 2026 (mail scene). 0.3.0 is a DESKTOP-LANDSCAPE card layout (`bundle/main.splash`): a left rail (glyph tiles + badges), a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail IN PLACE, no screen push. Compose and the Agent squad are centred columns. The portrait UI is retired; run at 1200x860 (run.cmd default).
 
 **Capabilities & data**: the app requests `model` and `mail`.
 `mail`: real IMAP/SMTP goes through the platform's mail host service —
@@ -143,8 +133,8 @@ configured.
 
 ## Status
 
-- `hub check` — `vibemail 0.2.2 — PASSED` (signed by the local hub working
+- `hub check` — `vibemail 0.3.0 — PASSED` (signed by the local hub working
   key; catalog sequence 2 in `../octosense-local-hub/`).
 - Remaining human steps (publisher): `hub keygen` → `hub sign-manifest` →
-  `hub check --publisher-key` → tag + open `Submit vibemail 0.2.2` on
+  `hub check --publisher-key` → tag + open `Submit vibemail 0.3.0` on
   OctoSense-App-Hub with `evidence/hub/SUBMISSION.md` attached.

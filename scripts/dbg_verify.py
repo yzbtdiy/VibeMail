@@ -32,7 +32,7 @@ def tap(text):
         time.sleep(0.5)
     return False
 
-ctypes.windll.user32.SetCursorPos(3800, 200)
+ctypes.windll.user32.SetCursorPos(ctypes.windll.user32.GetSystemMetrics(0)//2, ctypes.windll.user32.GetSystemMetrics(1)-12)
 
 # inbox: scroll slowly to the GitHub row
 seen = set()

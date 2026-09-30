@@ -2,15 +2,7 @@
 
 [English](README.md) | 简体中文
 
-参赛「Agentic App 黑客松 2026」（场景 01 邮件）的概念应用。0.2.0 按网页参考
-完全重做为**深空主题的响应式** Splash 应用（`bundle/main.splash`）：三大视图——
-智能收件箱（AI 分诊横幅 + 优先级 + 标签）、AI 写信（语气 + 提示词起草）、
-Agent 小队（统计 / 开关 / 实时活动流与审批）——手机与桌面宽度自适应，
-**同一棵组件树**。脚本无法读取窗口宽度，布局数学本身就是媒体查询
-（已在 card-host 中实证）：FIXED 宽度向容器钳位、Fill 兄弟被挤压归零——
-每屏都是 `[Fill 留白][定宽列][Fill 留白]`，窄窗全幅、宽窗居中；收件箱更进一步
-做 master-detail：宽窗是「列表 + 选择邮件占位卡」，阅读态是「阅读栏 + 高亮列表」
-双栏，窄窗自动塌缩为单栏推送式导航。
+参赛「Agentic App 黑客松 2026」（场景 01 邮件）的概念应用。0.3.0 为**桌面横向卡片布局**的 Splash 应用（`bundle/main.splash`）：左侧导航栏（字符块图标 + 徽章）+ 邮件卡片列表 + 常驻阅读栏——点击卡片即在右栏原地展开，无页面跳转；写信与 Agent 小队为居中列。纵向 UI 已退役，运行宽度 1200x860（run.cmd 默认）。
 
 **能力与数据口径**：应用申请 `model` 与 `mail` 两项权限。
 `mail`：真实收发走平台 mail 宿主服务——账号由**宿主自己的登录面板**添加，
@@ -131,7 +123,7 @@ mail account」面板（地址/密码/IMAP-POP3/服务器端口），错误凭�
 
 ## 状态
 
-- `hub check`：`vibemail 0.2.2 — PASSED`（本地 hub 工作密钥已签名；
+- `hub check`：`vibemail 0.3.0 — PASSED`（本地 hub 工作密钥已签名；
   目录 sequence 2，见 `../octosense-local-hub/`）。
 - 真实邮件：本地 card-host 构建已注册 mail 服务，提交包即真收发（ev-13..16）；
   原版 card-host / 未登录时如实显示对应状态。
@@ -140,4 +132,4 @@ mail account」面板（地址/密码/IMAP-POP3/服务器端口），错误凭�
 - 截图为 card-host 真实截取并逐张人工核验；见 `evidence/`。
 - 剩余人工步骤（发布者本人）：`hub keygen` → `hub sign-manifest` →
   `hub check --publisher-key` → 打 tag 并在 OctoSense-App-Hub 开
-  `Submit vibemail 0.2.2` issue（附 `evidence/hub/SUBMISSION.md`）。
+  `Submit vibemail 0.3.0` issue（附 `evidence/hub/SUBMISSION.md`）。

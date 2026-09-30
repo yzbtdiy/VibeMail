@@ -30,7 +30,9 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8146
 # bridge's synthetic ones — they steal taps and can drag the window edge.
 _user32 = ctypes.windll.user32
 _sw, _sh = _user32.GetSystemMetrics(0), _user32.GetSystemMetrics(1)
-_user32.SetCursorPos(_sw - 4, _sh - 4)
+# taskbar centre — a screen CORNER parks on a window resize grip and drags
+# the driven window narrower mid-run (observed as phantom window resizes)
+_user32.SetCursorPos(_sw // 2, _sh - 12)
 BASE = f"http://127.0.0.1:{PORT}"
 ROOT = Path(__file__).resolve().parent.parent
 EVID = ROOT / "evidence"
@@ -121,15 +123,20 @@ def tap(text, exact=False):
 
 def search_for(text, exact=False, timeout=0):
     """has() + scroll: /snap only reports VISIBLE widgets, so an expect that
-    landed below the fold needs the view scrolled into it."""
+    landed outside the viewport needs the view scrolled into it — the target
+    may sit ABOVE (a deep offset carried over from the previous screen), so
+    the hunt alternates up hard and down."""
     if find(text, exact):
         return True
     t0 = time.time()
+    n = 0
     while time.time() - t0 < timeout:
-        get("/m?k=scroll&x=206&y=400&dy=620")
+        dy = -2400 if n % 2 == 0 else 620
+        get(f"/m?k=scroll&x=206&y=400&dy={dy}")
         time.sleep(0.7)
         if find(text, exact):
             return True
+        n += 1
     return False
 
 def click_expect(target, expect, tries=4, exact=False):
@@ -177,15 +184,21 @@ def shot(path, tries=3):
     raise RuntimeError(f"frame never settled for {path}")
 
 # ---- listing screenshots + reply lifecycle evidence -------------------------
+# DESKTOP flow: the inbox is a permanent master-detail (rail + card list +
+# reader pane); selecting a mail fills the reader IN PLACE — there is no
+# back navigation and no screen push for reading.
 wait_for("已分诊今日")                                # triage banner booted
 # honest practice-mode line — either no mail service answers (card-host
 # without one) or an account-less service (the vault exists, empty)
 if not has("邮件服务不可用") and not has("未添加邮箱账号"):
     raise RuntimeError("neither practice-mode banner line appeared")
-shot(SHOTS / "01-inbox.png")                         # 1 智能收件箱(分诊横幅+优先级行)
+assert has("选择一封邮件开始阅读"), "reader placeholder missing"
+shot(SHOTS / "01-inbox.png")                         # 1 收件箱(rail+卡片列表+占位阅读栏)
 
-click_expect("Re: Q4 联名方案 — 报价确认与签署排期", "‹ 返回")
-shot(SHOTS / "02-read.png")                          # 2 阅读 + AI 摘要(练习数据)
+# NOTE: expect the reader-only address — 'AI 摘要' also matches mail 7's
+# "AI 摘要生成中…" card chip, which pre-satisfies the check without clicking
+click_expect("Re: Q4 联名方案 — 报价确认与签署排期", "xiaowei.lin@northstar.io")
+shot(SHOTS / "02-read.png")                          # 2 原地阅读 + AI 摘要(练习数据)
 
 # one-shot model call: card-host answers "no service answers" — the honest
 # unavailable state is part of the demo (in a Shell with model it succeeds)
@@ -203,11 +216,10 @@ click_expect("生成草稿", "已回退本地模板", exact=True)
 shot(SHOTS / "03-write.png")                         # 3 AI 写信(模型回退本地模板)
 shot(EVID / "ev-10-draft-model-fallback.png")
 
-# back to the inbox, attach a one-tap smart reply to mail 0 — the same
-# pending -> confirm -> send lifecycle the compose draft would enter
+# rail back to the inbox — mail 0 stays selected; attach a one-tap smart
+# reply: the same pending -> confirm -> send lifecycle as a compose draft
 to_top()
-click_expect("收件箱", "已分诊今日", exact=True)
-click_expect("Re: Q4 联名方案 — 报价确认与签署排期", "‹ 返回")
+click_expect("收件箱", "已分诊今日")
 click_expect("确认条款并安排签署", "回复草稿 · 待发送")      # smart-reply chip
 shot(EVID / "ev-01-draft-pending.png")               # draft attached, 待发送
 
@@ -216,36 +228,32 @@ shot(EVID / "ev-02-confirm.png")                     # explicit confirm step
 
 click_expect("确认发送", "已回复 · 刚刚发送", exact=True)
 shot(EVID / "ev-03-sent.png")                        # sent strip
+# same screen: the list card's pill flips to 已回复 (master-detail sync)
 to_top()
-click_expect("‹ 返回", "已分诊今日")
+assert has("已回复"), "list card pill did not flip to 已回复"
 shot(EVID / "ev-04-inbox-sent-pill.png")             # inbox pill now 已回复
 
 # failure -> keep draft -> retry from the strip (the outage is a practice
-# switch, enabled on the write tab BEFORE attaching the reply)
-to_top()
+# switch, enabled on the write screen BEFORE attaching the reply)
 click_expect("写信", "回复给:")
 click_expect("已关闭", "已开启")                       # enable the outage switch
-to_top()
-click_expect("收件箱", "已分诊今日", exact=True)
-click_expect("终面反馈:高级产品设计师候选人", "‹ 返回")
+click_expect("收件箱", "已分诊今日")
+click_expect("终面反馈:高级产品设计师候选人", "liqun.chen@astralvc.com")  # reader swapped to mail 2
 click_expect("同意录用,不再加面", "回复草稿 · 待发送")   # one-tap smart reply
 click_expect("发送", "确认发送给", exact=True)
 click_expect("确认发送", "发送失败", exact=True)
 shot(EVID / "ev-05-failed.png")                      # send failed, draft kept
 click_expect("保留草稿", "回复草稿 · 待发送")
 shot(EVID / "ev-06-kept-draft.png")                  # back to 待发送, text intact
-to_top()
 click_expect("写信", "回复给:")
 click_expect("已开启", "已关闭")                       # disable the outage switch
-to_top()
-click_expect("收件箱", "已分诊今日", exact=True)
-click_expect("终面反馈:高级产品设计师候选人", "‹ 返回")
+click_expect("收件箱", "已分诊今日")
+# mail 2 is still selected — its strip is pending again, resend
 click_expect("发送", "确认发送给", exact=True)
 click_expect("确认发送", "已回复 · 刚刚发送", exact=True)
 shot(EVID / "ev-07-retry-sent.png")                  # retry succeeds
 
 # agent squad: stats, toggles, live stream, approval
-to_top()
 click_expect("Agent", "我的 AGENT 小队", exact=True)
 click_expect("需审批", "需审批")                       # stream shows pending approvals
 click_expect("✓ 批准", "已处理")

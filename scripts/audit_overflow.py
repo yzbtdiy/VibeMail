@@ -80,7 +80,7 @@ def audit_width(width):
             pass
         time.sleep(0.6)
 
-    ctypes.windll.user32.SetCursorPos(3800, 200)
+    ctypes.windll.user32.SetCursorPos(ctypes.windll.user32.GetSystemMetrics(0)//2, ctypes.windll.user32.GetSystemMetrics(1)-12)
     issues = []
     # inbox
     to_top(); time.sleep(0.5)

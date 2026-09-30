@@ -44,29 +44,34 @@ def harvest_screen():
     return seen
 
 def tap_nav_agent():
-    """Click the nav tab EXACTLY — 'Agent' also appears inside practice-mail
-    subjects, and a substring tap opens a mail instead of the squad view."""
+    """Click the rail's Agent tab EXACTLY — 'Agent' also appears inside
+    practice-mail subjects, and a substring tap opens a mail instead of the
+    squad view. The rail lives at the window's left edge (x < 80)."""
     for w in snap():
         if w.get("ty") != "Splash" and w.get("t") == "Agent":
             x, y, ww, h = w["r"]
-            cx, cy = x + ww / 2, y + h / 2
-            if 776 < cy < 855:
-                get(f"/click?x={cx:.0f}&y={cy:.0f}&wait=1")
+            if x < 80 and 29 < y < 766:
+                get(f"/click?x={x + ww // 2:.0f}&y={y + h // 2:.0f}&wait=1")
                 time.sleep(1.4)
                 return True
     return False
 
 def tap(text):
-    for _ in range(10):
+    # /snap holds only the VISIBLE viewport: an off-screen target (above or
+    # below) is simply absent, so the search alternates up/down hard scrolls
+    for n in range(10):
+        pos = None
         for w in snap():
             if w.get("ty") != "Splash" and w.get("t") and text in w["t"]:
                 x, y, ww, h = w["r"]
-                cx, cy = x + ww / 2, y + h / 2
-                if 29 < cy < 766 or 776 < cy < 855:
-                    get(f"/click?x={cx:.0f}&y={cy:.0f}&wait=1")
-                    time.sleep(1.4)
-                    return True
-        get("/m?k=scroll&x=200&y=400&dy=" + ("420" if True else "-2400"))
+                pos = (x + ww / 2, y + h / 2)
+                break
+        if pos and (29 < pos[1] < 766 or 776 < pos[1] < 855):
+            get(f"/click?x={pos[0]:.0f}&y={pos[1]:.0f}&wait=1")
+            time.sleep(1.4)
+            return True
+        dy = (-2400 if n % 2 == 0 else 600)
+        get(f"/m?k=scroll&x=200&y=400&dy={dy}")
         time.sleep(0.5)
     return False
 
@@ -84,9 +89,12 @@ EXPECTED = {
         "AWS Summit", "早鸟票最后 48 小时:AWS Summit 上海 2026", "营销", "28",
         "沈括 · 数据平台", "数据看板权限申请已通过", "系统通知", "40",
         "AI 优先级为练习数据评分",
+        # desktop: the reader placeholder is visible before any selection
+        "选择一封邮件开始阅读",
     ],
     "read-mail0": [
-        "‹ 返回", "Re: Q4 联名方案 — 报价确认与签署排期",
+        # desktop: the reader pane fills IN PLACE — the list stays visible
+        "选择一封邮件开始阅读",          # placeholder BEFORE the click (inbox)
         "合同", "截止今天 18:00", "需回复",
         "林晓薇", "xiaowei.lin@northstar.io",
         "AI 摘要", "AI 生成",
@@ -147,7 +155,7 @@ def audit(width):
         except OSError:
             pass
         time.sleep(0.6)
-    ctypes.windll.user32.SetCursorPos(3800, 200)
+    ctypes.windll.user32.SetCursorPos(ctypes.windll.user32.GetSystemMetrics(0)//2, ctypes.windll.user32.GetSystemMetrics(1)-12)
 
     missing = {}
     seen = harvest_screen()
@@ -157,8 +165,11 @@ def audit(width):
         time.sleep(1.0)
         seen = harvest_screen()
         missing["read-mail0"] = [e for e in EXPECTED["read-mail0"] if not any(e in t for t in seen)]
-        tap("‹ 返回") or tap("收件箱")
-        time.sleep(1.2)
+        # desktop: selecting a mail fills the reader pane in place; the
+        # placeholder line below only exists when NOTHING is selected, so
+        # drop it from the post-click check
+        missing["read-mail0"] = [e for e in missing["read-mail0"]
+                                 if e != "选择一封邮件开始阅读"]
 
     if tap("写信"):
         time.sleep(1.0)
@@ -175,7 +186,7 @@ def audit(width):
     return missing
 
 def main():
-    widths = [int(a) for a in sys.argv[1:]] or [412, 700, 1200]
+    widths = [int(a) for a in sys.argv[1:]] or [1200, 900]
     report = []
     for w in widths:
         print(f"=== {w}px ===", flush=True)

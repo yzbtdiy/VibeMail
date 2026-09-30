@@ -80,11 +80,13 @@ def kill_port_listeners():
 
 
 def park_mouse():
-    """Move the real cursor to the screen corner, away from the driven
-    window: OS mouse events at the real cursor interleave with the bridge's
-    synthetic ones and steal the taps (and can drag the window edge)."""
+    """Move the real cursor to the middle of the taskbar, away from the
+    driven window: OS mouse events at the real cursor interleave with the
+    bridge's synthetic ones and steal taps — and a cursor parked on a screen
+    CORNER sits on a window resize grip and DRAGS the window narrower (seen
+    as mid-run window resizes). The taskbar centre has no window edge."""
     u = ctypes.windll.user32
-    u.SetCursorPos(u.GetSystemMetrics(0) - 4, u.GetSystemMetrics(1) - 4)
+    u.SetCursorPos(u.GetSystemMetrics(0) // 2, u.GetSystemMetrics(1) - 12)
 
 
 def wait_up(port, timeout=25):
@@ -177,7 +179,7 @@ def launch_shell(drive=False):
 def main():
     ap = argparse.ArgumentParser(prog="run.cmd", add_help=True,
                                  description=__doc__.splitlines()[1])
-    ap.add_argument("mode", nargs="?", default="mobile",
+    ap.add_argument("mode", nargs="?", default="desktop",
                     choices=["mobile", "desktop", "demo", "mail",
                              "shell", "shell-drive", "check", "stop"])
     args = ap.parse_args()
@@ -206,7 +208,7 @@ def main():
         launch_shell(drive=True)
         return
 
-    width, height = (412, 860) if args.mode != "desktop" else (1200, 860)
+    width, height = (1200, 860) if args.mode != "mobile" else (412, 860)
     launch_card_host(width, height)
 
     if args.mode in ("demo", "mail"):
