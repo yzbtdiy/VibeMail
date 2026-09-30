@@ -39,13 +39,13 @@ def tap(text):
             get(f"/click?x={p[0]:.0f}&y={p[1]:.0f}&wait=1")
             time.sleep(1.3)
             return True
-        get("/m?k=scroll&x=200&y=400&dy=" + ("420" if (not p or p[1] >= 766) else "-2400"))
+        get("/m?k=scroll&x=700&y=400&dy=" + ("420" if (not p or p[1] >= 766) else "-2400"))
         time.sleep(0.5)
     return False
 
 def to_top():
     for _ in range(3):
-        get("/m?k=scroll&x=200&y=400&dy=-6000")
+        get("/m?k=scroll&x=700&y=400&dy=-6000")
         time.sleep(0.3)
 
 def overflow(win_w):
@@ -87,7 +87,7 @@ def audit_width(width):
     issues += [("inbox", *i) for i in overflow(width)]
     # scroll the inbox to the bottom too
     for _ in range(4):
-        get("/m?k=scroll&x=200&y=400&dy=500"); time.sleep(0.4)
+        get("/m?k=scroll&x=700&y=400&dy=500"); time.sleep(0.4)
     issues += [("inbox-scrolled", *i) for i in overflow(width)]
     # read view
     to_top()
@@ -95,7 +95,7 @@ def audit_width(width):
         time.sleep(1.0)
         issues += [("read-top", *i) for i in overflow(width)]
         for _ in range(4):
-            get("/m?k=scroll&x=200&y=400&dy=500"); time.sleep(0.4)
+            get("/m?k=scroll&x=700&y=400&dy=500"); time.sleep(0.4)
         issues += [("read-scrolled", *i) for i in overflow(width)]
     # write view
     to_top()
@@ -103,7 +103,7 @@ def audit_width(width):
         time.sleep(1.0)
         issues += [("write-top", *i) for i in overflow(width)]
         for _ in range(3):
-            get("/m?k=scroll&x=200&y=400&dy=500"); time.sleep(0.4)
+            get("/m?k=scroll&x=700&y=400&dy=500"); time.sleep(0.4)
         issues += [("write-scrolled", *i) for i in overflow(width)]
     # agents view
     to_top()
@@ -111,7 +111,7 @@ def audit_width(width):
         time.sleep(1.0)
         issues += [("agents-top", *i) for i in overflow(width)]
         for _ in range(4):
-            get("/m?k=scroll&x=200&y=400&dy=500"); time.sleep(0.4)
+            get("/m?k=scroll&x=700&y=400&dy=500"); time.sleep(0.4)
         issues += [("agents-scrolled", *i) for i in overflow(width)]
 
     proc.kill()

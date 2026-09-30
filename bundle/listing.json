@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "subtitle": "深空主题的桌面横向 Agentic 邮件:AI 分诊、摘要与回复草稿",
+  "subtitle": "深空绿野双主题的桌面横向 Agentic 邮件:AI 分诊、摘要、待办与回复草稿",
   "description": "VibeMail 是一个桌面横向卡片布局的 Agentic 邮件应用:左侧导航栏 + 邮件卡片列表 + 原地阅读栏(常驻 master-detail,点击卡片即在右栏展开,无页面跳转)。智能收件箱(AI 分诊横幅、筛选、优先级与标签)、阅读栏(AI 摘要要点、建议动作、会议识别、情绪标签、智能回复)、AI 写信(语气选择、提示词起草、模型不可用回退本地模板)、Agent 小队(统计、开关、实时活动流与审批)。回复是显式两步确认,失败保留草稿可重试。真实收发走平台 mail 宿主服务(用户在宿主登录面板添加账号,凭据存宿主侧,不经过应用);未提供该服务的环境(如 card-host)如实显示不可用并回退练习数据。AI 摘要与起草申请 model 权限,一次性调用设备配置的模型服务(schema 校验;密钥不经过应用),不可用时回退本地模板并标注。(English: VibeMail is a desktop-landscape agentic mail app: a left rail, a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail in place, no screen push. A triaged smart inbox (banner, filters, priority meters, label chips), a reader with AI summary points, suggested actions, meeting detection, sentiment and one-tap smart replies, an AI compose column (tone chips, prompt-driven drafting, labelled local fallback), and an Agent squad view (stats, toggles, live activity stream, approvals). Replies are a two-step confirmed send; a failed send keeps the draft for retry. Real mail goes through the platform's mail host service (accounts are added on the host's own sheet; credentials stay host-side, never in the app); where no service answers (card-host) the app says so and falls back to labelled practice data. AI summary and drafting request the model capability: one-shot schema-checked calls to the device's model service; where nothing answers, clearly labelled local templates are used.)",
   "category": "productivity",
   "keywords": [
@@ -28,7 +28,7 @@
     "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
     "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
   },
-  "release_notes": "0.4.0:亮/暗双主题——左栏底部一键切换,整套调色板(底色、卡片、文字、徽章、氛围光)随主题翻转,内容与布局不变;顺带修复导航栏激活态不随页面切换的问题。0.3.1:导航栏美化(居中胶囊选态、渐变头像、分隔细线)。0.3.0:桌面横向卡片布局(master-detail,无页面跳转)。",
+  "release_notes": "0.5.0:按最新 UI 设计完全重构——森林墨绿×暖沙纸感双主题、侧栏导航(写信·AI 起草/收件箱/Agent 小队/邮箱文件夹/AI 智能分类)、三栏收件箱(邮件列表|原地阅读|AI Copilot:摘要/待办提取/语气洞察/智能回复)、写信卡片+COMPOSE WITH AI 栏、Agent 任务面板(统计/开关/自动化程度/实时活动流);顶栏搜索与主题切换胶囊。0.4.0:亮/暗双主题一键切换。0.3.x:桌面横向卡片布局(无页面跳转)。",
   "age_rating": "all",
   "license": "Apache-2.0"
 }

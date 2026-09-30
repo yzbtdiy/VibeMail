@@ -1,16 +1,16 @@
-# vibemail 0.4.0 — submission packet
+# vibemail 0.5.0 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated for 0.4.0), plus the reproduction evidence for the hackathon
+regenerated for 0.5.0), plus the reproduction evidence for the hackathon
 ("Agentic App 黑客松 2026", scene 01 邮件场景). The publisher key, manifest
 signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
 
 ## The seven scan questions
 
 1. **Does the app do what its name, subtitle and description claim?**
-   Yes. `bundle/main.splash` implements exactly what the listing names: a
-   **desktop-landscape** agentic mail app with a left navigation rail and
-   three surfaces — 智能收件箱 (`inbox_screen`: AI 分诊 banner with live
+   Yes. `bundle/main.splash` implements exactly what the listing names: the
+   0.5.0 forest-ink × warm-paper UI — a **desktop-landscape** agentic mail
+   app with a sidebar, a top bar and three surfaces — 智能收件箱 (`inbox_screen`: AI 分诊 banner with live
    counts, filter chips, priority meters, label chips; a permanent
    master-detail — mail CARD list on the left, the reader opening in place
    on the right, no screen push), the reader (`reader_pane`: AI 摘要 card
@@ -21,13 +21,15 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    autonomy dial, live activity stream with approvals). The reply
    lifecycle — 草稿待发送 → 确认 → 发送中 → 已发送/失败 → 重试 — lives on
    each mail object, so the inbox pill and the reader strip always agree.
-   0.3.1 polishes the rail: centred capsule tabs with an active pill,
-   cyan count badges, a gradient avatar with an online dot, and a
-   hairline separator from the content. 0.4.0 adds two full themes —
-   deep-space dark (default) and a light counterpart — switchable at any
-   time from the rail's bottom tile (ev-21, listing screenshot 05): the
-   entire palette (ground, cards, text, badges, ambient glow) flips in
-   place while content and layout stay identical. Every screenshot in the
+   0.5.0 is a full rebuild from the latest design: sidebar navigation
+   (写信·AI 起草 / 收件箱 / Agent 小队, folders, AI clusters), a top bar with
+   an agent-ask search and a theme pill, a three-pane inbox (list |
+   in-place reader | AI Copilot: 摘要 / 待办提取 / 语气洞察 / 智能回复), a
+   compose card with a COMPOSE WITH AI rail, and the agent squad panel
+   (stats / toggles / autonomy / live stream). Two full themes — forest
+   dark (default) and warm-sand light — flip from the top-bar pill
+   (ev-21, listing screenshot 05): the entire palette flips in place
+   while content and layout stay identical. Every screenshot in the
    listing is a real capture of these screens.
 
 2. **Do the listing's platforms and category fit?**
@@ -35,7 +37,7 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    only platform actually tested: every capture and interaction in this
    packet ran on Windows 10 (26100) — in the App Hub `card-host.exe`
    (local build 2026-09-30, which registers the mail host service from
-   `crates/mail-service`) at 1200×860 and 900×860 (the two audited
+   `crates/mail-service`) at 1200×860 and 1440×860 (the two audited
    desktop widths), and in the
    OctoSense desktop shell itself (local build of the OctoSense repo,
    app-hub feature, with the bundle installed from a local signed
@@ -105,7 +107,7 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    hub check output on the exact submitted bytes:
 
    ```
-   vibemail 0.4.0 — PASSED
+   vibemail 0.5.0 — PASSED
      grants: capabilities {"mail", "model"}, hosts {}, storage 16777216 bytes, agent none
    ```
 
@@ -146,7 +148,7 @@ Everything below is reproducible on Windows with the bundled scripts:
   installed through a local signed hub catalog
   (`../octosense-local-hub/`: `hub keygen`/`certify`/`publish`, anchor +
   `OCTOSENSE_APP_DATA` env; see its README), runs as a real window
-  manager client. ev-17: the app (0.4.0 UI) in the shell's desktop;
+  manager client. ev-17: the app (0.5.0 UI) in the shell's desktop;
   ev-18: the shell's own 「OctoSense · Add a mail account」 sheet; ev-19:
   the official Mail service's real IMAP login against `imap.qq.com`
   rejected — the sheet says so in its own words. Reproduce with
@@ -171,5 +173,5 @@ model output.
 
 - [ ] `hub keygen` + `hub sign-manifest` (publisher key stays outside the repo)
 - [ ] `hub check --publisher-key <id>=<hex>` → PASSED with no warning
-- [ ] Tag the commit, open `Submit vibemail 0.4.0` on OctoSense-App-Hub
+- [ ] Tag the commit, open `Submit vibemail 0.5.0` on OctoSense-App-Hub
       with this packet's answers attached

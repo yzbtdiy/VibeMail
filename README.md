@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A concept app for the Agentic App Hackathon 2026 (mail scene). 0.4.0 is a DESKTOP-LANDSCAPE card layout (`bundle/main.splash`) with **two full themes** — deep-space dark (default) and a light counterpart — switchable any time from the rail's bottom tile; the whole palette (ground, cards, text, badges, ambient glow) flips in place, content and layout untouched. The layout: a left rail (centred capsule tabs with cyan count badges, gradient avatar with an online dot, a hairline separator from the content), a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail IN PLACE, no screen push. Compose and the Agent squad are centred columns. The portrait UI is retired; run at 1200x860 (run.cmd default).
+A concept app for the Agentic App Hackathon 2026 (mail scene). 0.5.0 is a FULL UI REBUILD from the latest design (`bundle/main.splash`): the forest-ink × warm-paper dual theme (deep forest dark by default, warm sand light — flipped from the top-bar pill), a sidebar (写信·AI 起草 / 收件箱 / Agent 小队 nav, mailbox folders, AI clusters, AGENT ACTIVE mini card), a top bar (agent-ask search, agent pill, theme toggle), a THREE-PANE inbox (mail list | in-place reader | AI Copilot with 摘要 / 待办提取 / 语气洞察 / 智能回复), a compose card with a COMPOSE WITH AI rail, and the agent squad panel (stats, toggles, autonomy, live activity stream). Clicking a card opens the mail IN PLACE — no screen push. Audited at 1200 and 1440 (run.cmd default 1200x860).
 
 **Capabilities & data**: the app requests `model` and `mail`.
 `mail`: real IMAP/SMTP goes through the platform's mail host service —
@@ -133,8 +133,8 @@ configured.
 
 ## Status
 
-- `hub check` — `vibemail 0.4.0 — PASSED` (signed by the local hub working
+- `hub check` — `vibemail 0.5.0 — PASSED` (signed by the local hub working
   key; catalog sequence 2 in `../octosense-local-hub/`).
 - Remaining human steps (publisher): `hub keygen` → `hub sign-manifest` →
-  `hub check --publisher-key` → tag + open `Submit vibemail 0.4.0` on
+  `hub check --publisher-key` → tag + open `Submit vibemail 0.5.0` on
   OctoSense-App-Hub with `evidence/hub/SUBMISSION.md` attached.

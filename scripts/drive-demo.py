@@ -2,10 +2,10 @@
 # Makepad remote bridge (GET /snap, /click, /t, /m, /g) and captures the
 # listing screenshots plus the reply-lifecycle evidence shots.
 #
-# New deep-space UI: three tabs (收件箱 / 写信 / Agent), the inbox is a
-# responsive master-detail, reading opens beside the list, the write tab is
-# a centred compose column, the agent tab carries the squad + activity
-# stream with approvals.
+# Forest UI (0.5.0): a sidebar (写信·AI 起草 / 收件箱 / Agent 小队) + top bar
+# (search, agent pill, theme pill), a three-pane inbox (list | reader | AI
+# Copilot), a compose card with an AI rail, and the agent squad with a live
+# activity stream. Light/dark themes flip from the top-bar pill.
 #
 # Bridge quirks this driver works around, observed on the Windows build:
 #   - a click issued too soon after a /g grab can be dropped -> every
@@ -92,7 +92,7 @@ def to_top():
     above the viewport are CLIPPED OUT of /snap entirely, which is how
     deep scroll offsets hide targets after screen switches."""
     for _ in range(3):
-        get("/m?k=scroll&x=206&y=400&dy=-6000")
+        get("/m?k=scroll&x=700&y=400&dy=-6000")
         time.sleep(0.4)
 
 def tap(text, exact=False):
@@ -109,7 +109,7 @@ def tap(text, exact=False):
         return p and (29 < p[1] < 766 or 776 < p[1] < 855)
     while (not in_range(hit)) and tries < 10:
         dy = 420 if (not hit or hit[1] >= 766) else -2400
-        get(f"/m?k=scroll&x=206&y=400&dy={dy}")
+        get(f"/m?k=scroll&x=700&y=400&dy={dy}")
         time.sleep(0.5)
         hit = find(text, exact)
         tries += 1
@@ -118,7 +118,7 @@ def tap(text, exact=False):
     hit = settled_pos(text, exact)
     cx, cy = hit
     get(f"/click?x={cx:.0f}&y={cy:.0f}&wait=1")
-    get("/m?k=scroll&x=206&y=400&dy=1")      # flush one redraw
+    get("/m?k=scroll&x=700&y=400&dy=1")      # flush one redraw
     time.sleep(1.2)
 
 def search_for(text, exact=False, timeout=0):
@@ -132,7 +132,7 @@ def search_for(text, exact=False, timeout=0):
     n = 0
     while time.time() - t0 < timeout:
         dy = -2400 if n % 2 == 0 else 620
-        get(f"/m?k=scroll&x=206&y=400&dy={dy}")
+        get(f"/m?k=scroll&x=700&y=400&dy={dy}")
         time.sleep(0.7)
         if find(text, exact):
             return True
@@ -165,7 +165,7 @@ def type_text(text):
 def shot(path, tries=3):
     """Stable capture: nudge a redraw, keep grabbing until two match."""
     for i in range(tries):
-        get("/m?k=scroll&x=206&y=400&dy=1")
+        get("/m?k=scroll&x=700&y=400&dy=1")
         time.sleep(0.9)
         last = get("/g?raw=1")
         stable = False
@@ -184,21 +184,21 @@ def shot(path, tries=3):
     raise RuntimeError(f"frame never settled for {path}")
 
 # ---- listing screenshots + reply lifecycle evidence -------------------------
-# DESKTOP flow: the inbox is a permanent master-detail (rail + card list +
-# reader pane); selecting a mail fills the reader IN PLACE — there is no
-# back navigation and no screen push for reading.
-wait_for("已分诊今日")                                # triage banner booted
+# FOREST UI flow (0.5.0): sidebar (写信·AI 起草 / 收件箱 / Agent 小队) + top bar
+# + three-pane inbox (list | reader | AI Copilot); compose and agents carry a
+# right rail. Reading is in-place master-detail — no back navigation.
+wait_for("已整理今日")                               # triage banner booted
 # honest practice-mode line — either no mail service answers (card-host
 # without one) or an account-less service (the vault exists, empty)
 if not has("邮件服务不可用") and not has("未添加邮箱账号"):
     raise RuntimeError("neither practice-mode banner line appeared")
 assert has("选择一封邮件开始阅读"), "reader placeholder missing"
-shot(SHOTS / "01-inbox.png")                         # 1 收件箱(rail+卡片列表+占位阅读栏)
+shot(SHOTS / "01-inbox.png")                         # 1 收件箱(侧栏+列表+阅读+Copilot)
 
-# NOTE: expect the reader-only address — 'AI 摘要' also matches mail 7's
-# "AI 摘要生成中…" card chip, which pre-satisfies the check without clicking
-click_expect("Re: Q4 联名方案 — 报价确认与签署排期", "xiaowei.lin@northstar.io")
-shot(SHOTS / "02-read.png")                          # 2 原地阅读 + AI 摘要(练习数据)
+# NOTE: expect the reader-only address prefix — 'AI 摘要' also matches mail 7's
+# "AI 摘要生成中…" chip, which pre-satisfies the check without clicking
+click_expect("Re: Q4 联名方案 — 报价确认与签署排期", "xiaowei.lin@")
+shot(SHOTS / "02-read.png")                          # 2 原地阅读 + AI Copilot(练习数据)
 
 # one-shot model call: card-host answers "no service answers" — the honest
 # unavailable state is part of the demo (in a Shell with model it succeeds)
@@ -207,8 +207,8 @@ shot(EVID / "ev-09-summary-model-unavailable.png")
 # the model call really happened: the host's refusal text is on screen
 assert has("no service answers"), "expected the host's no-service refusal on screen"
 
-# compose: centred column, tone chips, prompt panel; model fallback text
-click_expect("✦ AI 帮我回", "回复给: 林晓薇")
+# compose: the compose card + COMPOSE WITH AI rail; model fallback text
+click_expect("✦ AI 帮我回", "COMPOSE WITH AI")
 assert not has("Re: Re:"), "subject must not stack a second Re:"
 click_expect("告诉 AI 你想表达什么", "告诉 AI 你想表达什么")   # focus the input
 type_text("确认账期调整,本周五前完成签署")
@@ -216,11 +216,11 @@ click_expect("生成草稿", "已回退本地模板", exact=True)
 shot(SHOTS / "03-write.png")                         # 3 AI 写信(模型回退本地模板)
 shot(EVID / "ev-10-draft-model-fallback.png")
 
-# rail back to the inbox — mail 0 stays selected; attach a one-tap smart
+# sidebar back to the inbox — mail 0 stays selected; attach a one-tap smart
 # reply: the same pending -> confirm -> send lifecycle as a compose draft
 to_top()
-click_expect("收件箱", "已分诊今日")
-click_expect("确认条款并安排签署", "回复草稿 · 待发送")      # smart-reply chip
+click_expect("收件箱", "已整理今日", exact=True)
+click_expect("确认条款并安排签署", "回复草稿 · 待发送")      # smart-reply row
 shot(EVID / "ev-01-draft-pending.png")               # draft attached, 待发送
 
 click_expect("发送", "确认发送给", exact=True)
@@ -234,40 +234,40 @@ assert has("已回复"), "list card pill did not flip to 已回复"
 shot(EVID / "ev-04-inbox-sent-pill.png")             # inbox pill now 已回复
 
 # failure -> keep draft -> retry from the strip (the outage is a practice
-# switch, enabled on the write screen BEFORE attaching the reply)
-click_expect("写信", "回复给:")
-click_expect("已关闭", "已开启")                       # enable the outage switch
-click_expect("收件箱", "已分诊今日")
-click_expect("终面反馈:高级产品设计师候选人", "liqun.chen@astralvc.com")  # reader swapped to mail 2
+# switch, enabled in the compose AI rail BEFORE attaching the reply)
+click_expect("写信 · AI 起草", "COMPOSE WITH AI", exact=True)
+click_expect("已关闭", "已开启", exact=True)            # enable the outage switch
+click_expect("收件箱", "已整理今日", exact=True)
+click_expect("终面反馈:高级产品设计师候选人", "liqun.chen@")  # reader swapped to mail 2
 click_expect("同意录用,不再加面", "回复草稿 · 待发送")   # one-tap smart reply
 click_expect("发送", "确认发送给", exact=True)
 click_expect("确认发送", "发送失败", exact=True)
 shot(EVID / "ev-05-failed.png")                      # send failed, draft kept
 click_expect("保留草稿", "回复草稿 · 待发送")
 shot(EVID / "ev-06-kept-draft.png")                  # back to 待发送, text intact
-click_expect("写信", "回复给:")
-click_expect("已开启", "已关闭")                       # disable the outage switch
-click_expect("收件箱", "已分诊今日")
+click_expect("写信 · AI 起草", "COMPOSE WITH AI", exact=True)
+click_expect("已开启", "已关闭", exact=True)            # disable the outage switch
+click_expect("收件箱", "已整理今日", exact=True)
 # mail 2 is still selected — its strip is pending again, resend
 click_expect("发送", "确认发送给", exact=True)
 click_expect("确认发送", "已回复 · 刚刚发送", exact=True)
 shot(EVID / "ev-07-retry-sent.png")                  # retry succeeds
 
 # agent squad: stats, toggles, live stream, approval
-click_expect("Agent", "我的 AGENT 小队", exact=True)
+click_expect("Agent 小队", "SQUAD · 4 UNITS", exact=True)
 click_expect("需审批", "需审批")                       # stream shows pending approvals
 click_expect("✓ 批准", "已处理")
 shot(EVID / "ev-08-agents-approval.png")
 shot(SHOTS / "04-agents.png")                        # 4 Agent 小队(统计+开关+活动流)
 
-# dual theme: the rail tile flips the whole palette; same tree, content intact
+# dual theme: the top-bar pill flips the whole palette; same tree, content intact
 to_top()
-click_expect("收件箱", "已分诊今日", exact=True)
-click_expect("亮色", "暗色")                          # dark -> light
-assert has("已分诊今日"), "banner must survive the theme switch"
+click_expect("收件箱", "已整理今日", exact=True)
+click_expect("日", "月")                              # dark -> light
+assert has("已整理今日"), "banner must survive the theme switch"
 shot(SHOTS / "05-light.png")                         # 5 亮色主题(自由切换)
 shot(EVID / "ev-21-theme-light.png")
-click_expect("暗色", "亮色")                          # back to deep-space dark
+click_expect("月", "日")                              # back to deep-space dark
 
 (EVID / "final-snap.json").write_bytes(get("/snap"))
 (EVID / "final-log.txt").write_bytes(get("/log?n=200"))

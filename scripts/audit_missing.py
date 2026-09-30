@@ -34,23 +34,23 @@ def harvest_screen():
     """Scroll an entire screen top-to-bottom, collecting every visible text."""
     seen = set()
     for _ in range(3):                       # to top (wheel is heavily scaled)
-        get("/m?k=scroll&x=200&y=400&dy=-6000")
+        get("/m?k=scroll&x=700&y=400&dy=-6000")
         time.sleep(0.25)
     for _ in range(14):                      # then down through the content
         seen |= visible_texts()
-        get("/m?k=scroll&x=200&y=400&dy=520")
+        get("/m?k=scroll&x=700&y=400&dy=520")
         time.sleep(0.45)
     seen |= visible_texts()
     return seen
 
 def tap_nav_agent():
-    """Click the rail's Agent tab EXACTLY — 'Agent' also appears inside
+    """Click the sidebar's Agent row EXACTLY — 'Agent' also appears inside
     practice-mail subjects, and a substring tap opens a mail instead of the
-    squad view. The rail lives at the window's left edge (x < 80)."""
+    squad view. The sidebar lives at the window's left edge (x < 280)."""
     for w in snap():
-        if w.get("ty") != "Splash" and w.get("t") == "Agent":
+        if w.get("ty") != "Splash" and w.get("t") == "Agent 小队":
             x, y, ww, h = w["r"]
-            if x < 80 and 29 < y < 766:
+            if x < 280 and 29 < y < 766:
                 get(f"/click?x={x + ww // 2:.0f}&y={y + h // 2:.0f}&wait=1")
                 time.sleep(1.4)
                 return True
@@ -71,14 +71,18 @@ def tap(text):
             time.sleep(1.4)
             return True
         dy = (-2400 if n % 2 == 0 else 600)
-        get(f"/m?k=scroll&x=200&y=400&dy={dy}")
+        get(f"/m?k=scroll&x=700&y=400&dy={dy}")
         time.sleep(0.5)
     return False
 
 EXPECTED = {
     "inbox": [
-        "智能收件箱", "Vibe Agent 已分诊今日", "未添加邮箱账号",
+        "智能收件箱", "SMART INBOX", "Vibe Agent 已整理今日", "未添加邮箱账号",
         "全部", "紧急", "需回复", "可稍后",
+        "写信 · AI 起草", "收件箱", "Agent 小队", "AGENTIC MAIL",
+        "邮箱", "已加星标", "稍后处理", "已发送", "草稿", "归档", "垃圾箱",
+        "AI 智能分类", "工作", "财务", "订阅", "社交",
+        "AGENT ACTIVE", "VIBE AGENT · 运行中",
         # every row: sender + subject + priority score + first two labels
         "林晓薇", "Re: Q4 联名方案 — 报价确认与签署排期", "合同", "截止今天 18:00", "94",
         "VibeMail 产品团队", "你的周报已生成:Agent 本周为你节省了 3.2 小时", "周报", "自动摘要", "61",
@@ -88,44 +92,47 @@ EXPECTED = {
         "妈妈", "中秋回家的车票订好了吗?", "家人", "90",
         "AWS Summit", "早鸟票最后 48 小时:AWS Summit 上海 2026", "营销", "28",
         "沈括 · 数据平台", "数据看板权限申请已通过", "系统通知", "40",
-        "AI 优先级为练习数据评分",
         # desktop: the reader placeholder is visible before any selection
         "选择一封邮件开始阅读",
+        # right pane chrome
+        "AI COPILOT", "摘要", "AI 生成",
     ],
     "read-mail0": [
         # desktop: the reader pane fills IN PLACE — the list stays visible
-        "选择一封邮件开始阅读",          # placeholder BEFORE the click (inbox)
+        "邮件详情 · THREAD",
         "合同", "截止今天 18:00", "需回复",
-        "林晓薇", "xiaowei.lin@northstar.io",
-        "AI 摘要", "AI 生成",
+        "林晓薇", "xiaowei.lin@",
+        "摘要", "AI 生成", "AI COPILOT",
         "对方已确认报价 v3,财务初审通过",
         "唯一变更:第 7 条付款节点改为 30 天账期",
         "希望本周五 18:00 前完成电子签署",
         "提议下周二 10:30 线上 kickoff",
-        "确认接受账期调整", "回复签署排期意向", "将 kickoff 加入日历",
-        "积极 · 推进中",
-        "你好:", "期待回复。",
-        # ALL THREE smart replies must be present
+        "由 Vibe Agent 生成",
+        "待办提取", "确认接受账期调整", "回复签署排期意向", "将 kickoff 加入日历",
+        "语气洞察", "积极 · 推进中",
+        "智能回复",
         "确认条款并安排签署", "账期需内部审批,申请延期", "转发给法务复核",
         "AI 识别到会议意向", "Q4 联名 Kickoff", "周二 10:30 – 11:30", "线上会议",
         "加入日历", "协商改期",
         "回复", "转发",
     ],
     "write": [
-        "AI 写信", "回复给: 林晓薇", "收件人", "林晓薇",
+        "AI 写信", "新邮件", "AI-ASSISTED DRAFT", "COMPOSE WITH AI",
+        "收件人", "林晓薇", "主题",
         "Re: Q4 联名方案 — 报价确认与签署排期",
-        # all four tone chips + the trailing note
-        "专业", "友好", "简洁", "有说服力", "已引用原始邮件",
-        "AI 草稿 · 语气:",
-        "生成草稿", "GPT-VIBE 4",
-        "发送 →", "附件", "草稿已自动保存 · 09:47",
+        # all four tone chips + the trailing notes
+        "专业", "友好", "简洁", "有说服力", "已引用原始邮件", "长度:适中",
+        "AI 草稿 · 语气:", "本地模板",
+        "采用草稿", "重新生成",
+        "发送 →", "草稿已自动保存 · 09:47",
         "描述你想表达的内容", "告诉 AI 你想表达什么",
-        "试试这样开始:跟进上周的报价 · 婉拒一个会议邀请 · 请求延期交付",
-        "练习场景 · 模拟邮件服务中断",
+        "生成草稿", "GPT-Vibe 4",
+        "试试这样开始", "跟进上周的报价", "婉拒一个会议邀请", "请求延期交付", "约客户下周面谈",
+        "AI 上下文", "引用当前邮件线程", "练习:模拟服务中断",
     ],
     "agents": [
-        "Agent 小队", "运行中的 AGENT", "今日已完成任务", "本周节省时间", "待你审批",
-        "4", "12", "3.2h", "2",
+        "Agent 小队", "AGENT SQUAD", "运行中的 AGENT", "今日已完成任务", "本周节省时间", "待你审批",
+        "12", "3.2h",
         "我的 AGENT 小队", "SQUAD · 4 UNITS",
         "跟进卫士", "日程管家", "订阅清理", "周报生成",
         "FOLLOW-UP SENTINEL", "SCHEDULE KEEPER", "DIGEST JANITOR", "BRIEF WRITER",
@@ -134,7 +141,7 @@ EXPECTED = {
         "实时活动流", "LIVE",
         "检测到「Q4 联名方案」超 20h 未回复,已起草跟进邮件",
         "拒绝了与 kickoff 冲突的 1 个会议邀请",
-        "批准", "忽略", "概念演示",
+        "批准", "忽略",
     ],
 }
 
