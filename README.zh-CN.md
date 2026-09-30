@@ -2,15 +2,7 @@
 
 [English](README.md) | 简体中文
 
-参赛「Agentic App 黑客松 2026」（场景 01 邮件）的概念应用。0.2.0 按网页参考
-完全重做为**深空主题的响应式** Splash 应用（`bundle/main.splash`）：三大视图——
-智能收件箱（AI 分诊横幅 + 优先级 + 标签）、AI 写信（语气 + 提示词起草）、
-Agent 小队（统计 / 开关 / 实时活动流与审批）——手机与桌面宽度自适应，
-**同一棵组件树**。脚本无法读取窗口宽度，布局数学本身就是媒体查询
-（已在 card-host 中实证）：FIXED 宽度向容器钳位、Fill 兄弟被挤压归零——
-每屏都是 `[Fill 留白][定宽列][Fill 留白]`，窄窗全幅、宽窗居中；收件箱更进一步
-做 master-detail：宽窗是「列表 + 选择邮件占位卡」，阅读态是「阅读栏 + 高亮列表」
-双栏，窄窗自动塌缩为单栏推送式导航。
+参赛「Agentic App 黑客松 2026」（场景 01 邮件）的概念应用。0.5.4 显示宿主**实际使用的模型名**——「生成草稿」旁的模型胶囊与摘要胶囊读取 model.complete 应答的 meta.model（宿主侧小幅增强：应答补上回答模型的名字；密钥仍然不出保险库），首次调用成功后自动替换 GPT-Vibe 4 占位名。0.5.3 去掉写信页输入框的多余嵌套（提示词与 AI 草稿各自只剩一层边框，文字直接落在卡片上）；0.5.2 把主题切换胶囊与侧栏底部按钮改为**图形图标**（太阳/月牙/日历/滑杆，原生控件绘制）；0.5.1 在 0.5.0 按最新 UI 设计**完全重构**的基础上，把三栏（列表｜阅读｜Copilot）改为**各自独立滚动**（与网页版一致），并修掉滚动露黑底；0.5.0（`bundle/main.splash`）：森林墨绿 × 暖沙纸感双主题（默认深林暗色、暖沙亮色，顶栏胶囊一键切换）；侧栏导航（写信·AI 起草 / 收件箱 / Agent 小队 + 邮箱文件夹 + AI 智能分类 + AGENT ACTIVE 迷你卡）；顶栏（问 Vibe Agent 搜索、运行中胶囊、主题切换）；三栏收件箱（邮件列表 | 原地阅读 | AI Copilot：摘要 / 待办提取 / 语气洞察 / 智能回复）；写信卡片 + COMPOSE WITH AI 栏；Agent 任务面板（统计 / 开关 / 自动化程度 / 实时活动流）。点击卡片即在阅读栏原地展开，无页面跳转。审计宽度 1200 与 1440（run.cmd 默认 1200x860）。AI 摘要与起草已在 OctoSense Shell 里对接真实配置的模型服务（MiniMax）实测通过——见 ev-22/ev-23。
 
 **能力与数据口径**：应用申请 `model` 与 `mail` 两项权限。
 `mail`：真实收发走平台 mail 宿主服务——账号由**宿主自己的登录面板**添加，
@@ -131,7 +123,7 @@ mail account」面板（地址/密码/IMAP-POP3/服务器端口），错误凭�
 
 ## 状态
 
-- `hub check`：`vibemail 0.2.1 — PASSED`（本地 hub 工作密钥已签名；
+- `hub check`：`vibemail 0.5.4 — PASSED`（本地 hub 工作密钥已签名；
   目录 sequence 2，见 `../octosense-local-hub/`）。
 - 真实邮件：本地 card-host 构建已注册 mail 服务，提交包即真收发（ev-13..16）；
   原版 card-host / 未登录时如实显示对应状态。
@@ -140,4 +132,4 @@ mail account」面板（地址/密码/IMAP-POP3/服务器端口），错误凭�
 - 截图为 card-host 真实截取并逐张人工核验；见 `evidence/`。
 - 剩余人工步骤（发布者本人）：`hub keygen` → `hub sign-manifest` →
   `hub check --publisher-key` → 打 tag 并在 OctoSense-App-Hub 开
-  `Submit vibemail 0.2.1` issue（附 `evidence/hub/SUBMISSION.md`）。
+  `Submit vibemail 0.5.4` issue（附 `evidence/hub/SUBMISSION.md`）。

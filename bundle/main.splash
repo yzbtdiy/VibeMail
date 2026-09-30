@@ -12,8 +12,10 @@
 // are practice data until a platform mail service answers.
 
 // ---- state ---------------------------------------------------------------
-let screen = "inbox"          // inbox | read | write | agents
+let screen = "inbox"          // inbox | write | agents (desktop: reading is
+                              // a selection in the inbox's master-detail)
 let current = 0
+let selected = false          // no mail focused -> placeholder pane
 let filter = "all"            // all | urgent | reply | later
 
 // Practice mails mirror the web reference's dataset. Every literal carries
@@ -25,7 +27,7 @@ let mails = [
      snippet: "报价版本 v3 已确认,法务那边只有一个修改意见:第 7 条的付款节点需要改成 30 天账期……"
      body: "你好:\n\n报价版本 v3 我这边已确认,财务也过了初审。法务只有一个修改意见:第 7 条的付款节点需要从预付 50% 改成 30 天账期,其余条款无变动。\n\n如果贵方接受这一调整,我们希望在本周五 18:00 前完成电子签署,这样 Q4 的联名排期可以按原计划在下周一启动。\n\n另外,kickoff 会议建议定在下周二上午 10:30,线上进行,我会让助理发出日历邀请。\n\n期待回复。"
      time: "09:42" unread: true priority: 94 cluster: "工作"
-     av1: #x8642ff av2: #x4c1d95
+     av1: #x3e7355 av2: #x1f3a2a
      labels: [{text: "合同" tone: "violet"} {text: "截止今天 18:00" tone: "red"} {text: "需回复" tone: "amber"}]
      summary: ["对方已确认报价 v3,财务初审通过","唯一变更:第 7 条付款节点改为 30 天账期","希望本周五 18:00 前完成电子签署","提议下周二 10:30 线上 kickoff"]
      actions: [{text: "确认接受账期调整" due: "今天 18:00" done: false} {text: "回复签署排期意向" due: "今天 18:00" done: false} {text: "将 kickoff 加入日历" due: "下周二 10:30" done: false}]
@@ -40,7 +42,7 @@ let mails = [
      snippet: "本周 Vibe Agent 处理了 47 封邮件:自动归档 21 封、起草回复 9 封、拦截营销邮件 17 封……"
      body: "本周概览:\n\nVibe Agent 共处理 47 封邮件 — 自动归档 21 封、起草回复 9 封、拦截营销邮件 17 封,累计节省约 3.2 小时。\n\n高亮:跟进卫士追回了 2 封悬而未决的报价邮件;订阅清理识别出 4 个你 90 天未打开的订阅源。\n\n打开 Agent 面板查看完整活动记录。"
      time: "08:15" unread: true priority: 61 cluster: "订阅"
-     av1: #x22d3ee av2: #x155e75
+     av1: #x0f5a52 av2: #x0a3e42
      labels: [{text: "周报" tone: "cyan"} {text: "自动摘要" tone: "violet"}]
      summary: ["本周 Agent 处理 47 封邮件,节省 3.2 小时","跟进卫士追回 2 封悬置报价","识别 4 个 90 天未读订阅源"]
      actions: [{text: "查看完整周报" due: "本周内" done: false}]
@@ -55,7 +57,7 @@ let mails = [
      snippet: "三位面试官的反馈已汇总:两位强烈推荐,一位建议再补一轮系统设计面试……"
      body: "终面反馈汇总如下:\n\n周茉,高级产品设计师岗位。三位面试官反馈:两位「强烈推荐」,一位建议补充一轮系统设计面试,主要顾虑在于复杂信息架构的经验深度。\n\n委员会建议在周三前给出录用决定,候选人有另一个 offer 在等回复,截止周四。\n\n请你在系统中提交最终意见。"
      time: "昨天" unread: true priority: 88 cluster: "工作"
-     av1: #xf472b6 av2: #x831843
+     av1: #xbe4b38 av2: #x6e2418
      labels: [{text: "招聘" tone: "violet"} {text: "决策待办" tone: "amber"} {text: "截止周三" tone: "red"}]
      summary: ["候选人周茉:2 票强烈推荐,1 票建议加面","分歧点:复杂信息架构经验深度","候选人另有 offer,周四截止","委员会要求周三前给出决定"]
      actions: [{text: "在系统中提交最终意见" due: "周三前" done: false} {text: "决定是否加面系统设计轮" due: "周三前" done: false}]
@@ -70,7 +72,7 @@ let mails = [
      snippet: "你的 9 月云服务用量发票已生成,金额 ¥4,280.00,将于 10 月 5 日自动扣款……"
      body: "发票 INV-2026-0917\n\n账期:2026-09-01 至 2026-09-30。用量合计 ¥4,280.00,将于 2026-10-05 从绑定的对公账户自动扣款。\n\n与上月相比增长 12%,主要来自计算实例扩容。\n\n如需发票明细或更改付款方式,请访问账单控制台。"
      time: "昨天" unread: false priority: 55 cluster: "财务"
-     av1: #x34d399 av2: #x064e3b
+     av1: #x488b5f av2: #x24462f
      labels: [{text: "发票" tone: "cyan"} {text: "自动扣款 10-05" tone: "amber"}]
      summary: ["9 月用量 ¥4,280.00,环比 +12%","10 月 5 日自动扣款","增长主要来自计算实例扩容"]
      actions: [{text: "核对用量明细" due: "10-05 前" done: false}]
@@ -85,7 +87,7 @@ let mails = [
      snippet: "@you 被请求评审 PR #482:重构 Agent 调度队列,将轮询改为事件驱动,延迟降低 40%……"
      body: "PR #482 — Agent 调度器重构\n\n将调度队列从轮询改为事件驱动,P95 调度延迟从 820ms 降至 490ms(-40%)。\n\n变更范围:scheduler/ 目录 14 个文件,新增 2 个集成测试。\n\nCI 全部通过,需要 1 个 approving review 即可合并。"
      time: "昨天" unread: false priority: 72 cluster: "工作"
-     av1: #x818cf8 av2: #x312e81
+     av1: #x7a6c3f av2: #x3e3820
      labels: [{text: "代码评审" tone: "violet"} {text: "CI 通过" tone: "mint"}]
      summary: ["调度器从轮询改为事件驱动","P95 延迟 820ms → 490ms(-40%)","14 个文件变更,CI 通过,待 1 人批准"]
      actions: [{text: "完成代码评审" due: "本周内" done: false}]
@@ -100,7 +102,7 @@ let mails = [
      snippet: "你爸说今年想在家做螃蟹,你早点回来。车票订好了跟我说一声,别又拖到最后一刻……"
      body: "车票订好了吗?\n\n你爸说今年想在家做螃蟹,让你早点回来。\n\n订好了跟我说一声,别又拖到最后一刻。"
      time: "周二" unread: true priority: 90 cluster: "社交"
-     av1: #xfbbf24 av2: #x78350f
+     av1: #xb06f1f av2: #x6b4210
      labels: [{text: "家人" tone: "mint"} {text: "需回复" tone: "amber"}]
      summary: ["询问中秋回家车票是否已订","父亲计划做螃蟹,希望早回","回复订票结果"]
      actions: [{text: "预订中秋车票" due: "尽快" done: false} {text: "回复妈妈" due: "今天" done: false}]
@@ -115,7 +117,7 @@ let mails = [
      snippet: "早鸟价 ¥1,299 将于 48 小时后截止,主题演讲阵容已公布……"
      body: "AWS Summit 上海 2026 早鸟票最后 48 小时。\n\n主题演讲阵容已公布,含 3 场 Agentic AI 专题工作坊。\n\n早鸟价 ¥1,299(原价 ¥1,999),截止后恢复原价。"
      time: "周一" unread: false priority: 28 cluster: "订阅"
-     av1: #x8642ff av2: #x4c1d95
+     av1: #xb06f1f av2: #x6b4210
      labels: [{text: "营销" tone: "violet"}]
      summary: ["早鸟票 48 小时后截止","含 Agentic AI 工作坊","早鸟价 ¥1,299"]
      actions: []
@@ -130,7 +132,7 @@ let mails = [
      snippet: "你申请的生产环境只读权限已审批通过,有效期 30 天……"
      body: "你申请的生产环境数据看板只读权限已审批通过,有效期 30 天。\n\n首次登录需要重新绑定 MFA。\n\n如有问题联系数据平台值班。"
      time: "周一" unread: false priority: 40 cluster: "工作"
-     av1: #x22d3ee av2: #x155e75
+     av1: #x488b5f av2: #x24462f
      labels: [{text: "系统通知" tone: "cyan"}]
      summary: ["生产只读权限已通过,30 天有效","首次登录需重新绑定 MFA"]
      actions: [{text: "登录并绑定 MFA" due: "" done: true}]
@@ -150,21 +152,22 @@ let simulate_outage = false    // practice switch: the next send fails
 let summary_error = ""
 let draft_status = "practice"
 let draft_error = ""
+let ai_model = ""              // display name the host reported (meta.model)
 
 // Agent squad + activity stream (practice data; approvals are local state)
 let agents = [
     {name: "跟进卫士" en: "FOLLOW-UP SENTINEL" desc: "追踪发出的重要邮件,超时未回自动起草跟进"
      status: "运行中" stat: "监控 12 个线程" today: "今日追回 2 封报价回复"
-     color: #x8642ff on: true glyph: "卫"}
+     color: "acc" on: true glyph: "卫"}
     {name: "日程管家" en: "SCHEDULE KEEPER" desc: "从邮件中识别会议意向,自动协调时间并写入日历"
      status: "运行中" stat: "本周已排 5 场会议" today: "10:30 kickoff 待确认"
-     color: #x22d3ee on: true glyph: "管"}
+     color: "teal" on: true glyph: "管"}
     {name: "订阅清理" en: "DIGEST JANITOR" desc: "识别低价值订阅,合并为每日摘要,一键退订"
      status: "运行中" stat: "已合并 14 个订阅源" today: "发现 4 个 90 天未读源"
-     color: #x34d399 on: true glyph: "清"}
+     color: "ok" on: true glyph: "清"}
     {name: "周报生成" en: "BRIEF WRITER" desc: "每周汇总收件箱动态与 Agent 成果,生成可视化简报"
      status: "待命" stat: "下次生成:周五 17:00" today: "草稿已完成 80%"
-     color: #xfbbf24 on: false glyph: "报"}
+     color: "amber" on: false glyph: "报"}
 ]
 let acts = [
     {time: "09:41" agent: "跟进卫士" text: "检测到「Q4 联名方案」超 20h 未回复,已起草跟进邮件" status: "approval" handled: false}
@@ -176,38 +179,133 @@ let acts = [
     {time: "昨天" agent: "订阅清理" text: "识别 4 个 90 天未打开订阅源,等待退订确认" status: "approval" handled: false}
 ]
 
-// ---- deep-space palette (tokens from the web reference, alpha pre-blended
-// on the #05070f ground) -----------------------------------------------------
-let space    = #x05070f      // page ground
-let panel    = #x0b1120      // card panel (approx 0.72 over ground)
-let panel2   = #x0d1526      // raised panel
-let glass    = #x080c19      // nav glass
-let line     = #x141523      // hairline
-let line2    = #x26263b      // stronger hairline
-let ink      = #xe9e6df      // primary text
-let ink66    = #x9b9a98
-let ink55    = #x828281
-let ink45    = #x6c6b6d
-let ink38    = #x5c5c5e
-let ink32    = #x4e4e52
-let violet   = #x8642ff      // agent accent
-let violetT  = #xb7a8ff      // violet text
-let violetBg = #x170f31      // violet-tinted panel
-let violetBd = #x353350      // violet-ish border
-let violetHi = #xc4b0ff      // active nav text
-let cyan     = #x22d3ee
-let cyanT    = #x67e8f9
-let cyanBg   = #x081b25
-let mint     = #x34d399
-let mintT    = #x6ee7b7
-let mintBg   = #x0a1b1d
-let amber    = #xfbbf24
-let amberT   = #xfcd34d
-let amberBg  = #x1e1911
-let red      = #xf87171
-let redT     = #xfca5a5
-let redBg    = #x22141b
-let white7   = #x161820      // track / hover base
+// ---- forest-ink x warm-paper palette ---------------------------------------
+// Token names follow the history of this file (violet:=accent green,
+// cyan:=teal, mint:=ok green); values come from the UI design's index.css
+// (light :root / dark [data-theme]), alpha pre-blended on each theme's ground.
+let space    = #x161c1a      // page ground (bg)
+let panel    = #x1d2622      // panels / sidebar
+let panel2   = #x222c27      // raised panel
+let glass    = #x1a211e      // top bar
+let line     = #x292e2c      // hairline
+let line2    = #x454945      // stronger hairline
+let ink      = #xebe9de      // primary text
+let ink66    = #x92938c
+let ink55    = #x7a7c76
+let ink45    = #x6b6e68
+let ink38    = #x636661
+let ink32    = #x565955
+let violet   = #x8fcb9b      // acc
+let accB     = #x6fb585      // acc-b (gradient second stop)
+let violetT  = #xa8dbb2      // acc-text
+let violetBg = #x25312a      // acc-soft (pre-blended)
+let violetBgHv = #x2e3f34
+let violetBd = #x445f4b      // acc-line
+let violetHi = #xa8dbb2
+let cyan     = #x5ec4b6      // teal
+let cyanT    = #x8adccf
+let cyanBg   = #x1f302d
+let cyanBd   = #x305952
+let mint     = #x7fcf96      // ok
+let mintT    = #x9adcaa
+let mintBg   = #x233129
+let mintBd   = #x3c5c47
+let amber    = #xe0a458
+let amberT   = #xeab873
+let amberBg  = #x2e2c22
+let amberBd  = #x635032
+let red      = #xe0785f
+let redT     = #xea927b
+let redBg    = #x2e2722
+let redBd    = #x674136
+let white7   = #x28332e      // panel-3 (tracks / hovers)
+let inkHi    = #xebe9de      // near-primary text
+let inkBody  = #xc0c0b7      // body paragraphs
+let violet2  = #x6b6e68      // low-priority meter
+let badgeInk = #x14201a      // text on accent badges
+let inputBg  = #x222c27
+let railPill   = #x25312a
+let railPillBd = #x445f4b
+let railTile   = #x28332e
+let railDiv    = #x292e2c
+let sepC     = #x292e2c      // sidebar / topbar hairline
+let glowA    = #x212c26      // ambient blobs
+let glowB    = #x22241e
+let glowC    = #x1b2825
+let accInk   = #x14201a      // text on accent gradients
+
+// ---- dual theme ------------------------------------------------------------
+// Every palette binding is a plain `let` and every widget mints inside fns
+// that repaint() re-runs, so identifiers resolve at RE-MINT time. Switching
+// the theme is just reassigning the bindings and repainting the three
+// persistent roots (ground, chrome, body).
+let themeLight = false       // boot in deep-space dark
+
+fn apply_theme(l){
+    themeLight = l
+    space     = pick(l, #xf3f1e6, #x161c1a)
+    panel     = pick(l, #xfaf8ef, #x1d2622)
+    panel2    = pick(l, #xefede0, #x222c27)
+    glass     = pick(l, #xf7f5ec, #x1a211e)
+    line      = pick(l, #xdeddd2, #x292e2c)
+    line2     = pick(l, #xc0c1b8, #x454945)
+    ink       = pick(l, #x1f2926, #xebe9de)
+    ink66     = pick(l, #x747973, #x92938c)
+    ink55     = pick(l, #x898d86, #x7a7c76)
+    ink45     = pick(l, #x9a9d95, #x6b6e68)
+    ink38     = pick(l, #xa3a59d, #x636661)
+    ink32     = pick(l, #xb3b5ac, #x565955)
+    violet    = pick(l, #x2f5d43, #x8fcb9b)
+    accB      = pick(l, #x3e7355, #x6fb585)
+    violetT   = pick(l, #x2f5d43, #xa8dbb2)
+    violetBg  = pick(l, #xdfe2d6, #x25312a)
+    violetBgHv = pick(l, #xd4d9cc, #x2e3f34)
+    violetBd  = pick(l, #xb0bfaf, #x445f4b)
+    violetHi  = pick(l, #x2f5d43, #xa8dbb2)
+    cyan      = pick(l, #x0f5a52, #x5ec4b6)
+    cyanT     = pick(l, #x0c4f4a, #x8adccf)
+    cyanBg    = pick(l, #xdce2d7, #x1f302d)
+    cyanBd    = pick(l, #xaac1b7, #x305952)
+    mint      = pick(l, #x2f7d4f, #x7fcf96)
+    mintT     = pick(l, #x276a43, #x9adcaa)
+    mintBg    = pick(l, #xdbe3d4, #x233129)
+    mintBd    = pick(l, #xb0cab3, #x3c5c47)
+    amber     = pick(l, #xb06f1f, #xe0a458)
+    amberT    = pick(l, #x96601b, #xeab873)
+    amberBg   = pick(l, #xece4d2, #x2e2c22)
+    amberBd   = pick(l, #xdcc5a2, #x635032)
+    red       = pick(l, #xbe4b38, #xe0785f)
+    redT      = pick(l, #xa03d2c, #xea927b)
+    redBg     = pick(l, #xeee0d5, #x2e2722)
+    redBd     = pick(l, #xe0b5a7, #x674136)
+    white7    = pick(l, #xe6e3d4, #x28332e)
+    inkHi     = pick(l, #x1f2926, #xebe9de)
+    inkBody   = pick(l, #x49514c, #xc0c0b7)
+    violet2   = pick(l, #x9a9d95, #x6b6e68)
+    badgeInk  = pick(l, #xf3f1e6, #x14201a)
+    inputBg   = pick(l, #xefede0, #x222c27)
+    railPill   = pick(l, #xdfe2d6, #x25312a)
+    railPillBd = pick(l, #xb0bfaf, #x445f4b)
+    railTile   = pick(l, #xe6e3d4, #x28332e)
+    railDiv    = pick(l, #xdeddd2, #x292e2c)
+    sepC      = pick(l, #xdeddd2, #x292e2c)
+    glowA     = pick(l, #xdbdfd2, #x212c26)
+    glowB     = pick(l, #xece4d2, #x22241e)
+    glowC     = pick(l, #xdce2d7, #x1b2825)
+    accInk    = pick(l, #xf3f1e6, #x14201a)
+}
+fn toggle_theme(){
+    apply_theme(!themeLight)
+    repaint()
+}
+// Repaint every persistent root: ground (page bg + glow), chrome (rail +
+// separator) and body (screens). Re-driving chrome is what moves the rail's
+// active pill — minting rail() once at load left it frozen on the boot tab.
+fn repaint(){
+    ui.railc.render()
+    ui.barc.render()
+    ui.body.render()
+}
 
 // ---- helpers --------------------------------------------------------------
 fn pick(c, a, b){ if c { return a } return b }
@@ -226,7 +324,7 @@ fn chip_fg(tone){
     return mintT
 }
 fn chip_bg(tone){
-    if tone == "violet" { return #x140e2c }
+    if tone == "violet" { return violetBg }
     if tone == "cyan" { return cyanBg }
     if tone == "amber" { return amberBg }
     if tone == "red" { return redBg }
@@ -237,7 +335,7 @@ fn pri_color(p){
     if p >= 85 { return red }
     if p >= 65 { return amber }
     if p >= 45 { return cyan }
-    return #x9a92d9
+    return violet2
 }
 fn pri_w(p){
     if p >= 95 { return 34 }
@@ -294,19 +392,19 @@ fn mail_check(){
     if !host.has("mail") {
         mail_link = "no_service"
         link_error = "此环境未提供邮件服务(card-host)"
-        ui.body.render()
+        repaint()
         return
     }
     host.request("mail.accounts", {}, fn(r){
         if !r.is_ok {
             mail_link = "no_service"
             link_error = r.error
-            ui.body.render()
+            repaint()
             return
         }
         if r.data.len() == 0 {
             mail_link = "no_account"
-            ui.body.render()
+            repaint()
             return
         }
         account_id = r.data[0].id
@@ -320,14 +418,14 @@ fn mail_add_account(){
     host.request("mail.add_account", {}, fn(r){
         if r.is_ok { mail_check() return }
         link_error = r.error
-        ui.body.render()
+        repaint()
     })
 }
 fn live_mail(m){
     return {src: "live" id: m.id init: "✉" sender: m.sender address: m.address
             subject: m.subject snippet: m.preview body: m.body
             time: m.time unread: m.unread priority: 50 cluster: "工作"
-            av1: #x8642ff av2: #x4c1d95
+            av1: #x3e7355 av2: #x1f3a2a
             labels: [{text: domain_of(m.address) tone: "cyan"}]
             summary: [] actions: []
             sent_label: "" sent_tone: "mint" sent_note: ""
@@ -341,7 +439,7 @@ fn mail_load(){
         if !r.is_ok {
             mail_link = "error"
             link_error = r.error
-            ui.body.render()
+            repaint()
             return
         }
         let out = []
@@ -352,7 +450,7 @@ fn mail_load(){
         mail_src = "live"
         live_total = r.data.total
         current = 0
-        ui.body.render()
+        repaint()
     })
 }
 fn mail_open_message(i){
@@ -360,7 +458,7 @@ fn mail_open_message(i){
     host.request("mail.message", {account: account_id message: mails[i].id}, fn(r){
         if r.is_ok {
             mails[i].body = r.data.body
-            ui.body.render()
+            repaint()
         }
     })
 }
@@ -377,7 +475,7 @@ fn mail_send_live(i){
             mails[i].reply = "failed"
             if !r.is_ok { mails[i].send_error = r.error } else { mails[i].send_error = "服务未接受" }
         }
-        ui.body.render()
+        repaint()
     })
 }
 // MARKER:ADAPTER-END
@@ -385,20 +483,21 @@ fn mail_send_live(i){
 // ---- navigation -----------------------------------------------------------
 // ui is injected only after the body evaluates, so the first frame draws an
 // empty body; a boot timeout re-renders it once ui exists (README pattern).
-fn boot(){ ui.body.render(); mail_check() }
+fn boot(){ repaint(); mail_check() }
 start_timeout(0.05, || boot())
 
-fn go(s){ screen = s; ui.body.render() }
+fn go(s){ screen = s; repaint() }
 fn open_mail(i){
+    // desktop master-detail: selecting a mail fills the reader pane in place
     current = i
-    screen = "read"
-    ui.body.render()
+    selected = true
+    repaint()
     if mails[i].src == "live" {
         mail_open_message(i)
         mail_mark_read(i)
     }
 }
-fn set_filter(f){ filter = f; ui.body.render() }
+fn set_filter(f){ filter = f; repaint() }
 
 // ---- reply lifecycle: draft -> confirm -> sending -> sent / failed --------
 // ---- AI generation via the host's one-shot model service ------------------
@@ -407,16 +506,20 @@ fn set_filter(f){ filter = f; ui.body.render() }
 // sees providers or keys. In card-host nothing answers "model" — the UI says
 // so and keeps the local practice content.
 fn summary_pill_text(src){
-    if src == "asking" { return "生成中…" }
-    if src == "ai" { return "模型生成" }
-    if src == "unavailable" { return "服务不可用" }
-    return "练习数据"
+    let base = "练习数据"
+    if src == "asking" { base = "生成中…" }
+    if src == "ai" { base = "模型生成" }
+    if src == "unavailable" { base = "服务不可用" }
+    if src == "ai" {
+        if ai_model != "" { return base + " · " + ai_model }
+    }
+    return base
 }
 fn gen_summary(i){
     let m = mails[i]
     mails[i].summary_src = "asking"
     summary_error = ""
-    ui.body.render()
+    repaint()
     host.request("model.complete", {
         task: "阅读这封中文邮件,给出最多3条要点,简洁客观,不编造原文没有的事实。"
         input: {subject: m.subject sender: m.sender body: m.body}
@@ -427,34 +530,35 @@ fn gen_summary(i){
         if !r.is_ok {
             mails[i].summary_src = "unavailable"
             summary_error = r.error
-            ui.body.render()
+            repaint()
             return
         }
         mails[i].ai_points = r.data.output.points
         mails[i].summary_src = "ai"
-        ui.body.render()
+        ai_model = r.data.meta.model
+        repaint()
     })
 }
 
 fn open_reply(){ compose_mode = "reply"; go("write") }
 fn open_forward(){ compose_mode = "forward"; go("write") }
 fn edit_draft(i){ draft_text = mails[i].reply_text; go("write") }
-fn ask_send(i){ mails[i].reply = "confirm"; ui.body.render() }
-fn cancel_send(i){ mails[i].reply = "pending"; ui.body.render() }
+fn ask_send(i){ mails[i].reply = "confirm"; repaint() }
+fn cancel_send(i){ mails[i].reply = "pending"; repaint() }
 fn do_send(i){
     mails[i].reply = "sending"
-    ui.body.render()
+    repaint()
     if mails[i].src == "live" { mail_send_live(i) return }
     let idx = i
     start_timeout(0.9, || finish_send(idx))
 }
 fn finish_send(i){
     if simulate_outage { mails[i].reply = "failed" } else { mails[i].reply = "sent" }
-    ui.body.render()
+    repaint()
 }
 fn retry_send(i){ do_send(i) }
-fn keep_draft(i){ mails[i].reply = "pending"; ui.body.render() }
-fn toggle_outage(){ simulate_outage = !simulate_outage; ui.body.render() }
+fn keep_draft(i){ mails[i].reply = "pending"; repaint() }
+fn toggle_outage(){ simulate_outage = !simulate_outage; repaint() }
 fn compose_target(){
     let m = mails[current]
     if compose_mode == "forward" { return "转发给: " + m.sender }
@@ -475,32 +579,61 @@ fn quick_reply(i, q){
     draft_text = "你好:\n\n关于「" + m.subject + "」:" + q + "。\n\n(智能回复草稿,可编辑后发送)"
     mails[i].reply_text = draft_text
     mails[i].reply = "pending"
-    ui.body.render()
+    repaint()
 }
 
-// ---- shared bits -----------------------------------------------------------
+// ---- shared bits (forest-ink × warm-paper redesign) ------------------------
+// Reference: UI设计/app (Sidebar/Chrome/InboxList/ReadingPane/ComposeView/
+// AgentsView/bits). Native widgets only — runtime SVG rasterises blank here,
+// so lucide icons become single CJK glyphs / proven dingbats (✦ ✓ ✕ ★ ↻ →).
+// Palette var names are historical (violet:=accent forest green, cyan:=teal,
+// mint:=ok green) — the values are rebind per theme in apply_theme.
+
+fn chip_ln(tone){
+    if tone == "violet" { return violetBd }
+    if tone == "cyan" { return cyanBd }
+    if tone == "amber" { return amberBd }
+    if tone == "red" { return redBd }
+    return mintBd
+}
 fn chip(text, tone){
     RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
-        draw_bg +: {color: chip_bg(tone) border_radius: 6.0 border_size: 1.0 border_color: chip_fg(tone)}
-        Label{text: text draw_text.color: chip_fg(tone) draw_text.text_style.font_size: 9}}
+        draw_bg +: {color: chip_bg(tone) border_radius: 6.0 border_size: 1.0 border_color: chip_ln(tone)}
+        Label{text: text draw_text.color: chip_fg(tone) draw_text.text_style.font_size: 10}}
 }
 fn label_row(m){
-    View{width: Fill height: Fit flow: Right spacing: 4
+    View{width: Fill height: Fit flow: Right spacing: 5
         for l in m.labels { chip(l.text, l.tone) }
     }
 }
-// AI priority meter: track + gradient fill + mono score
+// AI priority meter: fixed 62px footprint — the row's right edge anchor
 fn priority_meter(m){
-    View{width: Fit height: Fit flow: Right spacing: 5 align: Align{y: 0.5}
+    View{width: 62 height: Fit flow: Right spacing: 5 align: Align{y: 0.5}
         RoundedView{width: 36 height: 3 draw_bg +: {color: white7 border_radius: 2.0} flow: Overlay
-            RoundedView{width: pri_w(m.priority) height: 3 draw_bg +: {g1: violet g2: pri_color(m.priority) border_radius: 2.0}}
+            RoundedView{width: pri_w(m.priority) height: 3 draw_bg +: {color: pri_color(m.priority) border_radius: 2.0}}
         }
         Label{text: "" + m.priority draw_text.color: pri_color(m.priority) draw_text.text_style.font_size: 9}
     }
 }
-fn avatar(m, size){
-    RoundedView{width: size height: size draw_bg +: {g1: m.av1 g2: m.av2 border_radius: size / 2.0} align: Align{x: 0.5 y: 0.5}
-        Label{text: m.init draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: size * 0.4}}
+fn avatar_color(i){
+    if i == 0 { return #x3e7355 }
+    if i == 1 { return #x0f5a52 }
+    if i == 2 { return #xbe4b38 }
+    if i == 3 { return #x488b5f }
+    if i == 4 { return #x7a6c3f }
+    if i == 5 { return #xb06f1f }
+    if i == 6 { return #xb06f1f }
+    if i == 7 { return #x488b5f }
+    return #x3e7355
+}
+fn avatar(i, size, unread){
+    RoundedView{width: size height: size draw_bg +: {color: avatar_color(i) border_radius: size / 2.0} flow: Overlay align: Align{x: 0.5 y: 0.5}
+        Label{text: mails[i].init draw_text.color: #xf3f1e6 draw_text.text_style: theme.font_bold{font_size: size * 0.4}}
+        if unread {
+            View{width: Fill height: Fill align: Align{x: 1.0 y: 0.0}
+                RoundedView{width: 9 height: 9 draw_bg +: {color: violet border_radius: 5.0}}
+            }
+        }
     }
 }
 // Reply state outranks the static labels: once a draft exists every surface
@@ -508,17 +641,17 @@ fn avatar(m, size){
 fn state_pill(m){
     if m.reply == "sent" {
         RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
-            draw_bg +: {color: mintBg border_radius: 6.0 border_size: 1.0 border_color: mintT}
+            draw_bg +: {color: mintBg border_radius: 6.0 border_size: 1.0 border_color: mintBd}
             Label{text: "已回复" draw_text.color: mintT draw_text.text_style.font_size: 9}}
     } else {
         if m.reply == "pending" {
             RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
-                draw_bg +: {color: #x140e2c border_radius: 6.0 border_size: 1.0 border_color: violetT}
+                draw_bg +: {color: violetBg border_radius: 6.0 border_size: 1.0 border_color: violetBd}
                 Label{text: "待发送" draw_text.color: violetT draw_text.text_style.font_size: 9}}
         } else {
             if m.reply == "failed" {
                 RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
-                    draw_bg +: {color: redBg border_radius: 6.0 border_size: 1.0 border_color: redT}
+                    draw_bg +: {color: redBg border_radius: 6.0 border_size: 1.0 border_color: redBd}
                     Label{text: "发送失败" draw_text.color: redT draw_text.text_style.font_size: 9}}
             } else {
                 RoundedView{width: 0 height: 0}
@@ -526,459 +659,657 @@ fn state_pill(m){
         }
     }
 }
-// VibeMark: violet->cyan rounded square with a V and a cyan dot
+// VibeMark: acc->teal rounded square, V + the amber dot
 fn vibe_mark(size){
-    RoundedView{width: size height: size draw_bg +: {g1: violet g2: cyan border_radius: 10.0} align: Align{x: 0.5 y: 0.5}
-        Label{text: "V" draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: size * 0.55}}
+    View{width: size height: size flow: Overlay
+        RoundedView{width: size height: size draw_bg +: {color: violet border_radius: size * 0.32} align: Align{x: 0.5 y: 0.5}
+            Label{text: "V" draw_text.color: accInk draw_text.text_style: theme.font_bold{font_size: size * 0.52}}}
+        View{width: size height: size align: Align{x: 1.0 y: 0.0}
+            View{width: 12 height: 12 align: Align{x: 0.5 y: 0.5}
+                RoundedView{width: 6 height: 6 draw_bg +: {color: amber border_radius: 3.0}}}
+        }
     }
 }
-// The mint status pill: a live agent is watching the inbox
+fn live_dot(){
+    RoundedView{width: 6 height: 6 draw_bg +: {color: mint border_radius: 3.0}}
+}
+// ---- native-widget icons ---------------------------------------------------
+// Runtime SVG rasterises blank on this stack, so the few icons the chrome
+// needs are composed from RoundedViews (sun / moon / calendar / sliders —
+// the same shapes as the design's lucide set). `cut` is the surrounding
+// surface colour used to bite shapes out (crescent, knob gaps).
+fn sun_icon(color, size){
+    View{width: size height: size flow: Overlay
+        View{width: size height: size align: Align{x: 0.5 y: 0.0}
+            RoundedView{width: 2 height: size * 0.24 draw_bg +: {color: color border_radius: 1.0}}}
+        View{width: size height: size align: Align{x: 0.5 y: 1.0}
+            RoundedView{width: 2 height: size * 0.24 draw_bg +: {color: color border_radius: 1.0}}}
+        View{width: size height: size align: Align{x: 0.0 y: 0.5}
+            RoundedView{width: size * 0.24 height: 2 draw_bg +: {color: color border_radius: 1.0}}}
+        View{width: size height: size align: Align{x: 1.0 y: 0.5}
+            RoundedView{width: size * 0.24 height: 2 draw_bg +: {color: color border_radius: 1.0}}}
+        View{width: size height: size align: Align{x: 0.5 y: 0.5}
+            RoundedView{width: size * 0.5 height: size * 0.5 draw_bg +: {color: color border_radius: size * 0.25}}}
+    }
+}
+fn moon_icon(color, size, cut){
+    View{width: size height: size flow: Overlay
+        RoundedView{width: size * 0.8 height: size * 0.8 draw_bg +: {color: color border_radius: size * 0.4}}
+        View{width: size height: size align: Align{x: 0.66 y: 0.14}
+            RoundedView{width: size * 0.8 height: size * 0.8 draw_bg +: {color: cut border_radius: size * 0.4}}}
+    }
+}
+fn calendar_icon(color, size, cut){
+    View{width: size height: size flow: Overlay
+        View{width: size height: size align: Align{x: 0.3 y: 0.0}
+            RoundedView{width: 2 height: size * 0.32 draw_bg +: {color: color border_radius: 1.0}}}
+        View{width: size height: size align: Align{x: 0.7 y: 0.0}
+            RoundedView{width: 2 height: size * 0.32 draw_bg +: {color: color border_radius: 1.0}}}
+        View{width: size height: size align: Align{x: 0.5 y: 1.0}
+            RoundedView{width: size * 0.88 height: size * 0.72 draw_bg +: {color: color border_radius: 2.5}}}
+        View{width: size height: size align: Align{x: 0.5 y: 0.5}
+            RoundedView{width: size * 0.88 height: 2 draw_bg +: {color: cut border_radius: 1.0}}}
+    }
+}
+fn sliders_icon(color, size, cut){
+    View{width: size height: size flow: Overlay
+        View{width: size height: size align: Align{x: 0.5 y: 0.16}
+            View{width: size * 0.9 height: 2 flow: Overlay
+                RoundedView{width: Fill height: 2 draw_bg +: {color: color border_radius: 1.0}}
+                View{width: Fill height: 2 align: Align{x: 0.24 y: 0.5}
+                    RoundedView{width: 5 height: 5 draw_bg +: {color: cut border_size: 1.0 border_color: color border_radius: 3.0}}}}}
+        View{width: size height: size align: Align{x: 0.5 y: 0.5}
+            View{width: size * 0.9 height: 2 flow: Overlay
+                RoundedView{width: Fill height: 2 draw_bg +: {color: color border_radius: 1.0}}
+                View{width: Fill height: 2 align: Align{x: 0.72 y: 0.5}
+                    RoundedView{width: 5 height: 5 draw_bg +: {color: cut border_size: 1.0 border_color: color border_radius: 3.0}}}}}
+        View{width: size height: size align: Align{x: 0.5 y: 0.84}
+            View{width: size * 0.9 height: 2 flow: Overlay
+                RoundedView{width: Fill height: 2 draw_bg +: {color: color border_radius: 1.0}}
+                View{width: Fill height: 2 align: Align{x: 0.42 y: 0.5}
+                    RoundedView{width: 5 height: 5 draw_bg +: {color: cut border_size: 1.0 border_color: color border_radius: 3.0}}}}}
+    }
+}
 fn agent_pill(){
-    RoundedView{width: Fit height: Fit padding: Inset{top: 4 bottom: 4 left: 10 right: 10}
-        draw_bg +: {color: mintBg border_radius: 12.0 border_size: 1.0 border_color: #x113a32}
-        View{width: Fit height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
-            RoundedView{width: 5 height: 5 draw_bg +: {color: mint border_radius: 3.0}}
-            Label{text: "VIBE AGENT · 运行中" draw_text.color: mintT draw_text.text_style.font_size: 9}
+    RoundedView{width: Fit height: Fit padding: Inset{top: 5 bottom: 5 left: 11 right: 11}
+        draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: mintBd}
+        View{width: Fit height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+            live_dot()
+            Label{text: "VIBE AGENT · 运行中" draw_text.color: mint draw_text.text_style.font_size: 10}
         }
     }
 }
-fn title_pair(){
-    let zh = "智能收件箱"
-    let en = "SMART INBOX"
-    if screen == "write" { zh = "AI 写信" en = "AI COMPOSE" }
-    if screen == "agents" { zh = "Agent 小队" en = "AGENT SQUAD" }
-    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-        vibe_mark(26)
-        View{width: Fill height: Fit flow: Down spacing: 1
-            Label{text: zh draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 15}}
-            Label{text: en draw_text.color: ink32 draw_text.text_style.font_size: 8}
-        }
-    }
-}
-fn top_bar(){
-    View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
-        title_pair()
-        agent_pill()
-    }
-}
-
-// ---- view 1: 智能收件箱 ------------------------------------------------------
-// The triage banner doubles as the mail-service state line: practice counts,
-// or the honest live / no-account / no-service status the demo relies on.
-fn banner_line(){
-    if mail_link == "checking" { return "正在连接邮件服务…" }
-    if mail_link == "live" { return "已连接 " + account_addr + " · " + live_total + " 封真实邮件" }
-    if mail_link == "no_account" { return "未添加邮箱账号 · 点右侧按钮,由宿主登录面板添加" }
-    if mail_link == "error" { return "邮箱连接失败:" + link_error }
-    return "邮件服务不可用 · 当前为练习数据(" + link_error + ")"
-}
-fn filter_chip(key, label, count, active_fg){
-    ButtonFlat{height: 30 padding: Inset{left: 10 right: 10} text: label + " " + count on_click: || set_filter(key)
-        draw_bg +: {color: pick(filter == key, violetBg, #x00000000) color_hover: white7 color_down: white7
-                    border_radius: 8.0 border_size: 1.0 border_color: pick(filter == key, violet, line2)}
-        draw_text +: {color: pick(filter == key, active_fg, ink45)}}
-}
-fn triage_banner(){
-    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 12 right: 12}
-        draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line}
-        GestureView{width: Fill height: Fit on_tap: |x, y| mail_check()
-            View{width: Fill height: Fit flow: Down spacing: 10
-                View{width: Fill height: Fit flow: Right spacing: 9 align: Align{y: 0.5}
-                    RoundedView{width: 24 height: 24 draw_bg +: {color: violetBg border_radius: 8.0} align: Align{x: 0.5 y: 0.5}
-                        Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 12}
-                    }
-                    Label{width: Fill text: "Vibe Agent 已分诊今日 " + cnt("all") + " 封邮件 — " + cnt("urgent") + " 封紧急 · " + cnt("reply") + " 封需回复 · " + cnt("later") + " 封可稍后"
-                          draw_text.color: ink66 draw_text.text_style.font_size: 11}
-                }
-                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                    Label{width: Fill text: banner_line() draw_text.color: ink45 draw_text.text_style.font_size: 10}
-                    if mail_link == "no_account" {
-                        ButtonFlat{text: "添加账号" on_click: || mail_add_account()
-                            draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                            draw_text +: {color: #xffffffff}}
+// Sliding pill: light -> knob left (sun 日), dark -> knob right (moon 月)
+fn theme_toggle(){
+    GestureView{width: 58 height: 30 on_tap: |x, y| toggle_theme()
+        RoundedView{width: 58 height: 30 draw_bg +: {color: white7 border_radius: 15.0 border_size: 1.0 border_color: line2} flow: Overlay
+            // static hint on the idle side: sun when dark (tap for light),
+            // moon when light (tap for dark)
+            View{width: 58 height: 30 align: pick(themeLight, Align{x: 1.0 y: 0.5}, Align{x: 0.0 y: 0.5})
+                View{width: 17 height: 30 align: Align{x: 0.5 y: 0.5}
+                    if themeLight {
+                        moon_icon(ink45, 12, white7)
+                    } else {
+                        sun_icon(ink45, 12)
                     }
                 }
-                View{width: Fill height: Fit flow: Right spacing: 5
-                    filter_chip("all", "全部", cnt("all"), ink)
-                    filter_chip("urgent", "紧急", cnt("urgent"), redT)
-                    filter_chip("reply", "需回复", cnt("reply"), amberT)
-                    filter_chip("later", "可稍后", cnt("later"), #x9a92d9)
+            }
+            View{width: 58 height: 30 align: pick(themeLight, Align{x: 0.0 y: 0.5}, Align{x: 1.0 y: 0.5})
+                View{width: 27 height: 30 align: Align{x: 0.5 y: 0.5}
+                    RoundedView{width: 24 height: 24 draw_bg +: {color: violet border_radius: 12.0} align: Align{x: 0.5 y: 0.5}
+                        if themeLight {
+                            sun_icon(accInk, 13)
+                        } else {
+                            moon_icon(accInk, 13, violet)
+                        }
+                    }
                 }
             }
         }
     }
 }
-// `sel` highlights the open mail — the read view's list column keeps state
-// visible while the reader pane carries the content.
-// NOTE: the GestureView must be the minted child itself. Wrapping it in a
-// plain `View{width: Fill height: Fit}` (flow unset) breaks hit-testing on
-// this stack — taps fall through the wrapper entirely.
-fn mail_row(i, sel){
-    let m = mails[i]
-    GestureView{width: Fill height: Fit draw_bg.color: pick(sel, #x170f31, #x00000000) on_tap: |x, y| open_mail(i)
-            View{width: Fill height: Fit flow: Right spacing: 11 padding: Inset{top: 12 bottom: 12 left: 4 right: 4}
-                View{width: Fit height: Fit flow: Overlay
-                    avatar(m, 38)
-                    if m.unread {
-                        View{width: Fill height: Fill align: Align{x: 1.0 y: 0.0}
-                            RoundedView{width: 9 height: 9 draw_bg +: {color: violet border_radius: 5.0}}
-                        }
+fn section_label(text){
+    View{width: Fill height: Fit flow: Right padding: Inset{left: 4 bottom: 2}
+        Label{text: text draw_text.color: ink45 draw_text.text_style.font_size: 9}}
+}
+// gradient action button (acc -> acc-b) — inlined at call sites for closures
+fn kbd_box(text){
+    RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
+        draw_bg +: {color: white7 border_radius: 5.0}
+        Label{text: text draw_text.color: ink45 draw_text.text_style.font_size: 9}}
+}
+
+// ---- sidebar ----------------------------------------------------------------
+fn nav_row(label, glyph, target, badge){
+    let act = screen == target
+    GestureView{width: Fill height: 38 on_tap: |x, y| go(target)
+        RoundedView{width: Fill height: 38
+            draw_bg +: {color: pick(act, violetBg, #x00000000) border_radius: 9.0 border_size: 1.0 border_color: pick(act, violetBd, #x00000000)}
+            View{width: Fill height: Fill flow: Right spacing: 10 align: Align{y: 0.5} padding: Inset{left: 10 right: 10}
+                Label{text: glyph draw_text.color: pick(act, violet, ink45) draw_text.text_style.font_size: 13}
+                Label{width: Fill text: label draw_text.color: pick(act, ink, ink66) draw_text.text_style.font_size: 12}
+                if badge != "" {
+                    RoundedView{width: Fit height: Fit padding: Inset{top: 1 bottom: 1 left: 7 right: 7}
+                        draw_bg +: {color: pick(act, violet, violetBg) border_radius: 9.0}
+                        Label{text: badge draw_text.color: pick(act, accInk, violetT) draw_text.text_style.font_size: 9}}
+                }
+            }
+        }
+    }
+}
+fn folder_row(glyph, label, count){
+    View{width: Fill height: 32 flow: Right spacing: 10 align: Align{y: 0.5} padding: Inset{left: 10 right: 10}
+        Label{text: glyph draw_text.color: ink45 draw_text.text_style.font_size: 12}
+        Label{width: Fill text: label draw_text.color: ink66 draw_text.text_style.font_size: 12}
+        if count != "" {
+            Label{text: count draw_text.color: ink45 draw_text.text_style.font_size: 9}
+        }
+    }
+}
+fn cluster_color(k){
+    if k == "teal" { return cyan }
+    if k == "ok" { return mint }
+    if k == "amber" { return amber }
+    return violet
+}
+fn cluster_row(label, count, key){
+    View{width: Fill height: 32 flow: Right spacing: 10 align: Align{y: 0.5} padding: Inset{left: 10 right: 10}
+        RoundedView{width: 7 height: 7 draw_bg +: {color: cluster_color(key) border_radius: 4.0}}
+        Label{width: Fill text: label draw_text.color: ink66 draw_text.text_style.font_size: 12}
+        Label{text: count draw_text.color: ink45 draw_text.text_style.font_size: 9}
+    }
+}
+fn sidebar(){
+    RoundedView{width: 264 height: Fill flow: Down draw_bg +: {color: panel border_radius: 0.0}
+        View{width: Fill height: 58 flow: Right spacing: 10 align: Align{y: 0.5} padding: Inset{left: 16 right: 16}
+            vibe_mark(30)
+            View{width: Fill height: Fit flow: Down spacing: 2
+                Label{text: "VibeMail" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 14}}
+                Label{text: "AGENTIC MAIL" draw_text.color: ink45 draw_text.text_style.font_size: 8}
+            }
+        }
+        RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+        View{width: Fill height: Fill flow: Down padding: Inset{top: 12 bottom: 10 left: 12 right: 12}
+            // 写信 · AI 起草 — the gradient compose button
+            GestureView{width: Fill height: 40 on_tap: |x, y| go("write")
+                RoundedView{width: Fill height: 40 draw_bg +: {color: violet border_radius: 10.0}
+                    View{width: Fill height: Fill flow: Right spacing: 9 align: Align{y: 0.5} padding: Inset{left: 12 right: 10}
+                        Label{text: "✦" draw_text.color: accInk draw_text.text_style.font_size: 13}
+                        Label{width: Fill text: "写信 · AI 起草" draw_text.color: accInk draw_text.text_style: theme.font_bold{font_size: 12}}
+                        RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
+                            draw_bg +: {color: accB border_radius: 5.0}
+                            Label{text: "N" draw_text.color: accInk draw_text.text_style.font_size: 9}}
                     }
                 }
-                View{width: Fill height: Fit flow: Down spacing: 3
-                    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                        Label{width: Fill text: m.sender
-                              draw_text.color: pick(m.unread, ink, #xb0aeab)
-                              draw_text.text_style: theme.font_bold{font_size: 12}}
-                        Label{text: m.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
-                    }
-                    Label{width: Fill text: m.subject draw_text.color: pick(m.unread, #xcecbc6, #x9b9a98) draw_text.text_style.font_size: 12}
-                    Label{width: Fill text: m.snippet draw_text.color: ink45 draw_text.text_style.font_size: 10}
-                    View{width: Fill height: Fit flow: Right spacing: 4
-                        if m.generating {
-                            RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
-                                draw_bg +: {color: #x140e2c border_radius: 6.0 border_size: 1.0 border_color: violet}
-                                Label{text: "AI 摘要生成中…" draw_text.color: violetT draw_text.text_style.font_size: 9}}
-                        } else {
-                            // two labels max in the row: the full set lives on
-                            // the read view, the meter needs the width here
-                            if m.labels.len() > 0 { chip(m.labels[0].text, m.labels[0].tone) }
-                            if m.labels.len() > 1 { chip(m.labels[1].text, m.labels[1].tone) }
+            }
+            View{width: 1 height: 10}
+            nav_row("收件箱", "✉", "inbox", "" + cnt("all"))
+            nav_row("Agent 小队", "✦", "agents", "" + agents.len())
+            View{width: 1 height: 14}
+            section_label("邮箱")
+            folder_row("★", "已加星标", "3")
+            folder_row("◑", "稍后处理", "5")
+            folder_row("→", "已发送", "")
+            folder_row("✎", "草稿", "2")
+            folder_row("▤", "归档", "")
+            folder_row("✕", "垃圾箱", "")
+            View{width: 1 height: 14}
+            section_label("AI 智能分类")
+            cluster_row("工作", "8", "acc")
+            cluster_row("财务", "3", "teal")
+            cluster_row("订阅", "14", "ok")
+            cluster_row("社交", "5", "amber")
+        }
+        // agent mini card
+        View{width: Fill height: Fit flow: Down padding: Inset{left: 12 right: 12 bottom: 10}
+            RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 13 right: 13}
+                draw_bg +: {color: panel2 border_radius: 12.0 border_size: 1.0 border_color: line} flow: Down spacing: 8
+                View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+                    live_dot()
+                    Label{text: "AGENT ACTIVE" draw_text.color: mint draw_text.text_style.font_size: 9}
+                }
+                Label{width: Fill text: "今日已自动处理 23 封邮件,节省 1.4h" draw_text.color: ink66 draw_text.text_style.font_size: 11}
+                RoundedView{width: Fill height: 3 draw_bg +: {color: line border_radius: 2.0} flow: Overlay
+                    RoundedView{width: 145 height: 3 draw_bg +: {color: violet border_radius: 2.0}}
+                }
+            }
+        }
+        RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+        View{width: Fill height: 50 flow: Right spacing: 4 align: Align{y: 0.5} padding: Inset{left: 16 right: 16}
+            RoundedView{width: 30 height: 30 draw_bg +: {color: #x00000000 border_radius: 8.0} align: Align{x: 0.5 y: 0.5}
+                calendar_icon(ink45, 15, panel)}
+            RoundedView{width: 30 height: 30 draw_bg +: {color: #x00000000 border_radius: 8.0} align: Align{x: 0.5 y: 0.5}
+                sliders_icon(ink45, 15, panel)}
+            View{width: Fill height: 1}
+            RoundedView{width: 28 height: 28 draw_bg +: {color: #xb06f1f border_radius: 14.0} align: Align{x: 0.5 y: 0.5}
+                Label{text: "我" draw_text.color: #xf3f1e6 draw_text.text_style: theme.font_bold{font_size: 11}}}
+        }
+    }
+}
+
+// ---- top bar ----------------------------------------------------------------
+fn title_zh(){
+    if screen == "write" { return "AI 写信" }
+    if screen == "agents" { return "Agent 小队" }
+    return "智能收件箱"
+}
+fn title_en(){
+    if screen == "write" { return "AI COMPOSE" }
+    if screen == "agents" { return "AGENT SQUAD" }
+    return "SMART INBOX"
+}
+fn top_bar(){
+    RoundedView{width: Fill height: 58 flow: Right spacing: 12 align: Align{y: 0.5} padding: Inset{left: 20 right: 16} draw_bg +: {color: glass border_radius: 0.0}
+        Label{text: title_zh() draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 15}}
+        Label{text: title_en() draw_text.color: ink45 draw_text.text_style.font_size: 9}
+        View{width: Fill height: 1}
+        RoundedView{width: 380 height: 36 draw_bg +: {color: panel border_radius: 10.0 border_size: 1.0 border_color: line}
+            View{width: Fill height: Fill flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 12 right: 8}
+                Label{text: "✦" draw_text.color: ink45 draw_text.text_style.font_size: 11}
+                Label{width: Fill text: "问 Vibe Agent:「上周报价相关邮件」" draw_text.color: ink55 draw_text.text_style.font_size: 11}
+                kbd_box("Ctrl K")
+            }
+        }
+        View{width: Fill height: 1}
+        agent_pill()
+        theme_toggle()
+    }
+}
+
+// ---- inbox: list | reader | AI copilot --------------------------------------
+fn banner_line(){
+    if mail_link == "checking" { return "正在连接邮件服务…" }
+    if mail_link == "live" { return "已连接 " + account_addr + " · " + live_total + " 封真实邮件" }
+    if mail_link == "no_account" { return "未添加邮箱账号 · 点右侧按钮,由宿主登录面板添加" }
+    if mail_link == "error" { return "邮箱连接失败:" + link_error }
+    return "邮件服务不可用 · 当前为练习数据"
+}
+fn filter_chip(key, label, count){
+    ButtonFlat{height: 30 padding: Inset{left: 10 right: 10} text: label + " " + count on_click: || set_filter(key)
+        draw_bg +: {color: pick(filter == key, violetBg, #x00000000) color_hover: white7 color_down: white7
+                    border_radius: 8.0 border_size: 1.0 border_color: pick(filter == key, violetBd, line2)}
+        draw_text +: {color: pick(filter == key, violetT, ink66)}}
+}
+fn mail_row(i){
+    let m = mails[i]
+    let sel = selected && i == current
+    GestureView{width: Fill height: Fit on_tap: |x, y| open_mail(i)
+        View{width: Fill height: Fit flow: Overlay
+            RoundedView{width: Fill height: Fit flow: Down padding: Inset{top: 12 bottom: 12 left: 18 right: 18} spacing: 4
+                draw_bg +: {color: pick(sel, violetBg, #x00000000) border_radius: 0.0}
+                View{width: Fill height: Fit flow: Right spacing: 11
+                    avatar(i, 38, m.unread)
+                    View{width: Fill height: Fit flow: Down spacing: 4
+                        View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                            Label{width: Fill text: m.sender
+                                  draw_text.color: pick(m.unread, ink, ink66)
+                                  draw_text.text_style: theme.font_bold{font_size: 12}}
+                            Label{width: 40 text: m.time draw_text.color: ink45 draw_text.text_style.font_size: 9}
                         }
+                        Label{width: Fill text: m.subject draw_text.color: pick(m.unread, inkHi, ink66) draw_text.text_style.font_size: 12}
+                        Label{width: Fill text: m.snippet draw_text.color: ink45 draw_text.text_style.font_size: 10}
+                        View{width: Fill height: Fit flow: Right spacing: 5 align: Align{y: 0.5}
+                    if m.generating {
+                        RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
+                            draw_bg +: {color: violetBg border_radius: 6.0 border_size: 1.0 border_color: violetBd}
+                            Label{text: "✦ AI 摘要生成中…" draw_text.color: violetT draw_text.text_style.font_size: 9}}
+                    } else {
+                        if m.labels.len() > 0 { chip(m.labels[0].text, m.labels[0].tone) }
+                        if m.labels.len() > 1 { chip(m.labels[1].text, m.labels[1].tone) }
+                    }
                         state_pill(m)
                         View{width: Fill height: 1}
                         priority_meter(m)
                     }
                 }
             }
+        }
+            if sel {
+                View{width: Fill height: Fill align: Align{x: 0.0 y: 0.0}
+                    View{width: 2 height: Fill align: Align{x: 0.0 y: 0.5}
+                        RoundedView{width: 2 height: Fill draw_bg +: {color: violet border_radius: 1.0}}}
+                }
+            }
+        }
     }
 }
-// ---- responsive skeleton -----------------------------------------------------
-// The script cannot read the window width, so the layout math IS the media
-// query (probed in card-host): a FIXED width clamps to its container and a
-// Fill sibling collapses to zero when squeezed. Every screen is therefore a
-// [Fill margin][fixed column][Fill margin] row — full-bleed on a phone,
-// centered at a readable width on a desktop. The inbox goes one step further
-// with master-detail: [list 420][preview Fill]. Wide window: triage list +
-// "select a mail" placeholder, the web app's desktop reading layout. Narrow:
-// the list clamps to the window and the Fill preview collapses to nothing.
 fn preview_pane(){
-    View{width: Fill height: Fit padding: Inset{top: 46 bottom: 12 left: 16 right: 4} flow: Down
-        RoundedView{width: Fill height: Fit padding: Inset{top: 44 bottom: 44 left: 26 right: 26}
+    View{width: Fill height: Fit flow: Down padding: Inset{top: 48 bottom: 20 left: 24 right: 24}
+        RoundedView{width: Fill height: Fit padding: Inset{top: 52 bottom: 52 left: 34 right: 34}
             draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line}
-            flow: Down spacing: 12 align: Align{x: 0.5}
-            RoundedView{width: 46 height: 46 draw_bg +: {g1: violet g2: cyan border_radius: 15.0} align: Align{x: 0.5 y: 0.5}
-                Label{text: "✦" draw_text.color: #xffffffff draw_text.text_style.font_size: 20}}
-            Label{text: "选择一封邮件开始阅读" draw_text.color: ink66 draw_text.text_style: theme.font_bold{font_size: 14}}
-            Label{width: Fill text: "Vibe Agent 已为 " + cnt("all") + " 封邮件生成摘要、优先级与建议动作。点击左侧任意邮件,AI 摘要、会议识别与快速回复会出现在这里。" draw_text.color: ink45 draw_text.text_style.font_size: 11}
+            flow: Down spacing: 13 align: Align{x: 0.5}
+            RoundedView{width: 56 height: 56 draw_bg +: {color: violet border_radius: 18.0} align: Align{x: 0.5 y: 0.5}
+                Label{text: "✦" draw_text.color: accInk draw_text.text_style.font_size: 22}}
+            Label{text: "选择一封邮件开始阅读" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 14}}
+            Label{width: Fill text: "Vibe Agent 已为 " + cnt("all") + " 封邮件生成摘要、优先级与建议动作。点击左侧任意邮件,AI 摘要、待办提取与智能回复会出现在右侧 Copilot 栏。" draw_text.color: ink45 draw_text.text_style.font_size: 11 align: Align{x: 0.5}}
         }
     }
 }
 fn inbox_screen(){
-    View{width: Fill height: Fit flow: Right
-        View{width: Fill height: 1}
-        View{width: 980 height: Fit flow: Right
-            View{width: 420 height: Fit flow: Down spacing: 12
-                top_bar()
-                triage_banner()
-                View{width: Fill height: Fit flow: Down
-                    for i in mails.len() {
-                        if pass_filter(i) { mail_row(i, false) }
+    // Three independently-scrolling panes on a fixed viewport. Column
+    // backgrounds are Overlay underlays so no black shows below shorter
+    // content when a pane scrolls.
+    View{width: Fill height: Fill flow: Right
+        View{width: 360 height: Fill flow: Overlay
+            RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
+            ScrollYView{width: Fill height: Fill flow: Down
+            View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 14 bottom: 10 left: 18 right: 18}
+                View{width: Fill height: Fit flow: Right spacing: 9
+                    RoundedView{width: 24 height: 24 draw_bg +: {color: violetBg border_radius: 8.0} align: Align{x: 0.5 y: 0.5}
+                        Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 12}}
+                    View{width: Fill height: Fit flow: Down spacing: 2
+                        Label{width: Fill text: "Vibe Agent 已整理今日 " + cnt("all") + " 封邮件:" + cnt("urgent") + " 封紧急 · " + cnt("reply") + " 封需回复 · " + cnt("later") + " 封可稍后"
+                              draw_text.color: ink66 draw_text.text_style.font_size: 11}
+                        Label{width: Fill text: banner_line() draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+                    }
+                    if mail_link == "no_account" {
+                        ButtonFlat{text: "添加账号" on_click: || mail_add_account()
+                            draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 9.0 border_size: 0.0}
+                            draw_text +: {color: accInk text_style.font_size: 11}}
                     }
                 }
-                Label{width: Fill text: "AI 优先级为练习数据评分,真实邮件接入后由模型服务生成。" draw_text.color: ink32 draw_text.text_style.font_size: 9}
+                View{width: Fill height: Fit flow: Right spacing: 6
+                    filter_chip("all", "全部", cnt("all"))
+                    filter_chip("urgent", "紧急", cnt("urgent"))
+                    filter_chip("reply", "需回复", cnt("reply"))
+                    filter_chip("later", "可稍后", cnt("later"))
+                }
             }
-            preview_pane()
+                RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+            RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+            View{width: Fill height: Fit flow: Down
+                for i in mails.len() {
+                    if pass_filter(i) { mail_row(i) }
+                    RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+                }
+                View{width: Fill height: 24}
+            }
+            }
         }
-        View{width: Fill height: 1}
+        RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
+        ScrollYView{width: Fill height: Fill flow: Down
+            if selected { reading_pane(current) } else { preview_pane() }
+        }
+        RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
+        View{width: 310 height: Fill flow: Overlay
+            RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
+            ScrollYView{width: Fill height: Fill flow: Down
+                if selected { copilot_panel(current) } else { copilot_hint() }
+            }
+        }
     }
 }
 
-// ---- view 2: 邮件阅读 + AI 摘要 ----------------------------------------------
-// The summary card always labels its source: the shipped practice points, or
-// output of the host's model service (regenerated on demand). Unavailable is
-// shown as a normal state, never silently swapped.
-fn ai_summary_card(i){
+// Placeholder rail: no mail selected yet — never pre-render mail 0's data.
+fn copilot_hint(){
+    View{width: Fill height: Fit flow: Down padding: Inset{top: 14 bottom: 20 left: 13 right: 13}
+        RoundedView{width: Fill height: Fit padding: Inset{top: 16 bottom: 16 left: 14 right: 14}
+            draw_bg +: {color: panel2 border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 9
+            Label{width: Fill text: "✦ AI Copilot 就绪" draw_text.color: violetT draw_text.text_style: theme.font_bold{font_size: 12}}
+            Label{width: Fill text: "选择一封邮件,摘要、待办提取、语气洞察与智能回复会出现在这里。" draw_text.color: ink55 draw_text.text_style.font_size: 11}
+        }
+    }
+}
+
+// ---- reading pane ------------------------------------------------------------
+fn ghost_btn(text, cb_color){
+    RoundedView{width: 30 height: 30 draw_bg +: {color: #x00000000 border_radius: 8.0} align: Align{x: 0.5 y: 0.5}
+        Label{text: text draw_text.color: cb_color draw_text.text_style.font_size: 13}}
+}
+fn reading_pane(i){
     let m = mails[i]
-    let pts = m.summary
-    if m.summary_src == "ai" { pts = m.ai_points }
-    RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 14 left: 14 right: 14}
-        draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: violetBd}
-        View{width: Fill height: Fit flow: Down spacing: 9
-            View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
-                Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 11}
-                Label{text: "AI 摘要" draw_text.color: violetT draw_text.text_style: theme.font_bold{font_size: 12}}
-                RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 7 right: 7}
-                    draw_bg +: {color: #x140e2c border_radius: 9.0 border_size: 1.0 border_color: violetBd}
-                    Label{text: summary_pill_text(m.summary_src) draw_text.color: violetT draw_text.text_style.font_size: 9}}
-                ButtonFlat{width: 64 height: 26 text: "AI 生成" on_click: || gen_summary(i)
-                    draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                    draw_text +: {color: #xffffffff}}
-                View{width: Fill height: 1}
-            }
-            if m.summary_src == "practice" && m.summary.len() == 0 {
-                Label{width: Fill text: "这封真实邮件还没有摘要 — 点「AI 生成」由模型总结。" draw_text.color: ink55 draw_text.text_style.font_size: 11}
-            }
-            for p in pts {
-                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                    RoundedView{width: 5 height: 5 draw_bg +: {g1: violet g2: cyan border_radius: 3.0}}
-                    Label{width: Fill text: p draw_text.color: #xb7b5b1 draw_text.text_style.font_size: 11}
+    View{width: Fill height: Fit flow: Down
+        View{width: Fill height: 50 flow: Right spacing: 6 align: Align{y: 0.5} padding: Inset{left: 24 right: 14}
+            Label{text: "邮件详情 · THREAD" draw_text.color: ink45 draw_text.text_style.font_size: 9}
+            View{width: Fill height: 1}
+            ghost_btn("★", ink45)
+            ghost_btn("✦", ink45)
+            ghost_btn("✕", ink45)
+        }
+        RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+        View{width: Fill height: Fit flow: Down padding: Inset{top: 20 bottom: 26 left: 26 right: 22}
+            Label{width: Fill text: m.subject draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 17}}
+            View{width: Fill height: 10}
+            label_row(m)
+            View{width: Fill height: 16}
+            View{width: Fill height: Fit flow: Right spacing: 12
+                avatar(i, 40, false)
+                View{width: Fill height: Fit flow: Down spacing: 2
+                    Label{text: m.sender draw_text.color: ink draw_text.text_style.font_size: 12}
+                    Label{text: m.address + " → 发给我" draw_text.color: ink45 draw_text.text_style.font_size: 10}
                 }
+                Label{width: 64 text: m.time draw_text.color: ink45 draw_text.text_style.font_size: 10 align: Align{x: 1.0}}
             }
-            if m.actions.len() > 0 {
-                View{width: Fill height: Fit flow: Right spacing: 5
-                    View{width: Fill height: 1 draw_bg.color: line}
-                }
-                View{width: Fill height: Fit flow: Down spacing: 6
-                    for a in m.actions {
-                        RoundedView{width: Fit height: Fit padding: Inset{top: 3 bottom: 3 left: 8 right: 8}
-                            draw_bg +: {color: amberBg border_radius: 7.0 border_size: 1.0 border_color: amber}
-                            Label{text: a.text + pick(a.due == "", "", " · ⏱ " + a.due) draw_text.color: amberT draw_text.text_style.font_size: 10}
-                        }
+            View{width: Fill height: 16}
+            View{width: Fill height: Fit flow: Down spacing: 12
+                for p in m.body.split("\n\n") {
+                    if p != "" {
+                        Label{width: Fill text: p draw_text.color: inkHi draw_text.text_style.font_size: 12.5}
                     }
                 }
             }
-            if m.sent_label != "" {
-                View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
-                    chip(m.sent_label, m.sent_tone)
-                    Label{width: Fill text: m.sent_note draw_text.color: ink55 draw_text.text_style.font_size: 9}
+            if m.meeting_title != "" {
+                View{width: Fill height: 18}
+                RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 14 left: 16 right: 16}
+                    draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 8
+                    View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+                        Label{text: "✦" draw_text.color: cyan draw_text.text_style.font_size: 11}
+                        Label{text: "AI 识别到会议意向" draw_text.color: cyanT draw_text.text_style.font_size: 9.5}
+                    }
+                    Label{text: m.meeting_title draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 13}}
+                    View{width: Fill height: Fit flow: Right spacing: 14
+                        Label{text: m.meeting_time draw_text.color: ink66 draw_text.text_style.font_size: 10.5}
+                        Label{text: "◉ " + m.meeting_loc draw_text.color: ink66 draw_text.text_style.font_size: 10.5}
+                    }
+                    View{width: Fill height: 4}
+                    View{width: Fill height: Fit flow: Right spacing: 8
+                        ButtonFlat{height: 30 text: "加入日历" on_click: || go("agents")
+                            draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 8.0 border_size: 0.0}
+                            draw_text +: {color: accInk text_style.font_size: 11}}
+                        ButtonFlat{height: 30 text: "协商改期" on_click: || open_reply()
+                            draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 8.0 border_size: 1.0 border_color: line2}
+                            draw_text +: {color: ink55 text_style.font_size: 11}}
+                    }
                 }
             }
-            if m.summary_src == "unavailable" {
-                Label{width: Fill text: "模型服务不可用,当前展示练习数据:" + summary_error draw_text.color: redT draw_text.text_style.font_size: 9}
-            }
-        }
-    }
-}
-fn meeting_card(m){
-    if m.meeting_title != "" {
-        RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 13 left: 14 right: 14}
-            draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: cyanBg}
-            View{width: Fill height: Fit flow: Down spacing: 8
-                View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
-                    Label{text: "✦" draw_text.color: cyanT draw_text.text_style.font_size: 11}
-                    Label{width: Fill text: "AI 识别到会议意向" draw_text.color: cyanT draw_text.text_style.font_size: 10}
-                }
-                Label{width: Fill text: m.meeting_title draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 13}}
-                View{width: Fill height: Fit flow: Right spacing: 12
-                    Label{text: m.meeting_time draw_text.color: ink55 draw_text.text_style.font_size: 10}
-                    Label{text: m.meeting_loc draw_text.color: ink55 draw_text.text_style.font_size: 10}
-                }
-                View{width: Fill height: Fit flow: Right spacing: 8
-                    ButtonFlat{height: 30 text: "加入日历" on_click: || go("agents")
-                        draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 8.0 border_size: 0.0}
-                        draw_text +: {color: #xffffffff}}
-                    ButtonFlat{height: 30 text: "协商改期" on_click: || open_reply()
-                        draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 8.0 border_size: 1.0 border_color: line2}
-                        draw_text +: {color: ink55}}
-                }
-            }
-        }
-    }
-}
-// NOTE: the reply chip is minted through a fn so `q` binds at CALL time —
-// an on_click closure written directly inside `for q in m.replies` resolves
-// the loop variable at CLICK time (late binding) and silently no-ops.
-fn reply_chip(i, q){
-    ButtonFlat{height: 34 padding: Inset{left: 12 right: 12} text: "✦ " + q on_click: || quick_reply(i, q)
-        draw_bg +: {color: #x140e2c color_hover: #x1c1440 color_down: #x140e2c border_radius: 17.0 border_size: 1.0 border_color: violetBd}
-        draw_text +: {color: #xd6c8ff text_style.font_size: 11}}
-}
-fn smart_replies(i, m){
-    if m.replies.len() > 0 {
-        View{width: Fill height: Fit flow: Right spacing: 6
-            for j in m.replies.len() {
-                reply_chip(i, m.replies[j])
+            View{width: Fill height: 16}
+            reply_strip(i)
+            View{width: Fill height: 14}
+            View{width: Fill height: Fit flow: Right spacing: 8
+                ButtonFlat{width: Fill height: 34 text: "回复" on_click: || open_reply()
+                    draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 9.0 border_size: 0.0}
+                    draw_text +: {color: accInk text_style.font_size: 12}}
+                ButtonFlat{width: Fill height: 34 text: "✦ AI 帮我回" on_click: || open_reply()
+                    draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: violetBd}
+                    draw_text +: {color: violetT text_style.font_size: 12}}
+                ButtonFlat{width: 96 height: 34 text: "转发" on_click: || open_forward()
+                    draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
+                    draw_text +: {color: ink55 text_style.font_size: 12}}
             }
         }
     }
 }
-// The strip the reply state machine renders into the read view. Sending is
-// an explicit two-step act (发送 opens the confirm card, 确认发送 executes);
-// a failed send keeps the draft and offers retry, never silently dropping it.
+
+// ---- reply lifecycle strip (five states, one per surface) --------------------
 fn reply_strip(i){
     let m = mails[i]
     if m.reply == "pending" {
         RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: violetBd} flow: Down spacing: 7
-            Label{width: Fill text: "回复草稿 · 待发送" draw_text.color: violetT draw_text.text_style: theme.font_bold{font_size: 12}}
-            Label{width: Fill text: first_line(m.reply_text) draw_text.color: ink55 draw_text.text_style.font_size: 11}
+            draw_bg +: {color: violetBg border_radius: 14.0 border_size: 1.0 border_color: violetBd} flow: Down spacing: 7
+            View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+                live_dot()
+                Label{text: "回复草稿 · 待发送" draw_text.color: violetT draw_text.text_style: theme.font_bold{font_size: 12}}
+            }
+            Label{width: Fill text: first_line(m.reply_text) draw_text.color: inkHi draw_text.text_style.font_size: 11}
             View{width: Fill height: Fit flow: Right spacing: 8
-                ButtonFlat{width: Fill text: "发送" on_click: || ask_send(i)
-                    draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                    draw_text +: {color: #xffffffff}}
-                ButtonFlat{width: Fill text: "继续编辑" on_click: || edit_draft(i)
-                    draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 10.0 border_size: 1.0 border_color: line2}
-                    draw_text +: {color: ink55}}
+                ButtonFlat{width: Fill height: 32 text: "发送" on_click: || ask_send(i)
+                    draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 9.0 border_size: 0.0}
+                    draw_text +: {color: accInk text_style.font_size: 12}}
+                ButtonFlat{width: Fill height: 32 text: "继续编辑" on_click: || edit_draft(i)
+                    draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
+                    draw_text +: {color: ink55 text_style.font_size: 12}}
             }
         }
-    }
-    if m.reply == "confirm" {
-        RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: amberBg border_radius: 14.0 border_size: 1.0 border_color: amber} flow: Down spacing: 7
-            Label{width: Fill text: "确认发送给 " + m.sender + "?" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 12}}
-            Label{width: Fill text: "发送后写入会话,不可自动撤回(练习数据)。" draw_text.color: ink55 draw_text.text_style.font_size: 10}
-            View{width: Fill height: Fit flow: Right spacing: 8
-                ButtonFlat{width: Fill text: "确认发送" on_click: || do_send(i)
-                    draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                    draw_text +: {color: #xffffffff}}
-                ButtonFlat{width: Fill text: "取消" on_click: || cancel_send(i)
-                    draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 10.0 border_size: 1.0 border_color: line2}
-                    draw_text +: {color: ink55}}
+    } else {
+        if m.reply == "confirm" {
+            RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
+                draw_bg +: {color: amberBg border_radius: 14.0 border_size: 1.0 border_color: amber} flow: Down spacing: 7
+                Label{width: Fill text: "确认发送给 " + m.sender + "?" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 12}}
+                Label{width: Fill text: "发送后写入会话,不可自动撤回(练习数据)。" draw_text.color: ink55 draw_text.text_style.font_size: 10}
+                View{width: Fill height: Fit flow: Right spacing: 8
+                    ButtonFlat{width: Fill height: 32 text: "确认发送" on_click: || do_send(i)
+                        draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 9.0 border_size: 0.0}
+                        draw_text +: {color: accInk text_style.font_size: 12}}
+                    ButtonFlat{width: Fill height: 32 text: "取消" on_click: || cancel_send(i)
+                        draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
+                        draw_text +: {color: ink55 text_style.font_size: 12}}
+                }
             }
-        }
-    }
-    if m.reply == "sending" {
-        RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line}
-            Label{width: Fill text: "发送中…" draw_text.color: ink55 draw_text.text_style.font_size: 12}
-        }
-    }
-    if m.reply == "sent" {
-        RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: #x113a32} flow: Down spacing: 5
-            Label{width: Fill text: "已回复 · 刚刚发送,已写入会话" draw_text.color: mintT draw_text.text_style: theme.font_bold{font_size: 12}}
-            Label{width: Fill text: first_line(m.reply_text) draw_text.color: ink55 draw_text.text_style.font_size: 11}
-        }
-    }
-    if m.reply == "failed" {
-        RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: redBg border_radius: 14.0 border_size: 1.0 border_color: red} flow: Down spacing: 7
-            Label{width: Fill text: "发送失败 · 邮件服务无响应" draw_text.color: redT draw_text.text_style: theme.font_bold{font_size: 12}}
-            Label{width: Fill text: pick(m.src == "live", "发送失败:" + m.send_error + "。草稿已保留,可重试。", "练习场景:模拟服务中断。草稿已保留,可重试或暂存。") draw_text.color: ink55 draw_text.text_style.font_size: 10}
-            View{width: Fill height: Fit flow: Right spacing: 8
-                ButtonFlat{width: Fill text: "重试发送" on_click: || retry_send(i)
-                    draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                    draw_text +: {color: #xffffffff}}
-                ButtonFlat{width: Fill text: "保留草稿" on_click: || keep_draft(i)
-                    draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 10.0 border_size: 1.0 border_color: line2}
-                    draw_text +: {color: ink55}}
-            }
-        }
-    }
-}
-
-fn read_screen(m){
-    View{width: Fill height: Fit flow: Right
-        View{width: Fill height: 1}
-        View{width: 980 height: Fit flow: Right
-            View{width: 480 height: Fit flow: Down spacing: 12 padding: Inset{top: 12 left: 14 right: 4 bottom: 12}
-                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                    ButtonFlat{text: "‹ 返回" on_click: || go("inbox")
-                        draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_size: 0.0}
-                        draw_text +: {color: ink66 color_hover: ink color_down: ink}}
-                    View{width: Fill height: 1}
-                    Label{text: "···" draw_text.color: ink38 draw_text.text_style.font_size: 14}
+        } else {
+            if m.reply == "sending" {
+                RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
+                    draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line}
+                    Label{width: Fill text: "发送中…" draw_text.color: ink55 draw_text.text_style.font_size: 12}
                 }
-                Label{text: "R:" + mails[0].reply draw_text.color: mintT draw_text.text_style.font_size: 11}
-                Label{width: Fill text: m.subject draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 17}}
-                label_row(m)
-                View{width: Fill height: Fit flow: Right spacing: 11 align: Align{y: 0.5}
-                    avatar(m, 40)
-                    View{width: Fill height: Fit flow: Down spacing: 2
-                        Label{width: Fill text: m.sender draw_text.color: ink draw_text.text_style.font_size: 13}
-                        Label{width: Fill text: m.address + " → 发给我" draw_text.color: ink38 draw_text.text_style.font_size: 10}
-                    }
-                    Label{text: m.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
-                }
-                ai_summary_card(current)
-                View{width: Fill height: Fit flow: Down spacing: 8
-                    for p in m.body.split("\n\n") {
-                        if p != "" {
-                            Label{width: Fill text: p draw_text.color: #xc0beba draw_text.text_style.font_size: 13}
-                        }
-                    }
-                }
-                smart_replies(current, m)
-                meeting_card(m)
-                // the reply-state strip is inlined here — minting it through a
-                // helper fn killed everything minted after it on this stack
-                if m.reply == "pending" {
-                    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-                        draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: violetBd} flow: Down spacing: 7
-                        Label{width: Fill text: "回复草稿 · 待发送" draw_text.color: violetT draw_text.text_style: theme.font_bold{font_size: 12}}
-                        Label{width: Fill text: first_line(m.reply_text) draw_text.color: ink55 draw_text.text_style.font_size: 11}
-                        View{width: Fill height: Fit flow: Right spacing: 8
-                            ButtonFlat{width: Fill text: "发送" on_click: || ask_send(current)
-                                draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                                draw_text +: {color: #xffffffff}}
-                            ButtonFlat{width: Fill text: "继续编辑" on_click: || edit_draft(current)
-                                draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 10.0 border_size: 1.0 border_color: line2}
-                                draw_text +: {color: ink55}}
-                        }
-                    }
-                }
-                if m.reply == "confirm" {
-                    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-                        draw_bg +: {color: amberBg border_radius: 14.0 border_size: 1.0 border_color: amber} flow: Down spacing: 7
-                        Label{width: Fill text: "确认发送给 " + m.sender + "?" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 12}}
-                        Label{width: Fill text: "发送后写入会话,不可自动撤回(练习数据)。" draw_text.color: ink55 draw_text.text_style.font_size: 10}
-                        View{width: Fill height: Fit flow: Right spacing: 8
-                            ButtonFlat{width: Fill text: "确认发送" on_click: || do_send(current)
-                                draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                                draw_text +: {color: #xffffffff}}
-                            ButtonFlat{width: Fill text: "取消" on_click: || cancel_send(current)
-                                draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 10.0 border_size: 1.0 border_color: line2}
-                                draw_text +: {color: ink55}}
-                        }
-                    }
-                }
-                if m.reply == "sending" {
-                    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-                        draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line}
-                        Label{width: Fill text: "发送中…" draw_text.color: ink55 draw_text.text_style.font_size: 12}
-                    }
-                }
+            } else {
                 if m.reply == "sent" {
                     RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-                        draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: #x113a32} flow: Down spacing: 5
+                        draw_bg +: {color: mintBg border_radius: 14.0 border_size: 1.0 border_color: mintBd} flow: Down spacing: 5
                         Label{width: Fill text: "已回复 · 刚刚发送,已写入会话" draw_text.color: mintT draw_text.text_style: theme.font_bold{font_size: 12}}
-                        Label{width: Fill text: first_line(m.reply_text) draw_text.color: ink55 draw_text.text_style.font_size: 11}
+                        Label{width: Fill text: first_line(m.reply_text) draw_text.color: inkHi draw_text.text_style.font_size: 11}
                     }
-                }
-                if m.reply == "failed" {
-                    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-                        draw_bg +: {color: redBg border_radius: 14.0 border_size: 1.0 border_color: red} flow: Down spacing: 7
-                        Label{width: Fill text: "发送失败 · 邮件服务无响应" draw_text.color: redT draw_text.text_style: theme.font_bold{font_size: 12}}
-                        Label{width: Fill text: pick(m.src == "live", "发送失败:" + m.send_error + "。草稿已保留,可重试。", "练习场景:模拟服务中断。草稿已保留,可重试或暂存。") draw_text.color: ink55 draw_text.text_style.font_size: 10}
-                        View{width: Fill height: Fit flow: Right spacing: 8
-                            ButtonFlat{width: Fill text: "重试发送" on_click: || retry_send(current)
-                                draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 10.0 border_size: 0.0}
-                                draw_text +: {color: #xffffffff}}
-                            ButtonFlat{width: Fill text: "保留草稿" on_click: || keep_draft(current)
-                                draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 10.0 border_size: 1.0 border_color: line2}
-                                draw_text +: {color: ink55}}
+                } else {
+                    if m.reply == "failed" {
+                        RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
+                            draw_bg +: {color: redBg border_radius: 14.0 border_size: 1.0 border_color: red} flow: Down spacing: 7
+                            Label{width: Fill text: "发送失败 · 邮件服务无响应" draw_text.color: redT draw_text.text_style: theme.font_bold{font_size: 12}}
+                            Label{width: Fill text: pick(m.src == "live", "发送失败:" + m.send_error + "。草稿已保留,可重试。", "练习场景:模拟服务中断。草稿已保留,可重试或暂存。") draw_text.color: ink55 draw_text.text_style.font_size: 10}
+                            View{width: Fill height: Fit flow: Right spacing: 8
+                                ButtonFlat{width: Fill height: 32 text: "重试发送" on_click: || retry_send(i)
+                                    draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 9.0 border_size: 0.0}
+                                    draw_text +: {color: accInk text_style.font_size: 12}}
+                                ButtonFlat{width: Fill height: 32 text: "保留草稿" on_click: || keep_draft(i)
+                                    draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
+                                    draw_text +: {color: ink55 text_style.font_size: 12}}
+                            }
                         }
-                    }
-                }
-                View{width: Fill height: Fit flow: Right spacing: 8
-                    ButtonFlat{width: Fill text: "回复" on_click: || open_reply()
-                        draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 9.0 border_size: 0.0}
-                        draw_text +: {color: #xffffffff}}
-                    ButtonFlat{width: Fill text: "✦ AI 帮我回" on_click: || open_reply()
-                        draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
-                        draw_text +: {color: violetT}}
-                    ButtonFlat{text: "转发" on_click: || open_forward()
-                        draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
-                        draw_text +: {color: ink55}}
-                }
-            }
-            View{width: Fill height: Fit flow: Down spacing: 12
-                top_bar()
-                triage_banner()
-                View{width: Fill height: Fit flow: Down
-                    for i in mails.len() {
-                        if pass_filter(i) { mail_row(i, i == current) }
                     }
                 }
             }
         }
-        View{width: Fill height: 1}
     }
 }
 
-// ---- view 3: AI 写信 ----------------------------------------------------------
-fn set_tone(t){ tone = t; ui.body.render() }
+// ---- AI copilot panel ---------------------------------------------------------
+fn copilot_panel(i){
+    let m = mails[i]
+    View{width: Fill height: Fit flow: Down
+        View{width: Fill height: 50 flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 16 right: 14}
+            Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 12}
+            Label{text: "AI COPILOT" draw_text.color: violetT draw_text.text_style.font_size: 10}
+            View{width: Fill height: 1}
+            RoundedView{width: 7 height: 7 draw_bg +: {color: cyan border_radius: 4.0}}
+        }
+        RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+        View{width: Fill height: Fit flow: Down spacing: 13 padding: Inset{top: 14 bottom: 20 left: 13 right: 13}
+            // 摘要
+            RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 13 left: 14 right: 14}
+                draw_bg +: {color: panel2 border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 10
+                View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+                    Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 11}
+                    Label{text: "摘要" draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+                    View{width: Fill height: 1}
+                    ButtonFlat{height: 24 padding: Inset{left: 8 right: 8} text: "AI 生成" on_click: || gen_summary(i)
+                        draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 7.0 border_size: 0.0}
+                        draw_text +: {color: accInk text_style.font_size: 9.5}}
+                }
+                if m.summary_src == "asking" {
+                    Label{width: Fill text: "AI 摘要生成中…" draw_text.color: violetT draw_text.text_style.font_size: 11}
+                } else {
+                    if m.summary_src == "unavailable" {
+                        Label{width: Fill text: "模型服务不可用:" + summary_error draw_text.color: redT draw_text.text_style.font_size: 9.5}
+                    }
+                    let pts = m.summary
+                    if m.summary_src == "ai" { pts = m.ai_points }
+                    for p in pts {
+                        View{width: Fill height: Fit flow: Right spacing: 8
+                            View{width: Fill height: Fit flow: Right spacing: 8
+                                RoundedView{width: 5 height: 5 draw_bg +: {color: violet border_radius: 3.0}}
+                                Label{width: Fill text: p draw_text.color: inkHi draw_text.text_style.font_size: 11}
+                            }
+                        }
+                    }
+                }
+                Label{text: "由 Vibe Agent 生成 · 0.8s" draw_text.color: ink45 draw_text.text_style.font_size: 9}
+            }
+            // 待办提取
+            if m.actions.len() > 0 {
+                RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 13 left: 14 right: 14}
+                    draw_bg +: {color: panel2 border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 9
+                    View{width: Fill height: Fit flow: Right spacing: 7
+                        Label{text: "✓" draw_text.color: amber draw_text.text_style.font_size: 11}
+                        Label{text: "待办提取" draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+                    }
+                    for a in m.actions {
+                        RoundedView{width: Fill height: Fit padding: Inset{top: 8 bottom: 8 left: 10 right: 10}
+                            draw_bg +: {color: panel border_radius: 10.0 border_size: 1.0 border_color: line}
+                            View{width: Fill height: Fit flow: Right spacing: 9
+                                RoundedView{width: 15 height: 15 draw_bg +: {color: pick(a.done, mint, #x00000000) border_radius: 5.0 border_size: 1.0 border_color: pick(a.done, mint, line2)} align: Align{x: 0.5 y: 0.5}
+                                    if a.done {
+                                        Label{text: "✓" draw_text.color: accInk draw_text.text_style.font_size: 9}
+                                    }
+                                }
+                                View{width: Fill height: Fit flow: Down spacing: 2
+                                    Label{width: Fill text: a.text draw_text.color: pick(a.done, ink38, inkHi) draw_text.text_style.font_size: 11}
+                                    if a.due != "" {
+                                        Label{text: "· " + a.due draw_text.color: amberT draw_text.text_style.font_size: 9}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // 语气洞察
+            if m.sent_label != "" {
+                RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 13 left: 14 right: 14}
+                    draw_bg +: {color: panel2 border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 9
+                    View{width: Fill height: Fit flow: Right spacing: 7
+                        Label{text: "✦" draw_text.color: mint draw_text.text_style.font_size: 11}
+                        Label{text: "语气洞察" draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+                    }
+                    chip(m.sent_label, m.sent_tone)
+                    Label{width: Fill text: m.sent_note draw_text.color: ink66 draw_text.text_style.font_size: 11}
+                }
+            }
+            // 智能回复
+            if m.replies.len() > 0 {
+                View{width: Fill height: Fit flow: Down spacing: 7
+                    section_label("智能回复")
+                    for r in m.replies {
+                        reply_row(i, r)
+                    }
+                }
+            }
+        }
+    }
+}
+// minted through a fn so `r` binds at CALL time (late-binding trap)
+fn reply_row(i, r){
+    GestureView{width: Fill height: 36 on_tap: |x, y| quick_reply(i, r)
+        RoundedView{width: Fill height: 36
+            draw_bg +: {color: panel2 border_radius: 10.0 border_size: 1.0 border_color: line}
+            View{width: Fill height: Fill flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 12 right: 10}
+                Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 11}
+                Label{width: Fill text: r draw_text.color: ink66 draw_text.text_style.font_size: 11}
+                Label{text: "→" draw_text.color: violetT draw_text.text_style.font_size: 12}
+            }
+        }
+    }
+}
+
+// ---- AI 写信 -------------------------------------------------------------------
+fn set_tone(t){ tone = t; repaint() }
 // The local template keeps the app fully usable when no model answers.
 fn local_draft(){
     let ask = draft_input
@@ -990,7 +1321,7 @@ fn regen(){
     if ask == "" { ask = "一封通用商务邮件" }
     draft_status = "asking"
     draft_error = ""
-    ui.body.render()
+    repaint()
     host.request("model.complete", {
         task: "按给定语气为一封中文邮件起草简短回复,只输出邮件正文,不编造事实。"
         input: {subject: mails[current].subject sender: mails[current].sender ask: ask tone: tone}
@@ -1002,19 +1333,21 @@ fn regen(){
             draft_status = "unavailable"
             draft_error = r.error
             local_draft()
-            ui.body.render()
+            repaint()
             return
         }
         draft_text = r.data.output.body
         draft_status = "ai"
-        ui.body.render()
+        ai_model = r.data.meta.model
+        repaint()
     })
 }
 fn insert_draft(){
-    if draft_text == "" { regen() }
+    if draft_text == "" { regen() return }
     mails[current].reply_text = draft_text
     mails[current].reply = "pending"
-    go("read")
+    selected = true
+    go("inbox")
 }
 fn draft_pill_text(){
     if draft_status == "asking" { return "生成中…" }
@@ -1023,307 +1356,361 @@ fn draft_pill_text(){
     return "本地模板"
 }
 fn tone_chip(t){
-    ButtonFlat{height: 28 padding: Inset{left: 10 right: 10} text: t on_click: || set_tone(t)
-        draw_bg +: {color: pick(t == tone, #x1c1440, #x00000000) color_hover: white7 color_down: white7 border_radius: 7.0 border_size: 1.0 border_color: pick(t == tone, violet, #x00000000)}
-        draw_text +: {color: pick(t == tone, #xd6c8ff, ink45)}}
+    ButtonFlat{height: 26 padding: Inset{left: 9 right: 9} text: t on_click: || set_tone(t)
+        draw_bg +: {color: pick(t == tone, violetBgHv, #x00000000) color_hover: violetBg color_down: violetBg border_radius: 7.0 border_size: 1.0 border_color: pick(t == tone, violetBd, #x00000000)}
+        draw_text +: {color: pick(t == tone, violetT, ink66) text_style.font_size: 10.5}}
+}
+fn prompt_chip(t){
+    ButtonFlat{height: 30 padding: Inset{left: 10 right: 10} text: t on_click: || { draft_input = t; repaint() }
+        draw_bg +: {color: #x00000000 color_hover: violetBg color_down: violetBg border_radius: 8.0 border_size: 1.0 border_color: line2}
+        draw_text +: {color: ink66 text_style.font_size: 11}}
+}
+fn ctx_row(text, on){
+    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 4 bottom: 4}
+        Label{width: Fill text: text draw_text.color: ink66 draw_text.text_style.font_size: 11.5}
+        RoundedView{width: 30 height: 17 draw_bg +: {color: pick(on, violet, line2) border_radius: 9.0} flow: Overlay
+            View{width: 30 height: 17 align: pick(on, Align{x: 1.0 y: 0.5}, Align{x: 0.0 y: 0.5})
+                View{width: 17 height: 17 align: Align{x: 0.5 y: 0.5}
+                    RoundedView{width: 13 height: 13 draw_bg +: {color: panel border_radius: 7.0}}}
+            }
+        }
+    }
 }
 fn write_screen(){
-    View{width: Fill height: Fit flow: Right
-        View{width: Fill height: 1}
-        View{width: 640 height: Fit flow: Down spacing: 12
-        top_bar()
-        Label{width: Fill text: compose_target() draw_text.color: ink45 draw_text.text_style.font_size: 11}
-        RoundedView{width: Fill height: Fit draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line}
-            View{width: Fill height: Fit flow: Down
-                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 10 bottom: 10 left: 14 right: 14}
-                    Label{width: 40 text: "收件人" draw_text.color: ink38 draw_text.text_style.font_size: 10}
-                    RoundedView{width: Fit height: Fit padding: Inset{top: 3 bottom: 3 left: 6 right: 10}
-                        draw_bg +: {color: #x140e2c border_radius: 11.0 border_size: 1.0 border_color: violetBd}
-                        View{width: Fit height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
-                            avatar(mails[current], 18)
-                            Label{text: mails[current].sender draw_text.color: ink draw_text.text_style.font_size: 11}
+    View{width: Fill height: Fill flow: Right
+        ScrollYView{width: Fill height: Fill flow: Down
+        View{width: Fill height: Fit flow: Down padding: Inset{top: 20 bottom: 28 left: 30 right: 20}
+            View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 13}
+                Label{text: "新邮件" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 14}}
+                Label{text: "AI-ASSISTED DRAFT" draw_text.color: ink45 draw_text.text_style.font_size: 9}
+            }
+            View{width: 1 height: 14}
+            RoundedView{width: Fill height: Fit draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line}
+                View{width: Fill height: Fit flow: Down
+                    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 11 bottom: 11 left: 16 right: 16}
+                        Label{width: 44 text: "收件人" draw_text.color: ink45 draw_text.text_style.font_size: 10.5}
+                        RoundedView{width: Fit height: Fit padding: Inset{top: 3 bottom: 3 left: 4 right: 10}
+                            draw_bg +: {color: violetBg border_radius: 11.0 border_size: 1.0 border_color: violetBd}
+                            View{width: Fit height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
+                                avatar(current, 18, false)
+                                Label{text: mails[current].sender draw_text.color: ink draw_text.text_style.font_size: 11}
+                            }
                         }
                     }
-                }
-                View{width: Fill height: 1 draw_bg.color: line}
-                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 10 bottom: 10 left: 14 right: 14}
-                    Label{width: 40 text: "主题" draw_text.color: ink38 draw_text.text_style.font_size: 10}
-                    Label{width: Fill text: compose_subject() draw_text.color: #xcecbc6 draw_text.text_style.font_size: 12}
-                }
-                View{width: Fill height: 1 draw_bg.color: line}
-                View{width: Fill height: Fit flow: Right spacing: 5 padding: Inset{top: 8 bottom: 8 left: 14 right: 14}
-                    Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 10}
-                    tone_chip("专业")
-                    tone_chip("友好")
-                    tone_chip("简洁")
-                    tone_chip("有说服力")
-                    View{width: Fill height: 1}
-                    Label{text: "已引用原始邮件" draw_text.color: cyanT draw_text.text_style.font_size: 9}
-                }
-                View{width: Fill height: 1 draw_bg.color: line}
-                View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 16 bottom: 12 left: 14 right: 14}
-                    RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 12 left: 12 right: 12}
-                        draw_bg +: {color: #x0f0c22 border_radius: 12.0 border_size: 1.0 border_color: violetBd} flow: Down spacing: 9
+                    RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+                    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 11 bottom: 11 left: 16 right: 16}
+                        Label{width: 44 text: "主题" draw_text.color: ink45 draw_text.text_style.font_size: 10.5}
+                        Label{width: Fill text: compose_subject() draw_text.color: inkHi draw_text.text_style.font_size: 12}
+                    }
+                    RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+                    RoundedView{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5} padding: Inset{top: 8 bottom: 8 left: 14 right: 14} draw_bg +: {color: violetBg border_radius: 0.0}
+                        Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 10}
+                        tone_chip("专业")
+                        tone_chip("友好")
+                        tone_chip("简洁")
+                        tone_chip("有说服力")
+                        RoundedView{width: 1 height: 14 draw_bg +: {color: line2 border_radius: 0.0}}
+                        Label{text: "长度:适中" draw_text.color: ink55 draw_text.text_style.font_size: 10.5}
+                        Label{text: "已引用原始邮件" draw_text.color: cyanT draw_text.text_style.font_size: 10}
+                    }
+                    RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+                    View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 14 bottom: 14 left: 16 right: 16}
                         View{width: Fill height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
-                            Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 10}
-                            Label{text: "AI 草稿 · 语气:" + tone draw_text.color: violetT draw_text.text_style.font_size: 10}
-                            RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 7 right: 7}
-                                draw_bg +: {color: #x140e2c border_radius: 9.0 border_size: 1.0 border_color: violetBd}
-                                Label{text: draft_pill_text() draw_text.color: violetT draw_text.text_style.font_size: 9}}
+                            RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 8 right: 8}
+                                draw_bg +: {color: violetBg border_radius: 9.0 border_size: 1.0 border_color: violetBd}
+                                Label{text: "✦ AI 草稿 · 语气:" + tone draw_text.color: violetT draw_text.text_style.font_size: 9}}
                             View{width: Fill height: 1}
+                            RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 7 right: 7}
+                                draw_bg +: {color: violetBg border_radius: 9.0 border_size: 1.0 border_color: violetBd}
+                                Label{text: draft_pill_text() draw_text.color: violetT draw_text.text_style.font_size: 9}}
                         }
                         if draft_text == "" {
-                            Label{width: Fill text: "在下方描述你想表达的内容,点「生成草稿」让模型起草。" draw_text.color: ink45 draw_text.text_style.font_size: 11}
+                            Label{width: Fill text: "在右侧描述你想表达的内容,点「生成草稿」由模型起草;无模型服务时回退本地模板。" draw_text.color: ink55 draw_text.text_style.font_size: 11}
                         }
-                        RoundedView{width: Fill height: Fit draw_bg +: {color: panel2 border_radius: 10.0 border_size: 1.0 border_color: line}
-                            TextInput{width: Fill height: 110 text: draft_text empty_text: "草稿会出现在这里…" on_change: |t| draft_text = t
-                                draw_bg +: {color: #x00000000 color_hover: #x00000000 color_focus: #x00000000 border_radius: 10.0}
-                                draw_text +: {color: #xcecbc6 color_hover: #xcecbc6 color_focus: #xcecbc6 color_empty: ink38 color_empty_hover: ink38}}
-                        }
+                        TextInput{width: Fill height: 150 text: draft_text empty_text: "草稿会出现在这里…" on_change: |t| draft_text = t}
                         View{width: Fill height: Fit flow: Right spacing: 8
                             ButtonFlat{height: 28 text: "✓ 采用草稿" on_click: || insert_draft()
-                                draw_bg +: {color: #x1c1440 color_hover: #x251a52 color_down: #x1c1440 border_radius: 7.0 border_size: 1.0 border_color: violet}
-                                draw_text +: {color: #xd6c8ff text_style.font_size: 10}}
+                                draw_bg +: {color: violetBgHv color_hover: violetBd color_down: violetBgHv border_radius: 7.0 border_size: 1.0 border_color: violet}
+                                draw_text +: {color: violetT text_style.font_size: 10.5}}
                             ButtonFlat{height: 28 text: "↻ 重新生成" on_click: || regen()
                                 draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 7.0 border_size: 1.0 border_color: line2}
-                                draw_text +: {color: ink55 text_style.font_size: 10}}
+                                draw_text +: {color: ink55 text_style.font_size: 10.5}}
                         }
                         if draft_status == "unavailable" {
-                            Label{width: Fill text: "模型服务不可用,已回退本地模板:" + draft_error draw_text.color: redT draw_text.text_style.font_size: 9}
+                            Label{width: Fill text: "模型服务不可用,已回退本地模板:" + draft_error draw_text.color: redT draw_text.text_style.font_size: 9.5}
                         }
                     }
+                    RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+                    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 10 bottom: 10 left: 16 right: 16}
+                        ButtonFlat{height: 32 text: "发送 →" on_click: || insert_draft()
+                            draw_bg +: {color: violet color_hover: violet color_down: accB border_radius: 9.0 border_size: 0.0}
+                            draw_text +: {color: accInk text_style.font_size: 12}}
+                        ButtonFlat{width: 32 height: 32 text: "✎" on_click: || regen()
+                            draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 8.0 border_size: 1.0 border_color: line2}
+                            draw_text +: {color: ink55 text_style.font_size: 12}}
+                        Label{text: "草稿已自动保存 · 09:47" draw_text.color: ink45 draw_text.text_style.font_size: 9}
+                        View{width: Fill height: 1}
+                    }
                 }
-                View{width: Fill height: 1 draw_bg.color: line}
-                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 10 bottom: 10 left: 14 right: 14}
-                    ButtonFlat{height: 34 text: "发送 →" on_click: || insert_draft()
-                        draw_bg +: {g1: violet g2: #x6a35e8 color_hover: violet color_down: #x6a35e8 border_radius: 9.0 border_size: 0.0}
-                        draw_text +: {color: #xffffffff}}
-                    ButtonFlat{height: 34 text: "附件" on_click: || regen()
-                        draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
-                        draw_text +: {color: ink38 text_style.font_size: 10}}
-                    View{width: Fill height: 1}
-                    Label{text: "草稿已自动保存 · 09:47" draw_text.color: ink32 draw_text.text_style.font_size: 9}
+            }
+        }
+        }
+        RoundedView{width: 1 height: Fill draw_bg +: {color: line border_radius: 0.0}}
+        View{width: 340 height: Fill flow: Overlay
+            RoundedView{width: Fill height: Fill draw_bg +: {color: panel border_radius: 0.0}}
+            ScrollYView{width: Fill height: Fill flow: Down
+        View{width: Fill height: Fit flow: Down
+            View{width: Fill height: 50 flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 16 right: 14}
+                Label{text: "✦" draw_text.color: violetT draw_text.text_style.font_size: 12}
+                Label{text: "COMPOSE WITH AI" draw_text.color: violetT draw_text.text_style.font_size: 10}
+            }
+            RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+            View{width: Fill height: Fit flow: Down spacing: 14 padding: Inset{top: 14 bottom: 20 left: 14 right: 14}
+                section_label("描述你想表达的内容")
+                TextInput{width: Fill height: 52 empty_text: "告诉 AI 你想表达什么…" on_change: |t| draft_input = t}
+                View{width: Fill height: Fit flow: Right spacing: 8
+                    ButtonFlat{width: Fill height: 30 text: "生成草稿" on_click: || regen()
+                        draw_bg +: {color: violet color_hover: violet color_down: cyan border_radius: 8.0 border_size: 0.0}
+                        draw_text +: {color: accInk text_style.font_size: 11.5}}
+                    chip(pick(ai_model == "", "GPT-Vibe 4", ai_model), "violet")
                 }
+                section_label("试试这样开始")
+                View{width: Fill height: Fit flow: Down spacing: 7
+                    View{width: Fill height: Fit flow: Right spacing: 7
+                        prompt_chip("跟进上周的报价")
+                        prompt_chip("婉拒一个会议邀请")
+                    }
+                    View{width: Fill height: Fit flow: Right spacing: 7
+                        prompt_chip("请求延期交付")
+                        prompt_chip("约客户下周面谈")
+                    }
+                }
+                RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 9 left: 14 right: 14}
+                    draw_bg +: {color: panel2 border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 4
+                    section_label("AI 上下文")
+                    ctx_row("引用当前邮件线程", true)
+                    ctx_row("参考历史沟通语气", true)
+                    ctx_row("附加日历空闲状态", false)
+                }
+                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                    Label{width: Fill text: "练习:模拟服务中断" draw_text.color: ink45 draw_text.text_style.font_size: 10.5}
+                    ButtonFlat{height: 26 padding: Inset{left: 10 right: 10} text: pick(simulate_outage, "已开启", "已关闭") on_click: || toggle_outage()
+                        draw_bg +: {color: pick(simulate_outage, redBg, panel2) border_radius: 8.0 border_size: 1.0 border_color: pick(simulate_outage, redBd, line2)}
+                        draw_text +: {color: pick(simulate_outage, redT, ink66) text_style.font_size: 10.5}}
+                }
+                View{width: Fill height: 40}
             }
         }
-        RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 9
-            Label{width: Fill text: "描述你想表达的内容" draw_text.color: ink32 draw_text.text_style.font_size: 9}
-            RoundedView{width: Fill height: Fit draw_bg +: {color: panel2 border_radius: 10.0 border_size: 1.0 border_color: line}
-                TextInput{width: Fill height: 44 empty_text: "告诉 AI 你想表达什么…" on_change: |t| draft_input = t
-                    draw_bg +: {color: #x00000000 color_hover: #x00000000 color_focus: #x00000000 border_radius: 10.0}
-                    draw_text +: {color: ink color_hover: ink color_focus: ink color_empty: ink38 color_empty_hover: ink38}}
-            }
-            View{width: Fill height: Fit flow: Right spacing: 8
-                ButtonFlat{width: Fill height: 34 text: "生成草稿" on_click: || regen()
-                    draw_bg +: {g1: violet g2: cyan color_hover: violet color_down: cyan border_radius: 8.0 border_size: 0.0}
-                    draw_text +: {color: #xffffffff}}
-                chip("GPT-VIBE 4", "violet")
-            }
-            Label{width: Fill text: "试试这样开始:跟进上周的报价 · 婉拒一个会议邀请 · 请求延期交付" draw_text.color: ink45 draw_text.text_style.font_size: 10}
         }
-        if mail_src == "practice" {
-            View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                ButtonFlat{height: 24 text: pick(simulate_outage, "已开启", "已关闭") on_click: || toggle_outage()
-                    draw_bg +: {color: pick(simulate_outage, violet, white7) color_hover: white7 color_down: white7 border_radius: 12.0 border_size: 0.0}
-                    draw_text +: {color: pick(simulate_outage, #xffffffff, ink55) text_style.font_size: 9}}
-                Label{width: Fill text: "练习场景 · 模拟邮件服务中断(发送将失败,可重试)" draw_text.color: ink45 draw_text.text_style.font_size: 10}
-            }
-        }
-        }
-        View{width: Fill height: 1}
+    }
     }
 }
 
-// ---- view 4: Agent 小队 --------------------------------------------------------
-fn approve_act(i){ acts[i].handled = true; ui.body.render() }
-fn stat_cell(label, value, color){
-    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 12 right: 12}
-        draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 7
-        Label{width: Fill text: label draw_text.color: ink32 draw_text.text_style.font_size: 8}
-        Label{text: value draw_text.color: color draw_text.text_style: theme.font_bold{font_size: 24}}
+// ---- Agent 小队 ------------------------------------------------------------------
+fn approve_act(i){ acts[i].handled = true; repaint() }
+fn toggle_agent(i){ agents[i].on = !agents[i].on; repaint() }
+fn agent_color(k){
+    if k == "teal" { return cyan }
+    if k == "ok" { return mint }
+    if k == "amber" { return amber }
+    return violet
+}
+fn agent_soft(k){
+    if k == "teal" { return cyanBg }
+    if k == "ok" { return mintBg }
+    if k == "amber" { return amberBg }
+    return violetBg
+}
+fn running_cnt(){
+    let n = 0
+    for i in agents.len() { if agents[i].on { n = n + 1 } }
+    return n
+}
+fn pending_cnt(){
+    let n = 0
+    for i in acts.len() {
+        if acts[i].status == "approval" { if !acts[i].handled { n = n + 1 } }
+    }
+    return n
+}
+fn stat_cell(glyph, label, value, color){
+    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
+        draw_bg +: {color: panel2 border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 8
+        View{width: Fill height: Fit flow: Right spacing: 6
+            Label{text: glyph draw_text.color: color draw_text.text_style.font_size: 10}
+            Label{text: label draw_text.color: ink45 draw_text.text_style.font_size: 9}
+        }
+        Label{text: value draw_text.color: color draw_text.text_style: theme.font_bold{font_size: 22}}
     }
 }
 fn agent_card(i){
     let a = agents[i]
-    RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 13 left: 13 right: 13}
-        draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line} flow: Down spacing: 8
-        View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
-            RoundedView{width: 36 height: 36 draw_bg +: {color: panel2 border_radius: 12.0 border_size: 1.0 border_color: a.color} align: Align{x: 0.5 y: 0.5}
-                Label{text: a.glyph draw_text.color: a.color draw_text.text_style.font_size: 15}
-            }
-            View{width: Fill height: Fit flow: Down spacing: 1
+    RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 12 left: 14 right: 14}
+        draw_bg +: {color: panel2 border_radius: 16.0 border_size: 1.0 border_color: line} flow: Down spacing: 10
+        View{width: Fill height: Fit flow: Right spacing: 10
+            RoundedView{width: 40 height: 40
+                draw_bg +: {color: agent_soft(a.color) border_radius: 12.0 border_size: 1.0 border_color: agent_color(a.color)} align: Align{x: 0.5 y: 0.5}
+                Label{text: a.glyph draw_text.color: agent_color(a.color) draw_text.text_style.font_size: 16}}
+            View{width: Fill height: Fit flow: Down spacing: 2
                 View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
-                    Label{width: Fill text: a.name draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 13}}
-                    Label{text: a.status draw_text.color: pick(a.status == "运行中", mintT, amberT) draw_text.text_style.font_size: 8}
+                    Label{text: a.name draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 12.5}}
+                    if a.on {
+                        live_dot()
+                    }
+                    Label{text: a.status draw_text.color: pick(a.on, mint, amber) draw_text.text_style.font_size: 9}
                 }
-                Label{width: Fill text: a.en draw_text.color: ink32 draw_text.text_style.font_size: 8}
+                Label{text: a.en draw_text.color: ink45 draw_text.text_style.font_size: 8}
             }
-            RoundedView{width: 30 height: 16 draw_bg +: {color: pick(a.on, violet, white7) border_radius: 8.0} align: Align{x: pick(a.on, 1.0, 0.25) y: 0.5}
-                RoundedView{width: 12 height: 12 draw_bg +: {color: #xffffffff border_radius: 6.0}}
+            View{width: 1 height: Fill}
+            GestureView{width: 30 height: 17 on_tap: |x, y| toggle_agent(i)
+                RoundedView{width: 30 height: 17 draw_bg +: {color: pick(a.on, violet, line2) border_radius: 9.0} flow: Overlay
+                    View{width: 30 height: 17 align: pick(a.on, Align{x: 1.0 y: 0.5}, Align{x: 0.0 y: 0.5})
+                        View{width: 17 height: 17 align: Align{x: 0.5 y: 0.5}
+                            RoundedView{width: 13 height: 13 draw_bg +: {color: panel border_radius: 7.0}}}
+                    }
+                }
             }
         }
-        Label{width: Fill text: a.desc draw_text.color: ink55 draw_text.text_style.font_size: 10}
-        View{width: Fill height: 1 draw_bg.color: line}
-        View{width: Fill height: Fit flow: Right spacing: 8
-            Label{width: Fill text: a.stat draw_text.color: ink38 draw_text.text_style.font_size: 9}
-            Label{text: a.today draw_text.color: a.color draw_text.text_style.font_size: 9}
+        Label{width: Fill text: a.desc draw_text.color: ink66 draw_text.text_style.font_size: 10.5}
+        RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+        View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+            Label{width: Fill text: a.stat draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+            Label{text: a.today draw_text.color: agent_color(a.color) draw_text.text_style.font_size: 9.5}
         }
     }
 }
 fn act_row(i){
     let a = acts[i]
-    View{width: Fill height: Fit
-        View{width: Fill height: Fit flow: Down spacing: 5 padding: Inset{top: 11 bottom: 11 left: 14 right: 14}
-            View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                Label{text: a.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
-                Label{width: Fill text: a.agent draw_text.color: violetT draw_text.text_style.font_size: 9}
-                if a.status == "running" {
-                    RoundedView{width: Fit height: Fit padding: Inset{top: 1 bottom: 1 left: 5 right: 5}
-                        draw_bg +: {color: cyanBg border_radius: 5.0 border_size: 1.0 border_color: cyan}
-                        Label{text: "RUNNING" draw_text.color: cyanT draw_text.text_style.font_size: 8}}
-                }
+    View{width: Fill height: Fit flow: Down padding: Inset{top: 11 bottom: 11 left: 14 right: 14} spacing: 6
+        View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+            Label{text: a.time draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+            Label{text: a.agent draw_text.color: violetT draw_text.text_style.font_size: 9.5}
+            View{width: Fill height: 1}
+            if a.status == "running" {
+                RoundedView{width: Fit height: Fit padding: Inset{top: 2 bottom: 2 left: 6 right: 6}
+                    draw_bg +: {color: cyanBg border_radius: 6.0 border_size: 1.0 border_color: cyanBd}
+                    Label{text: "RUNNING" draw_text.color: cyanT draw_text.text_style.font_size: 8.5}}
+            } else {
                 if a.status == "done" {
-                    Label{text: "✓ DONE" draw_text.color: mintT draw_text.text_style.font_size: 8}
-                }
-                if a.status == "approval" {
+                    Label{text: "✓ DONE" draw_text.color: mint draw_text.text_style.font_size: 9}
+                } else {
                     if a.handled {
-                        Label{text: "已处理" draw_text.color: mintT draw_text.text_style.font_size: 8}
+                        Label{text: "已处理" draw_text.color: ink38 draw_text.text_style.font_size: 9}
                     } else {
-                        Label{text: "需审批" draw_text.color: amberT draw_text.text_style.font_size: 8}
-                    }
-                }
-            }
-            Label{width: Fill text: a.text draw_text.color: #xb7b5b1 draw_text.text_style.font_size: 11}
-            if a.status == "approval" {
-                if !a.handled {
-                    View{width: Fill height: Fit flow: Right spacing: 6
-                        ButtonFlat{height: 26 text: "✓ 批准" on_click: || approve_act(i)
-                            draw_bg +: {color: mintBg color_hover: #x0d2521 color_down: mintBg border_radius: 7.0 border_size: 1.0 border_color: mint}
-                            draw_text +: {color: mintT text_style.font_size: 10}}
-                        ButtonFlat{height: 26 text: "✕ 忽略" on_click: || approve_act(i)
-                            draw_bg +: {color: #x00000000 color_hover: redBg color_down: redBg border_radius: 7.0 border_size: 1.0 border_color: line2}
-                            draw_text +: {color: ink45 text_style.font_size: 10}}
+                        Label{text: "需审批" draw_text.color: amberT draw_text.text_style.font_size: 9}
                     }
                 }
             }
         }
-        View{width: Fill height: 1 draw_bg.color: line}
+        Label{width: Fill text: a.text draw_text.color: inkHi draw_text.text_style.font_size: 11}
+        if a.status == "approval" {
+            if !a.handled {
+                View{width: Fill height: Fit flow: Right spacing: 7
+                    ButtonFlat{height: 26 text: "✓ 批准" on_click: || approve_act(i)
+                        draw_bg +: {color: mintBg color_hover: mintBd color_down: mintBg border_radius: 7.0 border_size: 1.0 border_color: mintBd}
+                        draw_text +: {color: mintT text_style.font_size: 10}}
+                    ButtonFlat{height: 26 text: "✕ 忽略" on_click: || approve_act(i)
+                        draw_bg +: {color: #x00000000 color_hover: redBg color_down: redBg border_radius: 7.0 border_size: 1.0 border_color: line2}
+                        draw_text +: {color: ink55 text_style.font_size: 10}}
+                }
+            }
+        }
     }
 }
 fn agents_screen(){
-    View{width: Fill height: Fit flow: Right
-        View{width: Fill height: 1}
-        View{width: 720 height: Fit flow: Down spacing: 10
-        top_bar()
-        View{width: Fill height: Fit flow: Right spacing: 8
-            stat_cell("运行中的 AGENT", "4", violetT)
-            stat_cell("今日已完成任务", "12", mintT)
+    ScrollYView{width: Fill height: Fill flow: Down
+    View{width: Fill height: Fit flow: Down padding: Inset{top: 20 bottom: 30 left: 28 right: 24} spacing: 16
+        View{width: Fill height: Fit flow: Right spacing: 10
+            stat_cell("✦", "运行中的 AGENT", "" + running_cnt(), violet)
+            stat_cell("✓", "今日已完成任务", "12", mint)
+            stat_cell("◑", "本周节省时间", "3.2h", cyan)
+            stat_cell("✦", "待你审批", "" + pending_cnt(), amber)
         }
-        View{width: Fill height: Fit flow: Right spacing: 8
-            stat_cell("本周节省时间", "3.2h", cyanT)
-            stat_cell("待你审批", "2", amberT)
-        }
-        View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 2 right: 2}
-            Label{width: Fill text: "我的 AGENT 小队" draw_text.color: ink32 draw_text.text_style.font_size: 9}
-            Label{text: "SQUAD · 4 UNITS" draw_text.color: ink32 draw_text.text_style.font_size: 8}
-        }
-        for i in agents.len() { agent_card(i) }
-        RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 13 left: 14 right: 14}
-            draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line} flow: Down spacing: 10
-            View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                Label{width: Fill text: "自动化程度" draw_text.color: ink32 draw_text.text_style.font_size: 9}
-                Label{text: "SEMI-AUTO" draw_text.color: violetT draw_text.text_style.font_size: 8}
-            }
-            View{width: Fill height: Fit flow: Overlay
-                RoundedView{width: Fill height: 4 draw_bg +: {color: white7 border_radius: 2.0}}
-                RoundedView{width: 200 height: 4 draw_bg +: {g1: violet g2: cyan border_radius: 2.0}}
-                View{width: Fill height: 4 align: Align{x: 0.58 y: 0.5}
-                    RoundedView{width: 14 height: 14 draw_bg +: {color: #xffffffff border_radius: 7.0}}
+        View{width: Fill height: Fit flow: Right spacing: 16
+            View{width: Fill height: Fit flow: Down spacing: 10
+                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                    Label{text: "我的 AGENT 小队" draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+                    View{width: Fill height: 1}
+                    Label{text: "SQUAD · 4 UNITS" draw_text.color: ink45 draw_text.text_style.font_size: 9}
                 }
-            }
-            View{width: Fill height: Fit flow: Right spacing: 6
-                Label{width: Fill text: "仅建议" draw_text.color: ink32 draw_text.text_style.font_size: 8}
-                Label{width: Fill text: "半自动 · 关键动作需审批" draw_text.color: violetT draw_text.text_style.font_size: 8}
-                Label{text: "全自动" draw_text.color: ink32 draw_text.text_style.font_size: 8}
-            }
-        }
-        View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 2 right: 2}
-            Label{width: Fill text: "实时活动流" draw_text.color: ink32 draw_text.text_style.font_size: 9}
-            Label{text: "● LIVE" draw_text.color: mintT draw_text.text_style.font_size: 8}
-        }
-        RoundedView{width: Fill height: Fit draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line}
-            View{width: Fill height: Fit flow: Down
-                for i in acts.len() { act_row(i) }
-            }
-        }
-        RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 14 right: 14}
-            draw_bg +: {color: panel border_radius: 14.0 border_size: 1.0 border_color: line} flow: Down spacing: 5
-            Label{width: Fill text: "概念演示" draw_text.color: redT draw_text.text_style: theme.font_bold{font_size: 12}}
-            Label{width: Fill text: "数据口径:真实邮件经平台 mail 宿主服务收发(账号由宿主登录面板添加,凭据存宿主侧,不经过应用);无该服务的环境(如 card-host)如实显示不可用并回退练习数据。AI 摘要与起草调用 model 一次性模型服务,不可用回退本地模板。Agent 小队与活动流为练习数据。" draw_text.color: ink45 draw_text.text_style.font_size: 10}
-        }
-        }
-        View{width: Fill height: 1}
-    }
-}
-
-// ---- bottom navigation ---------------------------------------------------------
-// Overlay flow stacks children: the glow layer paints the deep-space ground
-// beneath the plain Down column of body + glass navbar. Nav marks are native
-// glyph tiles (the same language as the agent squad): runtime SVG rasterises
-// blank in this stack, CJK glyphs never do. Tabs centre via the Fill-Fit-Fill
-// row — full-width on a phone, centred cluster on a desktop.
-fn nav_tab(label, glyph, target, badge){
-    GestureView{width: Fit height: Fit padding: Inset{top: 7 bottom: 7 left: 16 right: 16} on_tap: |x, y| go(target)
-        View{width: Fit height: Fit flow: Down spacing: 4 align: Align{x: 0.5}
-            if screen == target {
-                RoundedView{width: 24 height: 2 draw_bg +: {g1: violet g2: cyan border_radius: 1.0}}
-            } else {
-                View{width: 24 height: 2}
-            }
-            View{width: Fit height: Fit flow: Overlay
-                RoundedView{width: 32 height: 32 draw_bg +: {color: pick(screen == target, #x170f31, #x00000000) border_radius: 11.0 border_size: 1.0 border_color: pick(screen == target, violet, line2)} align: Align{x: 0.5 y: 0.5}
-                    Label{text: glyph draw_text.color: pick(screen == target, violetHi, #x6c6b6d) draw_text.text_style.font_size: 13}}
-                if badge != "" {
-                    View{width: Fill height: Fill align: Align{x: 1.0 y: 0.0}
-                        RoundedView{width: 14 height: 14 draw_bg +: {color: violet border_radius: 7.0} align: Align{x: 0.5 y: 0.5}
-                            Label{text: badge draw_text.color: #xffffffff draw_text.text_style.font_size: 8}
+                View{width: Fill height: Fit flow: Right spacing: 10
+                    agent_card(0)
+                    agent_card(1)
+                }
+                View{width: Fill height: Fit flow: Right spacing: 10
+                    agent_card(2)
+                    agent_card(3)
+                }
+                RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 14 left: 16 right: 16}
+                    draw_bg +: {color: panel2 border_radius: 16.0 border_size: 1.0 border_color: line} flow: Down spacing: 12
+                    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                        Label{text: "自动化程度" draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+                        View{width: Fill height: 1}
+                        Label{text: "SEMI-AUTO" draw_text.color: violetT draw_text.text_style.font_size: 9.5}
+                    }
+                    RoundedView{width: Fill height: 4 draw_bg +: {color: line border_radius: 2.0} flow: Overlay
+                        RoundedView{width: 260 height: 4 draw_bg +: {color: violet border_radius: 2.0}}
+                        View{width: 274 height: 4 align: Align{x: 0.0 y: 0.5}
+                            View{width: 14 height: 14 align: Align{x: 0.5 y: 0.5}
+                                RoundedView{width: 14 height: 14 draw_bg +: {color: panel border_radius: 7.0 border_size: 2.0 border_color: violet}}}
                         }
+                    }
+                    View{width: Fill height: Fit flow: Right spacing: 8
+                        Label{text: "仅建议" draw_text.color: ink45 draw_text.text_style.font_size: 9}
+                        View{width: Fill height: 1}
+                        Label{text: "半自动 · 关键动作需审批" draw_text.color: violetT draw_text.text_style.font_size: 9}
+                        View{width: Fill height: 1}
+                        Label{text: "全自动" draw_text.color: ink45 draw_text.text_style.font_size: 9}
                     }
                 }
             }
-            Label{text: label draw_text.color: pick(screen == target, violetHi, #x6c6b6d) draw_text.text_style.font_size: 10}
+            View{width: 340 height: Fit flow: Down spacing: 10
+                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                    Label{text: "实时活动流" draw_text.color: ink45 draw_text.text_style.font_size: 9.5}
+                    View{width: Fill height: 1}
+                    live_dot()
+                    Label{text: "LIVE" draw_text.color: mint draw_text.text_style.font_size: 9}
+                }
+                RoundedView{width: Fill height: Fit
+                    draw_bg +: {color: panel2 border_radius: 16.0 border_size: 1.0 border_color: line} flow: Down
+                    for i in acts.len() {
+                        if i > 0 { RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}} }
+                        act_row(i)
+                    }
+                }
+            }
         }
+    }
     }
 }
 
-// ---- root ------------------------------------------------------------------
-SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: space
-    View{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Right spacing: 0
-            RoundedView{width: 240 height: 240 draw_bg +: {color: #x1a0f38 border_radius: 120.0}}
-            View{width: Fill height: 1}
-            RoundedView{width: 160 height: 160 draw_bg +: {color: #x141132 border_radius: 80.0}}
-        }
-        View{width: Fill height: Fill flow: Right align: Align{y: 1.0}
-            View{width: Fill height: 1}
-            RoundedView{width: 260 height: 200 draw_bg +: {color: #x0a1c26 border_radius: 100.0}}
-        }
-    }
-    View{width: Fill height: Fill flow: Down
-        body := ScrollYView{width: Fill height: Fill flow: Down padding: Inset{top: 12 bottom: 18 left: 14 right: 14} spacing: 0 on_render: || {
-            if screen == "inbox" { inbox_screen() }
-            if screen == "read" { read_screen(mails[current]) }
-            if screen == "write" { write_screen() }
-            if screen == "agents" { agents_screen() }
+// ---- root ---------------------------------------------------------------------
+// No separate ground root: on_render-minted layers composite in a late extra
+// pass regardless of tree order (probed), so an underlay root leaks ABOVE the
+// UI. The page bg + ambient blobs are therefore the FIRST items minted inside
+// body's own on_render — under every screen, repainted on theme switches.
+SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: #x161c1a
+    View{width: Fill height: Fill flow: Right
+        railc := View{width: Fit height: Fill flow: Right on_render: || {
+            sidebar()
+            RoundedView{width: 1 height: Fill draw_bg +: {color: sepC border_radius: 0.0}}
         }}
-        View{width: Fill height: 2 draw_bg.color: line}
-        View{width: Fill height: Fit flow: Right draw_bg.color: glass
-            View{width: Fill height: 1}
-            nav_tab("收件箱", "收", "inbox", "" + cnt("all"))
-            nav_tab("写信", "写", "write", "")
-            nav_tab("Agent", "队", "agents", "" + agents.len())
-            View{width: Fill height: 1}
+        View{width: Fill height: Fill flow: Down
+            barc := View{width: Fill height: Fit flow: Down on_render: || {
+                top_bar()
+                RoundedView{width: Fill height: 1 draw_bg +: {color: sepC border_radius: 0.0}}
+            }}
+            // body is a FIXED viewport area; each pane scrolls itself (the
+            // web design's overflow-y-auto columns) — one page scroll made
+            // the columns push each other around. The page ground is the
+            // first Overlay child here, under every screen.
+            body := View{width: Fill height: Fill flow: Overlay on_render: || {
+                RoundedView{width: Fill height: Fill draw_bg +: {color: space border_radius: 0.0}}
+                if screen == "inbox" { inbox_screen() }
+                if screen == "write" { write_screen() }
+                if screen == "agents" { agents_screen() }
+            }}
         }
     }
 }

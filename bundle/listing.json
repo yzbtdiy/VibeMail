@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "subtitle": "深空主题的响应式 Agentic 邮件:AI 分诊、摘要与回复草稿",
-  "description": "VibeMail 是一个自适应手机与桌面宽度的 Agentic 邮件应用:智能收件箱(AI 分诊横幅、筛选、优先级与标签)、阅读视图(AI 摘要要点、建议动作、会议识别、情绪标签)、AI 写信(语气选择、提示词起草、模型不可用回退本地模板)、Agent 小队(统计、开关、实时活动流与审批)。宽窗口自动切换为列表+阅读双栏(桌面 master-detail),窄窗口回到单栏推送式导航 — 同一棵组件树,纯布局数学完成断点自适应。回复是显式两步确认,失败保留草稿可重试。真实收发走平台 mail 宿主服务(用户在宿主登录面板添加账号,凭据存宿主侧,不经过应用);未提供该服务的环境(如 card-host)如实显示不可用并回退练习数据。AI 摘要与起草申请 model 权限,一次性调用设备配置的模型服务(schema 校验;密钥不经过应用),不可用时回退本地模板并标注。(English: VibeMail is an agentic mail app that adapts between phone and desktop widths: a triaged smart inbox, a reading view with AI summary points, suggested actions, meeting detection and sentiment, an AI compose column with tone chips and prompt-driven drafting, and an Agent squad view with stats, toggles, a live activity stream and approvals. On a wide window the inbox becomes a list-plus-reader master-detail; on a narrow one it collapses to a single column with push navigation — one widget tree, breakpoints by layout math alone. Replies are a two-step confirmed send; a failed send keeps the draft for retry. Real mail goes through the platform's mail host service (accounts are added on the host's own sheet; credentials stay host-side, never in the app); where no service answers (card-host) the app says so and falls back to labelled practice data. AI summary and drafting request the model capability: one-shot schema-checked calls to the device's model service; where nothing answers, clearly labelled local templates are used.)",
+  "subtitle": "深空绿野双主题的桌面横向 Agentic 邮件:AI 分诊、摘要、待办与回复草稿",
+  "description": "VibeMail 是一个桌面横向卡片布局的 Agentic 邮件应用:左侧导航栏 + 邮件卡片列表 + 原地阅读栏(常驻 master-detail,点击卡片即在右栏展开,无页面跳转)。智能收件箱(AI 分诊横幅、筛选、优先级与标签)、阅读栏(AI 摘要要点、建议动作、会议识别、情绪标签、智能回复)、AI 写信(语气选择、提示词起草、模型不可用回退本地模板)、Agent 小队(统计、开关、实时活动流与审批)。回复是显式两步确认,失败保留草稿可重试。真实收发走平台 mail 宿主服务(用户在宿主登录面板添加账号,凭据存宿主侧,不经过应用);未提供该服务的环境(如 card-host)如实显示不可用并回退练习数据。AI 摘要与起草申请 model 权限,一次性调用设备配置的模型服务(schema 校验;密钥不经过应用),不可用时回退本地模板并标注。(English: VibeMail is a desktop-landscape agentic mail app: a left rail, a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail in place, no screen push. A triaged smart inbox (banner, filters, priority meters, label chips), a reader with AI summary points, suggested actions, meeting detection, sentiment and one-tap smart replies, an AI compose column (tone chips, prompt-driven drafting, labelled local fallback), and an Agent squad view (stats, toggles, live activity stream, approvals). Replies are a two-step confirmed send; a failed send keeps the draft for retry. Real mail goes through the platform's mail host service (accounts are added on the host's own sheet; credentials stay host-side, never in the app); where no service answers (card-host) the app says so and falls back to labelled practice data. AI summary and drafting request the model capability: one-shot schema-checked calls to the device's model service; where nothing answers, clearly labelled local templates are used.)",
   "category": "productivity",
   "keywords": [
     "mail",
@@ -9,14 +9,15 @@
     "summary",
     "draft",
     "agent",
-    "responsive",
+    "desktop",
     "model"
   ],
   "screenshots": [
     "screenshots/01-inbox.png",
     "screenshots/02-read.png",
     "screenshots/03-write.png",
-    "screenshots/04-agents.png"
+    "screenshots/04-agents.png",
+    "screenshots/05-light.png"
   ],
   "icon": "assets/icon.svg",
   "platforms": [
@@ -27,7 +28,7 @@
     "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
     "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
   },
-  "release_notes": "0.2.1:按网页参考完全重做的深空主题 UI,移动/桌面宽度自适应(宽屏 master-detail,窄屏单栏);三大视图(智能收件箱 / AI 写信 / Agent 小队);回复生命周期与 AI 摘要/起草能力保持并强化。",
+  "release_notes": "0.5.4:「生成草稿」旁的模型胶囊与摘要胶囊显示宿主报告的实际模型名(meta.model,如 MiniMax 的模型),首次调用后自动替换练习占位名。0.5.3:去掉写信页输入框外面多余的嵌套容器——提示词与 AI 草稿输入只剩一层边框,文字直接落在卡片上。0.5.2:主题切换与侧栏底部按钮改为图形图标(太阳/月牙/日历/滑杆,原生控件绘制,无文字)。0.5.2:主题切换与侧栏底部按钮改为图形图标(太阳/月牙/日历/滑杆,原生控件绘制,无文字)。0.5.1:三栏各自独立滚动(列表|阅读|Copilot 互不影响,与网页版一致),修复滚动时下方露黑底;写信栏 AI 草稿框加高;未选邮件时 Copilot 显示就绪提示。0.5.0:按最新 UI 设计完全重构——森林墨绿×暖沙纸感双主题、侧栏导航(写信·AI 起草/收件箱/Agent 小队/邮箱文件夹/AI 智能分类)、三栏收件箱(邮件列表|原地阅读|AI Copilot:摘要/待办提取/语气洞察/智能回复)、写信卡片+COMPOSE WITH AI 栏、Agent 任务面板(统计/开关/自动化程度/实时活动流);顶栏搜索与主题切换胶囊。0.4.0:亮/暗双主题一键切换。0.3.x:桌面横向卡片布局(无页面跳转)。",
   "age_rating": "all",
   "license": "Apache-2.0"
 }

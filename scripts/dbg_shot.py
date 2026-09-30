@@ -4,7 +4,7 @@ import ctypes, json, time, urllib.request
 
 port, out = sys.argv if False else ("8147", r"D:\Coding\Rust\agenticapp26\agentic-mail-card\evidence\ev-20-desktop-master-detail.png")
 base = f"http://127.0.0.1:{port}"
-ctypes.windll.user32.SetCursorPos(3800, 200)
+ctypes.windll.user32.SetCursorPos(ctypes.windll.user32.GetSystemMetrics(0)//2, ctypes.windll.user32.GetSystemMetrics(1)-12)
 
 def get(p):
     return urllib.request.urlopen(base + p, timeout=15).read()

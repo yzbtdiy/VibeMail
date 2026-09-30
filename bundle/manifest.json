@@ -5,9 +5,9 @@
   ],
   "id": "vibemail",
   "integrity": {
-    "bundle_blake3": "b5f1b10a381720fb44ba2bf8de05e26d754f2024f0be1c35688b3f4c29a505b0"
+    "bundle_blake3": "2f00a4b1be7cc0eeebbfd0599616fced106710c0ed06ee8592436a1ac6fd37d4"
   },
   "name": "VibeMail",
   "schema": 1,
-  "version": "0.2.1"
+  "version": "0.5.4"
 }

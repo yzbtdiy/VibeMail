@@ -2,17 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-A concept app for the Agentic App Hackathon 2026 (mail scene), rebuilt in
-0.2.0 from a deep-space web reference into a **responsive** Splash app
-(`bundle/main.splash`): three views — a triaged smart inbox, an AI compose
-column, an Agent squad panel — that adapt between phone and desktop widths
-with one widget tree. Wide windows get a list-plus-reader master-detail and
-centred content columns; narrow windows collapse to a single column with
-push navigation. The script cannot read the window width, so the layout
-math *is* the media query (probed in card-host): a FIXED width clamps to
-its container and a Fill sibling collapses to zero — every screen is a
-`[Fill margin][fixed column][Fill margin]` row, full-bleed on a phone and
-centred on a desktop.
+A concept app for the Agentic App Hackathon 2026 (mail scene). 0.5.4 surfaces the ACTUAL model the host used — the model chip next to 生成草稿 and the summary pill read meta.model from the model.complete reply (a small host-side addition), so once a call succeeds the fictional GPT-Vibe 4 placeholder is replaced by the real configured model's name. 0.5.3 de-nests the compose inputs (prompt + AI draft render as a single box each, text on the card, like the web); 0.5.2 turns the theme pill and sidebar footer buttons into native-widget ICONS (sun/moon/calendar/sliders — no text glyphs); 0.5.1 refined the 0.5.0 full UI REBUILD: the three inbox panes (list | reader | AI Copilot) now scroll INDEPENDENTLY — like the web design — instead of one page scroll, and nothing shows below shorter panes. 0.5.0 was a FULL UI REBUILD from the latest design (`bundle/main.splash`): the forest-ink × warm-paper dual theme (deep forest dark by default, warm sand light — flipped from the top-bar pill), a sidebar (写信·AI 起草 / 收件箱 / Agent 小队 nav, mailbox folders, AI clusters, AGENT ACTIVE mini card), a top bar (agent-ask search, agent pill, theme toggle), a THREE-PANE inbox (mail list | in-place reader | AI Copilot with 摘要 / 待办提取 / 语气洞察 / 智能回复), a compose card with a COMPOSE WITH AI rail, and the agent squad panel (stats, toggles, autonomy, live activity stream). Clicking a card opens the mail IN PLACE — no screen push. Audited at 1200 and 1440 (run.cmd default 1200x860). AI summary and drafting verified against a REAL configured provider (MiniMax via the OctoSense shell) — ev-22/ev-23.
 
 **Capabilities & data**: the app requests `model` and `mail`.
 `mail`: real IMAP/SMTP goes through the platform's mail host service —
@@ -143,8 +133,8 @@ configured.
 
 ## Status
 
-- `hub check` — `vibemail 0.2.1 — PASSED` (signed by the local hub working
+- `hub check` — `vibemail 0.5.4 — PASSED` (signed by the local hub working
   key; catalog sequence 2 in `../octosense-local-hub/`).
 - Remaining human steps (publisher): `hub keygen` → `hub sign-manifest` →
-  `hub check --publisher-key` → tag + open `Submit vibemail 0.2.1` on
+  `hub check --publisher-key` → tag + open `Submit vibemail 0.5.4` on
   OctoSense-App-Hub with `evidence/hub/SUBMISSION.md` attached.
