@@ -630,7 +630,9 @@ fn mail_row(i, sel){
                         Label{width: Fill text: m.sender
                               draw_text.color: pick(m.unread, ink, #xb0aeab)
                               draw_text.text_style: theme.font_bold{font_size: 12}}
-                        Label{text: m.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
+                        // fixed width: a Fit-width trailing label after a
+                        // Fill sibling gets squeezed to slivers on narrow rows
+                        Label{width: 44 text: m.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
                     }
                     Label{width: Fill text: m.subject draw_text.color: pick(m.unread, #xcecbc6, #x9b9a98) draw_text.text_style.font_size: 12}
                     Label{width: Fill text: m.snippet draw_text.color: ink45 draw_text.text_style.font_size: 10}
@@ -646,8 +648,8 @@ fn mail_row(i, sel){
                             if m.labels.len() > 1 { chip(m.labels[1].text, m.labels[1].tone) }
                         }
                         state_pill(m)
-                        View{width: Fill height: 1}
                         priority_meter(m)
+                        View{width: Fill height: 1}
                     }
                 }
             }
@@ -879,7 +881,7 @@ fn read_screen(m){
                         Label{width: Fill text: m.sender draw_text.color: ink draw_text.text_style.font_size: 13}
                         Label{width: Fill text: m.address + " → 发给我" draw_text.color: ink38 draw_text.text_style.font_size: 10}
                     }
-                    Label{text: m.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
+                    Label{width: 44 text: m.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
                 }
                 ai_summary_card(current)
                 View{width: Fill height: Fit flow: Down spacing: 8
@@ -1057,8 +1059,8 @@ fn write_screen(){
                     tone_chip("友好")
                     tone_chip("简洁")
                     tone_chip("有说服力")
-                    View{width: Fill height: 1}
                     Label{text: "已引用原始邮件" draw_text.color: cyanT draw_text.text_style.font_size: 9}
+                    View{width: Fill height: 1}
                 }
                 View{width: Fill height: 1 draw_bg.color: line}
                 View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 16 bottom: 12 left: 14 right: 14}
@@ -1101,8 +1103,8 @@ fn write_screen(){
                     ButtonFlat{height: 34 text: "附件" on_click: || regen()
                         draw_bg +: {color: #x00000000 color_hover: white7 color_down: white7 border_radius: 9.0 border_size: 1.0 border_color: line2}
                         draw_text +: {color: ink38 text_style.font_size: 10}}
-                    View{width: Fill height: 1}
                     Label{text: "草稿已自动保存 · 09:47" draw_text.color: ink32 draw_text.text_style.font_size: 9}
+                    View{width: Fill height: 1}
                 }
             }
         }
@@ -1115,10 +1117,10 @@ fn write_screen(){
                     draw_text +: {color: ink color_hover: ink color_focus: ink color_empty: ink38 color_empty_hover: ink38}}
             }
             View{width: Fill height: Fit flow: Right spacing: 8
+                chip("GPT-VIBE 4", "violet")
                 ButtonFlat{width: Fill height: 34 text: "生成草稿" on_click: || regen()
                     draw_bg +: {g1: violet g2: cyan color_hover: violet color_down: cyan border_radius: 8.0 border_size: 0.0}
                     draw_text +: {color: #xffffffff}}
-                chip("GPT-VIBE 4", "violet")
             }
             Label{width: Fill text: "试试这样开始:跟进上周的报价 · 婉拒一个会议邀请 · 请求延期交付" draw_text.color: ink45 draw_text.text_style.font_size: 10}
         }
@@ -1155,7 +1157,7 @@ fn agent_card(i){
             View{width: Fill height: Fit flow: Down spacing: 1
                 View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
                     Label{width: Fill text: a.name draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 13}}
-                    Label{text: a.status draw_text.color: pick(a.status == "运行中", mintT, amberT) draw_text.text_style.font_size: 8}
+                    Label{width: 30 text: a.status draw_text.color: pick(a.status == "运行中", mintT, amberT) draw_text.text_style.font_size: 8}
                 }
                 Label{width: Fill text: a.en draw_text.color: ink32 draw_text.text_style.font_size: 8}
             }
@@ -1166,8 +1168,9 @@ fn agent_card(i){
         Label{width: Fill text: a.desc draw_text.color: ink55 draw_text.text_style.font_size: 10}
         View{width: Fill height: 1 draw_bg.color: line}
         View{width: Fill height: Fit flow: Right spacing: 8
-            Label{width: Fill text: a.stat draw_text.color: ink38 draw_text.text_style.font_size: 9}
+            Label{text: a.stat draw_text.color: ink38 draw_text.text_style.font_size: 9}
             Label{text: a.today draw_text.color: a.color draw_text.text_style.font_size: 9}
+            View{width: Fill height: 1}
         }
     }
 }
@@ -1176,21 +1179,21 @@ fn act_row(i){
     View{width: Fill height: Fit
         View{width: Fill height: Fit flow: Down spacing: 5 padding: Inset{top: 11 bottom: 11 left: 14 right: 14}
             View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                Label{text: a.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
+                Label{width: 36 text: a.time draw_text.color: ink38 draw_text.text_style.font_size: 9}
                 Label{width: Fill text: a.agent draw_text.color: violetT draw_text.text_style.font_size: 9}
                 if a.status == "running" {
-                    RoundedView{width: Fit height: Fit padding: Inset{top: 1 bottom: 1 left: 5 right: 5}
+                    RoundedView{width: 58 height: Fit padding: Inset{top: 1 bottom: 1 left: 5 right: 5}
                         draw_bg +: {color: cyanBg border_radius: 5.0 border_size: 1.0 border_color: cyan}
                         Label{text: "RUNNING" draw_text.color: cyanT draw_text.text_style.font_size: 8}}
                 }
                 if a.status == "done" {
-                    Label{text: "✓ DONE" draw_text.color: mintT draw_text.text_style.font_size: 8}
+                    Label{width: 44 text: "✓ DONE" draw_text.color: mintT draw_text.text_style.font_size: 8}
                 }
                 if a.status == "approval" {
                     if a.handled {
-                        Label{text: "已处理" draw_text.color: mintT draw_text.text_style.font_size: 8}
+                        Label{width: 36 text: "已处理" draw_text.color: mintT draw_text.text_style.font_size: 8}
                     } else {
-                        Label{text: "需审批" draw_text.color: amberT draw_text.text_style.font_size: 8}
+                        Label{width: 36 text: "需审批" draw_text.color: amberT draw_text.text_style.font_size: 8}
                     }
                 }
             }
@@ -1225,15 +1228,17 @@ fn agents_screen(){
             stat_cell("待你审批", "2", amberT)
         }
         View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 2 right: 2}
-            Label{width: Fill text: "我的 AGENT 小队" draw_text.color: ink32 draw_text.text_style.font_size: 9}
+            Label{text: "我的 AGENT 小队" draw_text.color: ink32 draw_text.text_style.font_size: 9}
             Label{text: "SQUAD · 4 UNITS" draw_text.color: ink32 draw_text.text_style.font_size: 8}
+            View{width: Fill height: 1}
         }
         for i in agents.len() { agent_card(i) }
         RoundedView{width: Fill height: Fit padding: Inset{top: 13 bottom: 13 left: 14 right: 14}
             draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line} flow: Down spacing: 10
             View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                Label{width: Fill text: "自动化程度" draw_text.color: ink32 draw_text.text_style.font_size: 9}
+                Label{text: "自动化程度" draw_text.color: ink32 draw_text.text_style.font_size: 9}
                 Label{text: "SEMI-AUTO" draw_text.color: violetT draw_text.text_style.font_size: 8}
+                View{width: Fill height: 1}
             }
             View{width: Fill height: Fit flow: Overlay
                 RoundedView{width: Fill height: 4 draw_bg +: {color: white7 border_radius: 2.0}}
@@ -1243,14 +1248,20 @@ fn agents_screen(){
                 }
             }
             View{width: Fill height: Fit flow: Right spacing: 6
-                Label{width: Fill text: "仅建议" draw_text.color: ink32 draw_text.text_style.font_size: 8}
-                Label{width: Fill text: "半自动 · 关键动作需审批" draw_text.color: violetT draw_text.text_style.font_size: 8}
-                Label{text: "全自动" draw_text.color: ink32 draw_text.text_style.font_size: 8}
+                // adjacent labels + trailing spacer, sized to fit the 412px
+                // column (40+16+168+16+32 + spacing fits 328 with room)
+                Label{width: 40 text: "仅建议" draw_text.color: ink32 draw_text.text_style.font_size: 8}
+                View{width: 16 height: 1}
+                Label{width: 168 text: "半自动 · 关键动作需审批" draw_text.color: violetT draw_text.text_style.font_size: 8}
+                View{width: 16 height: 1}
+                Label{width: 32 text: "全自动" draw_text.color: ink32 draw_text.text_style.font_size: 8}
+                View{width: Fill height: 1}
             }
         }
         View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{left: 2 right: 2}
-            Label{width: Fill text: "实时活动流" draw_text.color: ink32 draw_text.text_style.font_size: 9}
+            Label{text: "实时活动流" draw_text.color: ink32 draw_text.text_style.font_size: 9}
             Label{text: "● LIVE" draw_text.color: mintT draw_text.text_style.font_size: 8}
+            View{width: Fill height: 1}
         }
         RoundedView{width: Fill height: Fit draw_bg +: {color: panel border_radius: 16.0 border_size: 1.0 border_color: line}
             View{width: Fill height: Fit flow: Down

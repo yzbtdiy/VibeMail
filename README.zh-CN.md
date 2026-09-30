@@ -131,7 +131,7 @@ mail account」面板（地址/密码/IMAP-POP3/服务器端口），错误凭�
 
 ## 状态
 
-- `hub check`：`vibemail 0.2.1 — PASSED`（本地 hub 工作密钥已签名；
+- `hub check`：`vibemail 0.2.2 — PASSED`（本地 hub 工作密钥已签名；
   目录 sequence 2，见 `../octosense-local-hub/`）。
 - 真实邮件：本地 card-host 构建已注册 mail 服务，提交包即真收发（ev-13..16）；
   原版 card-host / 未登录时如实显示对应状态。
@@ -140,4 +140,4 @@ mail account」面板（地址/密码/IMAP-POP3/服务器端口），错误凭�
 - 截图为 card-host 真实截取并逐张人工核验；见 `evidence/`。
 - 剩余人工步骤（发布者本人）：`hub keygen` → `hub sign-manifest` →
   `hub check --publisher-key` → 打 tag 并在 OctoSense-App-Hub 开
-  `Submit vibemail 0.2.1` issue（附 `evidence/hub/SUBMISSION.md`）。
+  `Submit vibemail 0.2.2` issue（附 `evidence/hub/SUBMISSION.md`）。

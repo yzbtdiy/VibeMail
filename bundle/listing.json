@@ -27,7 +27,7 @@
     "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
     "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
   },
-  "release_notes": "0.2.1:按网页参考完全重做的深空主题 UI,移动/桌面宽度自适应(宽屏 master-detail,窄屏单栏);三大视图(智能收件箱 / AI 写信 / Agent 小队);回复生命周期与 AI 摘要/起草能力保持并强化。",
+  "release_notes": "0.2.2:按网页参考完全重做的深空主题 UI,移动/桌面宽度自适应(宽屏 master-detail,窄屏单栏);三大视图(智能收件箱 / AI 写信 / Agent 小队);回复生命周期与 AI 摘要/起草能力保持并强化。",
   "age_rating": "all",
   "license": "Apache-2.0"
 }

@@ -143,8 +143,8 @@ configured.
 
 ## Status
 
-- `hub check` — `vibemail 0.2.1 — PASSED` (signed by the local hub working
+- `hub check` — `vibemail 0.2.2 — PASSED` (signed by the local hub working
   key; catalog sequence 2 in `../octosense-local-hub/`).
 - Remaining human steps (publisher): `hub keygen` → `hub sign-manifest` →
-  `hub check --publisher-key` → tag + open `Submit vibemail 0.2.1` on
+  `hub check --publisher-key` → tag + open `Submit vibemail 0.2.2` on
   OctoSense-App-Hub with `evidence/hub/SUBMISSION.md` attached.
