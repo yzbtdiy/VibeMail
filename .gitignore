@@ -1,5 +1,7 @@
-# local run state and logs — never submitted
+# local run state and logs — never submitted (any .local-state* variant)
 .local-state/
+.local-state-audit/
+.local-state-s2/
 *.log
 __pycache__/
 *.pyc
