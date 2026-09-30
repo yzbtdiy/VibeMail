@@ -27,7 +27,7 @@
     "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
     "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
   },
-  "release_notes": "0.3.0:桌面横向卡片布局——左侧导航栏 + 邮件卡片列表 + 原地阅读栏(master-detail,无页面跳转);写信/Agent 小队居中列;回复生命周期与 AI 摘要/起草能力保持。",
+  "release_notes": "0.3.1:左侧导航栏美化——标签居中胶囊选态、渐变头像 + 在线状态点、与内容区的分隔细线、青色计数徽章;0.3.0:桌面横向卡片布局(master-detail,无页面跳转)。",
   "age_rating": "all",
   "license": "Apache-2.0"
 }

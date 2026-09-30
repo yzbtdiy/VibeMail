@@ -1273,35 +1273,43 @@ fn agents_screen(){
 // live-agent dot at the bottom). Glyph tiles are native widgets — runtime
 // SVG rasterises blank in this stack, CJK glyphs never do.
 fn rail_tab(label, glyph, target, badge){
-    GestureView{width: Fit height: Fit padding: Inset{top: 8 bottom: 8} on_tap: |x, y| go(target)
-        View{width: Fit height: Fit flow: Down spacing: 5 align: Align{x: 0.5}
-            View{width: Fit height: Fit flow: Overlay
-                RoundedView{width: 38 height: 38 draw_bg +: {color: pick(screen == target, #x170f31, #x00000000) border_radius: 12.0 border_size: 1.0 border_color: pick(screen == target, violet, line2)} align: Align{x: 0.5 y: 0.5}
-                    Label{text: glyph draw_text.color: pick(screen == target, violetHi, #x6c6b6d) draw_text.text_style.font_size: 14}}
-                if badge != "" {
-                    View{width: Fill height: Fill align: Align{x: 1.0 y: 0.0}
-                        RoundedView{width: 15 height: 15 draw_bg +: {color: violet border_radius: 8.0} align: Align{x: 0.5 y: 0.5}
-                            Label{text: badge draw_text.color: #xffffffff draw_text.text_style.font_size: 8}
+    GestureView{width: Fill height: 64 on_tap: |x, y| go(target)
+        View{width: Fill height: Fill flow: Overlay
+            RoundedView{width: Fill height: Fill draw_bg +: {color: pick(screen == target, #x120b26, #x00000000) border_radius: 15.0 border_size: 1.0 border_color: pick(screen == target, #x241640, #x00000000)}
+                View{width: Fill height: Fill flow: Down spacing: 4 align: Align{x: 0.5 y: 0.5}
+                    View{width: Fit height: Fit flow: Overlay
+                        RoundedView{width: 40 height: 40 draw_bg +: {color: pick(screen == target, violetBg, #x0e1322) border_radius: 13.0 border_size: 1.0 border_color: pick(screen == target, violet, line2)} align: Align{x: 0.5 y: 0.5}
+                            Label{text: glyph draw_text.color: pick(screen == target, violetHi, ink55) draw_text.text_style.font_size: 15}}
+                        if badge != "" {
+                            View{width: Fill height: Fill align: Align{x: 1.0 y: 0.0}
+                                RoundedView{width: 16 height: 16 draw_bg +: {color: cyan border_radius: 8.0 border_size: 2.0 border_color: glass} align: Align{x: 0.5 y: 0.5}
+                                    Label{text: badge draw_text.color: #x052027 draw_text.text_style: theme.font_bold{font_size: 8}}
+                                }
+                            }
                         }
                     }
+                    Label{text: label draw_text.color: pick(screen == target, violetHi, ink66) draw_text.text_style.font_size: 8}
                 }
             }
-            Label{text: label draw_text.color: pick(screen == target, violetHi, #x6c6b6d) draw_text.text_style.font_size: 8}
         }
     }
 }
 fn rail(){
-    View{width: 66 height: Fill flow: Down padding: Inset{top: 14 bottom: 14} draw_bg.color: glass
-        vibe_mark(30)
-        View{width: 1 height: 16}
+    View{width: 78 height: Fill flow: Down spacing: 6 align: Align{x: 0.5} padding: Inset{top: 16 bottom: 16 left: 9 right: 9} draw_bg.color: glass
+        vibe_mark(34)
+        View{width: 26 height: 22 draw_bg.color: #x1d1d33}
         rail_tab("收件箱", "收", "inbox", "" + cnt("all"))
         rail_tab("写信", "写", "write", "")
         rail_tab("Agent", "队", "agents", "" + agents.len())
         View{width: 1 height: Fill}
-        View{width: Fit height: Fit flow: Down spacing: 6 align: Align{x: 0.5}
-            RoundedView{width: 8 height: 8 draw_bg +: {g1: mint g2: cyan border_radius: 4.0}}
-            Label{text: "林" draw_text.color: #x8a8880 draw_text.text_style.font_size: 9}
+        View{width: Fit height: Fit flow: Overlay
+            RoundedView{width: 34 height: 34 draw_bg +: {g1: violet g2: cyan border_radius: 17.0} align: Align{x: 0.5 y: 0.5}
+                Label{text: "林" draw_text.color: #xffffffff draw_text.text_style: theme.font_bold{font_size: 14}}}
+            View{width: Fill height: Fill align: Align{x: 1.0 y: 1.0}
+                RoundedView{width: 11 height: 11 draw_bg +: {color: mint border_radius: 6.0 border_size: 2.0 border_color: glass} align: Align{x: 0.5 y: 0.5}}
+            }
         }
+        Label{text: "在线" draw_text.color: mintT draw_text.text_style.font_size: 8}
     }
 }
 
@@ -1320,6 +1328,7 @@ SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: space
     }
     View{width: Fill height: Fill flow: Right
         rail()
+        View{width: 1 height: Fill draw_bg.color: #x1c1e33}
         body := ScrollYView{width: Fill height: Fill flow: Down padding: Inset{top: 14 bottom: 16 left: 16 right: 16} spacing: 0 on_render: || {
             if screen == "inbox" { inbox_screen() }
             if screen == "write" { write_screen() }

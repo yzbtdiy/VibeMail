@@ -1,7 +1,7 @@
-# vibemail 0.3.0 — submission packet
+# vibemail 0.3.1 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated for 0.3.0), plus the reproduction evidence for the hackathon
+regenerated for 0.3.1), plus the reproduction evidence for the hackathon
 ("Agentic App 黑客松 2026", scene 01 邮件场景). The publisher key, manifest
 signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
 
@@ -9,27 +9,30 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
 
 1. **Does the app do what its name, subtitle and description claim?**
    Yes. `bundle/main.splash` implements exactly what the listing names: a
-   **responsive** agentic mail app with three views — 智能收件箱
-   (`inbox_screen`: AI 分诊 banner with live counts, filter chips, priority
-   meters, label chips; on wide windows a list-plus-placeholder
-   master-detail), 邮件阅读 (`read_screen`: AI 摘要 card with points,
-   suggested actions, meeting detection and sentiment; one-tap smart
-   replies; five-state reply strip; on wide windows a reader-plus-list
-   master-detail), AI 写信 (`write_screen`: tone chips, prompt panel,
-   editable AI draft with source pill), and Agent 小队 (`agents_screen`:
-   stats, toggles, autonomy dial, live activity stream with approvals).
-   The reply lifecycle — 草稿待发送 → 确认 → 发送中 → 已发送/失败 → 重试 —
-   lives on each mail object, so the inbox pill and the read strip always
-   agree. Phone and desktop widths come from ONE widget tree (the layout
-   math is the media query — see `source/design-brief.md`). Every
-   screenshot in the listing is a real capture of these screens.
+   **desktop-landscape** agentic mail app with a left navigation rail and
+   three surfaces — 智能收件箱 (`inbox_screen`: AI 分诊 banner with live
+   counts, filter chips, priority meters, label chips; a permanent
+   master-detail — mail CARD list on the left, the reader opening in place
+   on the right, no screen push), the reader (`reader_pane`: AI 摘要 card
+   with points, suggested actions, meeting detection and sentiment;
+   one-tap smart replies; five-state reply strip), AI 写信
+   (`write_screen`: tone chips, prompt panel, editable AI draft with
+   source pill), and Agent 小队 (`agents_screen`: stats, toggles,
+   autonomy dial, live activity stream with approvals). The reply
+   lifecycle — 草稿待发送 → 确认 → 发送中 → 已发送/失败 → 重试 — lives on
+   each mail object, so the inbox pill and the reader strip always agree.
+   0.3.1 polishes the rail: centred capsule tabs with an active pill,
+   cyan count badges, a gradient avatar with an online dot, and a
+   hairline separator from the content. Every screenshot in the listing
+   is a real capture of these screens.
 
 2. **Do the listing's platforms and category fit?**
    Yes. `productivity` matches a mail app. `platforms: ["windows"]` is the
    only platform actually tested: every capture and interaction in this
    packet ran on Windows 10 (26100) — in the App Hub `card-host.exe`
    (local build 2026-09-30, which registers the mail host service from
-   `crates/mail-service`) at BOTH 412×860 and 1200×860, and in the
+   `crates/mail-service`) at 1200×860 and 900×860 (the two audited
+   desktop widths), and in the
    OctoSense desktop shell itself (local build of the OctoSense repo,
    app-hub feature, with the bundle installed from a local signed
    catalog). No other platform was tested, so none is claimed.
@@ -98,7 +101,7 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    hub check output on the exact submitted bytes:
 
    ```
-   vibemail 0.3.0 — PASSED
+   vibemail 0.3.1 — PASSED
      grants: capabilities {"mail", "model"}, hosts {}, storage 16777216 bytes, agent none
    ```
 
@@ -108,7 +111,8 @@ Everything below is reproducible on Windows with the bundled scripts:
 
 - `scripts/drive-demo.py` drives the **real card-host window** over the
   Makepad remote bridge (`/snap`, `/click`, `/t`, `/m`, `/g`) through the
-  full task at the phone width: open the urgent mail → AI 生成 (honest
+  full task at the desktop width (1200×860): open the urgent mail →
+  AI 生成 (honest
   model refusal, verbatim on screen) → AI compose with prompt → smart
   reply → **explicit confirm** → sent (state visible in inbox as 已回复)
   → simulated outage → **send fails, draft kept** → re-enable →
@@ -121,11 +125,11 @@ Everything below is reproducible on Windows with the bundled scripts:
   sheet, sent strip, inbox pill, failed send, kept draft, retry sent,
   agents approval; model service: ev-09 summary-unavailable state, ev-10
   draft fallback, both showing the host's verbatim refusal).
-- **Responsive proof**: run card-host with `--size 1200x860` — the inbox
-  becomes list + placeholder master-detail and the read view a
-  reader-plus-highlighted-list master-detail (geometry verified via
-  `/snap`; captured as ev-20). At `--size 412x860` the same tree is a
-  single column with push navigation.
+- **Width robustness**: `scripts/audit_missing.py 1200 900` and
+  `scripts/audit_overflow.py 1200 900` walk every screen at both audited
+  desktop widths — every expected text visible, no clipped geometry
+  (`build/missing-report.txt`). The 0.3.x layout is desktop-landscape
+  only (rail + card list + in-place reader); the portrait UI is retired.
 - `scripts/drive-mail.py` drives the **shipped bundle** in the same
   card-host through the platform mail service: no-account banner
   (ev-13) → 添加账号 raises the host's sign-in sheet (ev-14) → a wrong
@@ -138,7 +142,7 @@ Everything below is reproducible on Windows with the bundled scripts:
   installed through a local signed hub catalog
   (`../octosense-local-hub/`: `hub keygen`/`certify`/`publish`, anchor +
   `OCTOSENSE_APP_DATA` env; see its README), runs as a real window
-  manager client. ev-17: the app (0.3.0 UI) in the shell's desktop;
+  manager client. ev-17: the app (0.3.1 UI) in the shell's desktop;
   ev-18: the shell's own 「OctoSense · Add a mail account」 sheet; ev-19:
   the official Mail service's real IMAP login against `imap.qq.com`
   rejected — the sheet says so in its own words. Reproduce with
@@ -163,5 +167,5 @@ model output.
 
 - [ ] `hub keygen` + `hub sign-manifest` (publisher key stays outside the repo)
 - [ ] `hub check --publisher-key <id>=<hex>` → PASSED with no warning
-- [ ] Tag the commit, open `Submit vibemail 0.3.0` on OctoSense-App-Hub
+- [ ] Tag the commit, open `Submit vibemail 0.3.1` on OctoSense-App-Hub
       with this packet's answers attached
