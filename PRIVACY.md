@@ -1,6 +1,6 @@
-# Privacy Policy — Agentic Mail
+# Privacy Policy — VibeMail
 
-Agentic Mail is a card app that displays an agent-summarised inbox digest.
+VibeMail is a card app that displays an agent-summarised inbox digest.
 This release ships host-resolved mock data only:
 
 - It requests no capabilities (no network, storage, location or assistant grants).

@@ -1,4 +1,4 @@
-"""Reply-lifecycle reducer for agentic-mail.
+"""Reply-lifecycle reducer for vibemail.
 
 This module is the verification twin of the state machine implemented in
 ``bundle/main.splash`` (functions ``insert_draft`` / ``ask_send`` /

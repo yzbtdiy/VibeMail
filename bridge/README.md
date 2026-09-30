@@ -1,4 +1,4 @@
-# agentic-mail bridge — IMAP/SMTP ↔ HTTP（仅本机）
+# vibemail bridge — IMAP/SMTP ↔ HTTP（仅本机）
 
 受隔离规则限制，OctoSense 应用不能自己说 IMAP/SMTP（受管应用禁用原始套接字，
 且应用不得持有邮箱凭据）。这个网桥跑在**你的电脑**上：持有邮箱授权码（只存在

@@ -3,11 +3,11 @@
     "model",
     "mail"
   ],
-  "id": "agentic-mail",
+  "id": "vibemail",
   "integrity": {
-    "bundle_blake3": "5cb3c93261d3ed29a79fb2d39d0dd1dbc915750d24fb8214bc7f498644e0a0c1"
+    "bundle_blake3": "b5f1b10a381720fb44ba2bf8de05e26d754f2024f0be1c35688b3f4c29a505b0"
   },
-  "name": "Agentic Mail",
+  "name": "VibeMail",
   "schema": 1,
-  "version": "0.1.0"
+  "version": "0.2.1"
 }

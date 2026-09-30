@@ -1,75 +1,84 @@
-# Agentic Mail 设计规范（design brief）
+# VibeMail 设计规范（design brief）
 
-本项目的视觉与交互基准是本目录的四张参考设计图（由外部生成，原文件位于工作区
-`Agent_Agentic邮件UI/`，复制为 `design-01..04.png`）。实现为 Splash 脚本应用
-（`bundle/main.splash`，412×860 运行于 card-host）。本文摘录设计系统与实现映射，
-供后续迭代对照。
+0.2.0 的视觉与交互基准是用户提供的深空主题网页应用源码（工作区
+`UI设计/app`：React + Tailwind 的 inbox / compose / agents 三视图，手机与桌面
+断点自适应）。实现为 Splash 脚本应用（`bundle/main.splash`），在 card-host 以
+412×860（手机）与 1200×860（桌面）两种宽度实测。本文摘录设计系统、实现映射
+与响应式规则，供后续迭代对照。（0.1.x 的暖米色四屏规范见 git 历史。）
 
-## 设计图索引
+## 视图索引
 
-| 文件 | 屏幕 | 实现函数（main.splash） |
+| 网页参考 | 屏幕 | 实现函数（main.splash） |
 | --- | --- | --- |
-| design-01-inbox.png | 智能收件箱 | `inbox_screen` |
-| design-02-read.png | 邮件阅读 + AI 摘要 | `read_screen` / `ai_summary` / `attach_card` / `quick_replies` |
-| design-03-write.png | AI 写信起草 | `write_screen` |
-| design-04-todo.png | 跟进提醒待办 | `todo_screen` |
-| （无参考图） | 我的 | `me_screen`（无设计图，按同一设计语言补齐，承载练习数据披露） |
+| InboxList + ReadingPane | 智能收件箱 | `inbox_screen` / `triage_banner` / `mail_row` / `preview_pane` |
+| ReadingPane + AISummaryPanel | 邮件阅读 + AI 摘要 | `read_screen`（master-detail）/ `ai_summary_card` / `smart_replies` / `meeting_card` / 内联 reply strip |
+| ComposeView | AI 写信 | `write_screen`（居中 640 列）/ `tone_chip` / 提示词面板 |
+| AgentsView | Agent 小队 | `agents_screen`（居中 720 列）/ `stat_cell` / `agent_card` / `act_row` |
+| Chrome（MobileNav/TopBar） | 全局导航 | `top_bar` / `nav_tab`（字符块图标 + 徽章，Fill-Fit-Fill 居中） |
+
+## 响应式规则（布局数学即媒体查询）
+
+Splash 无法读取窗口宽度。经 card-host 实证的原语：**FIXED 宽度向其容器钳位**
+（400 在 412 窗口 → 412；嵌套逐层钳位），**Fill 兄弟被挤压时归零**（无子元素时
+安全消失）。因此：
+
+- 每屏为 `[Fill 留白][定宽列][Fill 留白]`：窄窗钳到全幅，宽窗居中
+  （收件箱 md=980，写信 640，Agent 720）。
+- 收件箱 master-detail：`[列表 fixed 420][预览 Fill]`——宽窗显示「列表 +
+  选择一封邮件占位卡」（网页桌面版行为），窄窗预览列归零。
+- 阅读 master-detail：`[阅读栏 fixed 480][列表 Fill]`——**Fill 必须在 fixed
+  之后**：在前会算出负宽度，向负宽列铸子树会静默丢弃整个渲染（本次踩坑）。
+  宽窗「阅读栏左 + 高亮列表右」，窄窗列表归零、阅读栏钳满全屏（推送式）。
+- 危险模式备忘：Fill 宽标签/无子 spacer 后跟 Fit 按钮会把按钮挤出树
+  （AI 生成 / 草稿 pill / outage 开关三处踩坑）——按钮用固定宽或放 spacer 之前。
 
 ## 调色板（token → main.splash 变量）
 
-| 用途 | 设计图取值 | 变量 |
+| 用途 | 网页参考取值 | 变量 |
 | --- | --- | --- |
-| 页面底色（暖米色） | `#FDF3EC` | `ground` |
-| 卡片 | `#FFFFFF` | `card` |
-| 稍后处理邮件卡（灰） | `#F2F2F4` | `muted` |
-| 品牌红 / 紧急 | `#E8503A` | `red` |
-| AI 横幅渐变 | `#F55E45 → #FBA75C` | `g1`/`g2` |
-| 琥珀（今日/到期） | `#F5A623`（文字 `#E8940A`） | `orange` |
-| AI 摘要卡渐变（紫） | `#7B5CF0 → #8E6BF5` | `purple`/`purple2` |
-| AI 草稿卡（淡紫） | `#F5F1FB` | `aidraft` |
-| 青（已完成/链接） | `#3EC6B5` | `teal` |
-| 正文 / 次级文字 | `#1A1A1A` / `#9A9A9A` | `ink`/`sub` |
+| 页面底色 | #05070f | `space` |
+| 卡片面板 | ≈#0b1120 / #0d1526（0.72/0.8 叠加） | `panel` / `panel2` |
+| 导航玻璃 | ≈#080c19 | `glass` |
+| 发丝线 | #141523 / #26263b | `line` / `line2` |
+| 主文字 | #e9e6df（次级 55%/45%/38%/32%） | `ink` / `ink55` / `ink45` / `ink38` / `ink32` |
+| Agent 紫 | #8642ff（文本 #xb7a8ff，面板 #x170f31） | `violet` / `violetT` / `violetBg` |
+| 数据青 | #22d3ee（文本 #x67e8f9） | `cyan` / `cyanT` |
+| 成功薄荷 | #34d399（文本 #x6ee7b7） | `mint` / `mintT` |
+| 警示琥珀 | #xfbbf24（文本 #xfcd34d） | `amber` / `amberT` |
+| 错误红 | #xf87171（文本 #xfca5a5） | `red` / `redT` |
+| 优先级色阶 | ≥85 红 / ≥65 琥珀 / ≥45 青 / 其余 #x9a92d9 | `pri_color` |
 
-胶囊配色：紧急 `#FDE8E6/#D93025`、今日 `#FFF3D6/#E8940A`、稍后与已完成
-`#E5E5EA/#8A8A85`、本周五 `#DDF5F0/#0B8A7A`、已回复 `#DDF5F0/#0B8A7A`、
-待发送 `#E5E5EA`、发送失败 `#FDE8E6/#D93025`。
+预混色已按 #05070f 地面合成（运行时不做 alpha 叠加）。
 
-## 头像（artwork/assets）
+## 组件语言
 
-姓氏首字渐变圆头像：张（红 `#F07A5F→#D8432F`）、李（金 `#FFD25C→#E8A31D`）、
-王/陈（紫 `#A79BFA→#7A68E0`）、林（当前用户，红）。导航图标灰 `#3A3A3A`，
-「我的」图标青色，AI 星标白色。
+- **渐变头像**：`avatar(m, size)`——双色调 RoundedView + 首字（`init` 字段，
+  无字符串切片）+ 未读紫点 Overlay。
+- **AI 优先级条**：`priority_meter`——36×3 轨道 + 紫→优先级色渐变填充 + 等宽
+  分数（数字须 `"" + n` 转字符串）。
+- **标签 chip**：`chip(text, tone)`——tone 五色（violet/cyan/amber/red/mint），
+  列表行最多 2 枚（宽度留给优先级条），阅读页展示全集。
+- **字符块图标**：导航与 Agent 卡用「tinted 圆角方块 + 单字」（收/写/队、
+  卫/管/清/报）。运行时 SVG 在本栈栅格化为空白（新旧两版均实测），因此不随包
+  携带任何 SVG；唯一例外是 listing 的 `icon.svg`。
+- **三态横幅**：`triage_banner`——分诊行（动态计数）+ 邮件服务状态行（live /
+  未添加账号 / 不可用，含「添加账号」按钮）+ 筛选 chips。无 GestureView 包装
+  （横幅整卡手势会吞掉下方列表行的命中区——实测踩坑）。
+- **回复状态条**：五态（pending/confirm/sending/sent/failed）内联在阅读栏，
+  两步确认发送，失败保留草稿可重试；列表行以 `state_pill` 同步显示。
 
-## 逐屏要点
+## 与网页参考的取舍
 
-- **收件箱**：问候语 + 头像；白色搜索胶囊；橙红渐变「AI 分诊」横幅（白字粗体 +
-  星标 + 右侧插画）；章节头（红旗/紫钟 + 标题 + 全部 >）；邮件卡 = 头像 +
-  「发件人 · 角色」+ 时间 + 未读红点 + 主题 + 标签胶囊 + 预览；稍后处理区为灰卡。
-- **阅读**：返回行（‹ 返回 / 邮件详情 / ···）；白卡（头像 + 姓名 + 角色胶囊 +
-  时间 + 主题粗体 + 正文 + 附件卡：红色 PDF 方块 + 文件名 + ↓）；紫色渐变
-  AI 摘要卡（✦ 标题 + 圆点要点 + 浅紫建议行动条）；快速回复描边胶囊；
-  橙红渐变回复 CTA。
-- **AI 起草**：取消 / 写邮件 / 发送胶囊顶栏；收件人与主题卡；AI 起草卡
-  （✦ 标题 + AI 助手胶囊 + 输入框 + 语气选择三色 chips：正式紫/友好橙/简洁青）；
-  淡紫 AI 草稿卡（紫圆星标 + 预览模式胶囊 + 白色可编辑内卡）；重新生成 +
-  插入并发送（渐变）。
-- **待办**：标题 + 白色圆角日历按钮；黄色渐变智能提醒卡（! 方块）；分段选项卡
-  （待跟进/我承诺的/已完成，激活为深色填充白字）；待办卡 = 圆形勾选框 + 小头像 +
-  任务文字 + 来源行 + 到期胶囊（红/黄/青/灰）。
+- 阅读栏在桌面位于列表**左侧**（网页为右侧）：Fill-after-fixed 是唯一安全的
+  双栏序（见上），镜像布局是语言约束下的等价实现。
+- 无侧边 Rail：Rail 需要「宽屏才出现」的条件渲染，宽度不可读时无法实现；
+  底部玻璃导航在两端一致并以 Fill-Fit-Fill 居中。
+- 自动化程度表以纯 View 绘制（58% 手柄），无拖拽。
+- 练习数据口径披露随 Agent 视图滚动展示。
 
-## 与设计图的已知偏差（实现约束所致）
+## 练习数据（与网页参考一致的人物）
 
-1. **背景装饰色块**：设计图为有机 blob 形状、越出屏幕边缘；实现用原生
-   `RoundedView` 圆形色块放在 Overlay 底层（`#FAD9CD/#FBEBC0/#D8EAF6/#C8EAE4/
-   #E4DCF7` 更浅的 tint）。原因：运行时全幅 SVG 背景在本 card-host 构建
-   （2026-09-28）不栅格化，且该 DSL 无负偏移定位。
-2. **画板**：设计图约 390×844 手机比例；运行窗口为 card-host 的 412×860，
-   字号/间距按同视觉密度折算。
-3. **状态栏**：设计图含手机状态栏（9:41）；card-host 自带窗口标题栏，未模拟。
-4. **emoji/3D 插画**：设计图横幅与摘要卡的 3D 信封插画未复刻，用星标 SVG 替代。
-5. **我的页**：无参考图，按同一 token 自拟，并承载「概念演示」练习数据披露。
-
-## 练习数据（与设计图一致的人物）
-
-张伟（产品负责人，紧急）、李娜（市场部，今日）、王强（合作伙伴，稍后）、
-陈晨（设计部，稍后/已完成）、小林（当前用户）。全部为虚构练习数据。
+林晓薇（Northstar 合同，紧急）、VibeMail 产品团队（周报）、陈立群（招聘委员会）、
+Stripe（发票）、GitHub（代码评审）、妈妈（中秋）、AWS Summit（营销）、
+沈括（数据平台）。全部为虚构练习数据；Agent 小队（跟进卫士/日程管家/订阅清理/
+周报生成）与活动流同为练习数据。
