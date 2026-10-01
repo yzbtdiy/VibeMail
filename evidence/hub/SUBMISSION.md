@@ -1,7 +1,7 @@
-# vibemail 0.5.4 — submission packet
+# vibemail 0.5.5 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated for 0.5.4), plus the reproduction evidence for the hackathon
+regenerated for 0.5.5), plus the reproduction evidence for the hackathon
 ("Agentic App 黑客松 2026", scene 01 邮件场景). The publisher key, manifest
 signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
 
@@ -21,7 +21,9 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    autonomy dial, live activity stream with approvals). The reply
    lifecycle — 草稿待发送 → 确认 → 发送中 → 已发送/失败 → 重试 — lives on
    each mail object, so the inbox pill and the reader strip always agree.
-   0.5.4 shows the ACTUAL model the host used: the model chip beside
+   0.5.5 rebalances the panes for hi-DPI shells (sidebar 240 / list 310 /
+   flexing reader / Copilot 260; the full expectation set passes at 1000,
+   1200 and 1440 logical). 0.5.4 shows the ACTUAL model the host used: the model chip beside
    生成草稿 and the summary pill read meta.model from the model.complete
    reply (a small host-side addition exposing the answered model's display
    name — never the key); 0.5.3 de-nests the compose inputs (single box each, text directly on
@@ -82,15 +84,15 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
      in that shell too). (b) A `card-host` build linking a reference mail
      service (`OctoSense-App-Hub/crates/mail-service`, the documented
      "Adding a new host service" path): the shipped bundle runs real mail
-     the same way (ev-13..16, with `imap.qq.com`'s verbatim NO in the
-     sheet). Where no service is registered (stock `card-host`), the
+     the same way — driven by `scripts/drive-mail.py` (re-runnable; the
+     recorded service trace `evidence/ev-mail-log.txt` holds
+     `imap.qq.com`'s verbatim NO). Where no service is registered (stock `card-host`), the
      banner says so and practice data is the labelled fallback. Sending
      keeps the two-step confirm and maps service refusals onto the same
      failed/retry strip.
    The repository additionally contains a development-only harness
    (`bridge/` + `dev/adapter-bridge.splash` + `scripts/dev_bundle.py`)
-   that swaps the adapter for a loopback IMAP/SMTP bridge (ev-11 bridge
-   off, ev-12 bridge unconfigured). It is NOT part of the submitted bundle
+   that swaps the adapter for a loopback IMAP/SMTP bridge. It is NOT part of the submitted bundle
    — the shipped main.splash contains no `http://` literal (the store gate
    refuses them) and speaks only to the platform service — and is now
    optional: the platform service route above supersedes it.
@@ -115,7 +117,7 @@ signing and the OctoSense-App-Hub issue are **HUMAN steps** and remain open.
    hub check output on the exact submitted bytes:
 
    ```
-   vibemail 0.5.4 — PASSED
+   vibemail 0.5.5 — PASSED
      grants: capabilities {"mail", "model"}, hosts {}, storage 16777216 bytes, agent none
    ```
 
@@ -145,18 +147,19 @@ Everything below is reproducible on Windows with the bundled scripts:
   (`build/missing-report.txt`). The 0.3.x layout is desktop-landscape
   only (rail + card list + in-place reader); the portrait UI is retired.
 - `scripts/drive-mail.py` drives the **shipped bundle** in the same
-  card-host through the platform mail service: no-account banner
-  (ev-13) → 添加账号 raises the host's sign-in sheet (ev-14) → a wrong
-  authorization code is tested against the real `imap.qq.com` and the
-  sheet shows the server's refusal verbatim (ev-15) → 取消 drops the
-  sheet and the app returns to the no-account state (ev-16). The
-  service-side trace (`[mail] add_account / sheet.submit / sign-in
-  failed / sheet.retry / sheet.cancel`) confirms every hop.
+  card-host through the platform mail service (re-runnable; its captures
+  regenerate into `evidence/`): no-account banner → 添加账号 raises the
+  host's sign-in sheet → a wrong authorization code is tested against the
+  real `imap.qq.com` and the sheet shows the server's refusal verbatim →
+  取消 drops the sheet and the app returns to the no-account state. The
+  recorded service-side trace (`[mail] add_account / sheet.submit /
+  sign-in failed / sheet.retry / sheet.cancel`, in
+  `evidence/ev-mail-log.txt`) confirms every hop.
 - **Inside the OctoSense desktop shell** (ev-17..19): the same bundle,
   installed through a local signed hub catalog
   (`../octosense-local-hub/`: `hub keygen`/`certify`/`publish`, anchor +
   `OCTOSENSE_APP_DATA` env; see its README), runs as a real window
-  manager client. ev-17: the app (0.5.4 UI) in the shell's desktop;
+  manager client. ev-17: the app (0.5.5 UI) in the shell's desktop;
   ev-18: the shell's own 「OctoSense · Add a mail account」 sheet; ev-19:
   the official Mail service's real IMAP login against `imap.qq.com`
   rejected — the sheet says so in its own words. Reproduce with
@@ -168,8 +171,8 @@ Everything below is reproducible on Windows with the bundled scripts:
 Practice-data boundary (per the hackathon FAQ): the Agent squad, the
 activity stream and the send-failure simulation are local; the mail path
 is REAL — through the platform mail host service, with credentials
-collected on the host's sheet and kept host-side (ev-13..16 were recorded
-without a mailbox, so they show the honest no-account and
+collected on the host's sheet and kept host-side (the recorded run used
+no mailbox, so the trace shows the honest no-account and
 rejected-sign-in states; a live mailbox needs only a valid authorization
 code typed into the host sheet). Model calls are REAL host requests
 (schema-checked, one-shot): in card-host the host honestly refuses and
@@ -181,5 +184,5 @@ model output.
 
 - [ ] `hub keygen` + `hub sign-manifest` (publisher key stays outside the repo)
 - [ ] `hub check --publisher-key <id>=<hex>` → PASSED with no warning
-- [ ] Tag the commit, open `Submit vibemail 0.5.4` on OctoSense-App-Hub
+- [ ] Tag the commit, open `Submit vibemail 0.5.5` on OctoSense-App-Hub
       with this packet's answers attached

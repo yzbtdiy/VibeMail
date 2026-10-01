@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "subtitle": "深空绿野双主题的桌面横向 Agentic 邮件:AI 分诊、摘要、待办与回复草稿",
-  "description": "VibeMail 是一个桌面横向卡片布局的 Agentic 邮件应用:左侧导航栏 + 邮件卡片列表 + 原地阅读栏(常驻 master-detail,点击卡片即在右栏展开,无页面跳转)。智能收件箱(AI 分诊横幅、筛选、优先级与标签)、阅读栏(AI 摘要要点、建议动作、会议识别、情绪标签、智能回复)、AI 写信(语气选择、提示词起草、模型不可用回退本地模板)、Agent 小队(统计、开关、实时活动流与审批)。回复是显式两步确认,失败保留草稿可重试。真实收发走平台 mail 宿主服务(用户在宿主登录面板添加账号,凭据存宿主侧,不经过应用);未提供该服务的环境(如 card-host)如实显示不可用并回退练习数据。AI 摘要与起草申请 model 权限,一次性调用设备配置的模型服务(schema 校验;密钥不经过应用),不可用时回退本地模板并标注。(English: VibeMail is a desktop-landscape agentic mail app: a left rail, a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail in place, no screen push. A triaged smart inbox (banner, filters, priority meters, label chips), a reader with AI summary points, suggested actions, meeting detection, sentiment and one-tap smart replies, an AI compose column (tone chips, prompt-driven drafting, labelled local fallback), and an Agent squad view (stats, toggles, live activity stream, approvals). Replies are a two-step confirmed send; a failed send keeps the draft for retry. Real mail goes through the platform's mail host service (accounts are added on the host's own sheet; credentials stay host-side, never in the app); where no service answers (card-host) the app says so and falls back to labelled practice data. AI summary and drafting request the model capability: one-shot schema-checked calls to the device's model service; where nothing answers, clearly labelled local templates are used.)",
+  "subtitle": "暖纸×森林墨绿双主题的桌面横向 Agentic 邮件:AI 分诊、摘要、待办与回复草稿",
+  "description": "VibeMail 是一个桌面横向卡片布局的 Agentic 邮件应用:264px 全功能侧栏(写信·AI 起草/收件箱/Agent 小队/邮箱文件夹/AI 智能分类/Agent 状态卡)+ 邮件卡片列表 + 原地阅读栏(常驻 master-detail,点击卡片即在右栏展开,无页面跳转)。智能收件箱(AI 分诊横幅、筛选、优先级与标签)、阅读栏内联可折叠 AI 速览(摘要要点、待办提取、语气洞察、会议识别、智能回复)、AI 写信(语气选择、提示词起草、模型不可用回退本地模板)、Agent 小队(统计、开关、自动化程度、实时活动流与审批)。邮箱文件夹与 AI 分类为真实筛选(星标/归档/删除可撤销,计数实时);铃铛/日历/设置为真实面板(通知直达待办、AI 会议日程、主题与练习开关)。回复是显式两步确认,失败保留草稿可重试。真实收发走平台 mail 宿主服务(用户在宿主登录面板添加账号,凭据存宿主侧,不经过应用);未提供该服务的环境(如 card-host)如实显示不可用并回退练习数据。AI 摘要与起草申请 model 权限,一次性调用设备配置的模型服务(schema 校验;密钥不经过应用),不可用时回退本地模板并标注。(English: VibeMail is a desktop-landscape agentic mail app: a full 264px sidebar (compose CTA, inbox, agent squad, mailbox folders, AI clusters, agent status card), a list of mail CARDS, and a permanent reader pane — clicking a card opens the mail in place, no screen push. A triaged smart inbox (banner, filters, priority meters, label chips), a reader whose collapsible inline AI brief carries summary points, to-do extraction, sentiment, meeting detection and one-tap smart replies, an AI compose card with the COMPOSE WITH AI rail (tone chips, prompt-driven drafting, labelled local fallback), and an Agent squad view (stats, toggles, autonomy dial, live activity stream, approvals). Mailbox folders and AI clusters are real filters (reversible star/archive/trash, live counts); the bell, calendar and settings icons open real panels (notifications jump to pending work, AI-extracted meetings, theme and practice switches). Replies are a two-step confirmed send; a failed send keeps the draft for retry. Real mail goes through the platform's mail host service (accounts are added on the host's own sheet; credentials stay host-side, never in the app); where no service answers (card-host) the app says so and falls back to labelled practice data. AI summary and drafting request the model capability: one-shot schema-checked calls to the device's model service; where nothing answers, clearly labelled local templates are used.)",
   "category": "productivity",
   "keywords": [
     "mail",
@@ -17,7 +17,7 @@
     "screenshots/02-read.png",
     "screenshots/03-write.png",
     "screenshots/04-agents.png",
-    "screenshots/05-light.png"
+    "screenshots/05-dark.png"
   ],
   "icon": "assets/icon.svg",
   "platforms": [
@@ -25,10 +25,10 @@
   ],
   "publisher": {
     "name": "yzbtdiy",
-    "support": "https://github.com/yzbtdiy/agentic-mail-card/issues",
-    "privacy_policy_url": "https://github.com/yzbtdiy/agentic-mail-card/blob/main/PRIVACY.md"
+    "support": "https://github.com/yzbtdiy/VibeMail/issues",
+    "privacy_policy_url": "https://github.com/yzbtdiy/VibeMail/blob/main/PRIVACY.md"
   },
-  "release_notes": "0.5.4:「生成草稿」旁的模型胶囊与摘要胶囊显示宿主报告的实际模型名(meta.model,如 MiniMax 的模型),首次调用后自动替换练习占位名。0.5.3:去掉写信页输入框外面多余的嵌套容器——提示词与 AI 草稿输入只剩一层边框,文字直接落在卡片上。0.5.2:主题切换与侧栏底部按钮改为图形图标(太阳/月牙/日历/滑杆,原生控件绘制,无文字)。0.5.2:主题切换与侧栏底部按钮改为图形图标(太阳/月牙/日历/滑杆,原生控件绘制,无文字)。0.5.1:三栏各自独立滚动(列表|阅读|Copilot 互不影响,与网页版一致),修复滚动时下方露黑底;写信栏 AI 草稿框加高;未选邮件时 Copilot 显示就绪提示。0.5.0:按最新 UI 设计完全重构——森林墨绿×暖沙纸感双主题、侧栏导航(写信·AI 起草/收件箱/Agent 小队/邮箱文件夹/AI 智能分类)、三栏收件箱(邮件列表|原地阅读|AI Copilot:摘要/待办提取/语气洞察/智能回复)、写信卡片+COMPOSE WITH AI 栏、Agent 任务面板(统计/开关/自动化程度/实时活动流);顶栏搜索与主题切换胶囊。0.4.0:亮/暗双主题一键切换。0.3.x:桌面横向卡片布局(无页面跳转)。",
+  "release_notes": "0.6.10:真实邮箱在桌面 Shell 内完整闭环——先 mail.sync 后 mail.list(sync 的total 直接入横幅)、常驻轮询定时器替代回复回调内定时器、live_mail 不再读列表缺失的 body 字段(正文改为打开时按需拉取);实测真实邮箱 5 封落列表。0.6.6:修复桌面 Shell 内 sync→list 链条中断——回复回调里注册的定时器也会被Shell 运行器丢弃,改为启动时常驻轮询定时器,服务回复只置标志,mail.list 一律由顶层定时器发出(双宿主闭环)。0.6.5:修复桌面 Shell 内真实邮件列表仍为空——sync 完成后的 mail.list 改由定时器续发(回复回调里嵌套的 host.request 会被 Shell 运行器丢弃,card-host 不受影响)。0.6.4:修复真实邮箱列表永远为空——平台服务的 mail.list 只读本地缓存,mail.sync 才联网拉新;加载与「刷新」现在先 sync 后 list,新账号/新邮件真正同步。0.6.3:邮箱管理收进设置面板——新增「邮箱账号」区(连接状态与地址、添加账号/刷新/两步确认断开,断开走 mail.remove_account 并清除宿主侧密钥),横幅不再放管理按钮。0.6.2:真实邮箱收件箱「刷新」按钮——列表仅在启动/连接时拉取一次,登录后新到的邮件点横幅右侧「刷新」重新拉取(仅已连接态显示;宿主服务只列 INBOX 最新 20 封)。0.6.1:窄 Shell(高 DPI ~940 逻辑宽)适配——顶栏去除 EN 副标题与 Ctrl K 徽章、搜索框收紧至 230,固定内容约 640px,主题滑块与通知铃铛不再被右缘裁切;Agent 卡移除英文名行,自动化标签与会议时间/地点改堆叠;布局审计宽度下限扩至 940。0.6.0:按最新 UI 设计(UI设计-新)完全重构——暖纸×森林墨绿双主题(默认亮色,顶栏胶囊切换)、264px 全功能侧栏(品牌区/写信 CTA/导航徽章/邮箱文件夹/AI 智能分类/AGENT ACTIVE 状态卡/日历与设置底栏)、60px 顶栏(搜索框/VIBE AGENT 胶囊/主题滑块/通知铃铛)、双栏收件箱(420px 列表 + 阅读栏,原 Copilot 栏折叠为阅读栏内联可折叠 AI 速览卡片)、居中写信卡片 + COMPOSE WITH AI 栏、Agent 小队统计与活动流;侧栏邮箱文件夹与 AI 智能分类为真实筛选(星标/归档/删除在阅读栏工具行生效且可撤销,徽章计数实时);铃铛/日历/设置为真实弹出面板(通知直达待办、AI 会议日程、主题与练习开关);路线测试 6 条、1000/1200/1440 三档审计全绿。0.5.5:高 DPI Shell 宽度适配——侧栏 240 / 列表 310 / 阅读栏自适应 / Copilot 260,优先级计分器紧凑化,写信工具栏精简。0.5.4:「生成草稿」旁的模型胶囊与摘要胶囊显示宿主报告的实际模型名(meta.model),首次调用后自动替换练习占位名。0.5.3:去掉写信页输入框外面多余的嵌套容器。0.5.2:主题切换与侧栏底部按钮改为图形图标(原生控件绘制,无文字)。0.5.1:三栏各自独立滚动,修复滚动时下方露黑底。0.5.0:森林墨绿×暖沙纸感双主题重构。0.4.0:亮/暗双主题一键切换。0.3.x:桌面横向卡片布局(无页面跳转)。",
   "age_rating": "all",
   "license": "Apache-2.0"
 }

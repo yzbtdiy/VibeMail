@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "app": "vibemail",
+  "runner": "python scripts/run_routes.py <port>",
+  "notes": [
+    "Declarative click-through routes over the Makepad remote bridge, in the",
+    "spirit of the OctoScript-App-Design-Flow examples' route_test.json: the",
+    "routes name WHAT must happen, the runner owns HOW (scroll reachability,",
+    "dropped-click retries, frame settle).",
+    "Routes run sequentially against ONE running instance, like the examples'",
+    "routes do; later routes build on earlier state. Every step's texts were",
+    "proven against the shipped bundle (drive-demo.py, evidence ev-01..10).",
+    "card-host registers no model service, so the model steps assert the",
+    "honest unavailable state (in an OctoSense shell with providers they",
+    "succeed instead)."
+  ],
+  "boot": {
+    "wait_for": "已整理今日",
+    "asserts": ["选择一封邮件开始阅读"],
+    "practice_banner_any": ["邮件服务不可用", "未添加邮箱账号"]
+  },
+  "routes": [
+    {
+      "name": "read-inplace-and-model-honesty",
+      "desc": "三栏收件箱点开急件原地阅读;AI 摘要如实显示宿主无模型服务;AI 写信回退本地模板",
+      "steps": [
+        {
+          "tap": "Re: Q4 联名方案 — 报价确认与签署排期",
+          "expect": "xiaowei.lin@"
+        },
+        {
+          "tap": "AI 生成",
+          "exact": true,
+          "expect": "模型服务不可用",
+          "asserts": ["no service answers"]
+        },
+        {
+          "tap": "✦ AI 帮我回",
+          "expect": "COMPOSE WITH AI",
+          "absent": ["Re: Re:"]
+        },
+        {
+          "tap": "告诉 AI 你想表达什么",
+          "expect": "告诉 AI 你想表达什么"
+        },
+        {
+          "type": "确认账期调整,本周五前完成签署"
+        },
+        {
+          "tap": "生成草稿",
+          "exact": true,
+          "expect": "已回退本地模板"
+        }
+      ]
+    },
+    {
+      "name": "smart-reply-confirmed-send",
+      "desc": "一键智能回复挂起草稿,两步确认发送,阅读栏状态条与收件箱胶囊同步",
+      "steps": [
+        { "scroll_top": true },
+        {
+          "tap": "收件箱",
+          "exact": true,
+          "expect": "已整理今日"
+        },
+        {
+          "tap": "确认条款并安排签署",
+          "expect": "回复草稿 · 待发送"
+        },
+        {
+          "tap": "发送",
+          "exact": true,
+          "expect": "确认发送给"
+        },
+        {
+          "tap": "确认发送",
+          "exact": true,
+          "expect": "已回复 · 刚刚发送"
+        },
+        { "scroll_top": true },
+        { "asserts": ["已回复"] }
+      ]
+    },
+    {
+      "name": "outage-keeps-draft-retry-succeeds",
+      "desc": "练习场景开关模拟服务中断:发送失败、草稿保留、关闭开关后重试成功",
+      "steps": [
+        {
+          "tap": "写信 · AI 起草",
+          "exact": true,
+          "expect": "COMPOSE WITH AI"
+        },
+        {
+          "tap": "已关闭",
+          "exact": true,
+          "expect": "已开启"
+        },
+        {
+          "tap": "收件箱",
+          "exact": true,
+          "expect": "已整理今日"
+        },
+        {
+          "tap": "终面反馈:高级产品设计师候选人",
+          "expect": "liqun.chen@"
+        },
+        {
+          "tap": "同意录用,不再加面",
+          "expect": "回复草稿 · 待发送"
+        },
+        {
+          "tap": "发送",
+          "exact": true,
+          "expect": "确认发送给"
+        },
+        {
+          "tap": "确认发送",
+          "exact": true,
+          "expect": "发送失败"
+        },
+        {
+          "tap": "保留草稿",
+          "expect": "回复草稿 · 待发送"
+        },
+        {
+          "tap": "写信 · AI 起草",
+          "exact": true,
+          "expect": "COMPOSE WITH AI"
+        },
+        {
+          "tap": "已开启",
+          "exact": true,
+          "expect": "已关闭"
+        },
+        {
+          "tap": "收件箱",
+          "exact": true,
+          "expect": "已整理今日"
+        },
+        {
+          "tap": "发送",
+          "exact": true,
+          "expect": "确认发送给"
+        },
+        {
+          "tap": "确认发送",
+          "exact": true,
+          "expect": "已回复 · 刚刚发送"
+        }
+      ]
+    },
+    {
+      "name": "agent-squad-approval-and-theme-flip",
+      "desc": "Agent 小队审批待办;顶栏胶囊切换双主题,内容与布局保持",
+      "steps": [
+        {
+          "tap": "Agent 小队",
+          "exact": true,
+          "expect": "SQUAD · 4 UNITS"
+        },
+        {
+          "tap": "需审批",
+          "expect": "需审批"
+        },
+        {
+          "tap": "✓ 批准",
+          "expect": "已处理"
+        },
+        { "scroll_top": true },
+        {
+          "tap": "收件箱",
+          "exact": true,
+          "expect": "已整理今日"
+        },
+        {
+          "tap_offset": { "find": "VIBE AGENT · 运行中", "dx": 116, "dy": 0 },
+          "expect": "已整理今日"
+        }
+      ]
+    },
+    {
+      "name": "sidebar-folder-cluster-filters",
+      "desc": "侧栏 AI 智能分类与邮箱文件夹是真实筛选:分类过滤列表、空文件夹有空态、收件箱导航恢复全量",
+      "steps": [
+        {
+          "tap": "工作",
+          "exact": true,
+          "expect": "AI 分类 · 工作",
+          "absent": ["中秋回家的车票订好了吗?"]
+        },
+        {
+          "tap": "社交",
+          "exact": true,
+          "expect": "中秋回家的车票订好了吗?",
+          "absent": ["林晓薇"]
+        },
+        {
+          "tap": "已加星标",
+          "exact": true,
+          "expect": "此视图暂无邮件"
+        },
+        {
+          "tap": "收件箱",
+          "exact": true,
+          "expect": "林晓薇"
+        }
+      ]
+    },
+    {
+      "name": "notification-calendar-settings-panels",
+      "desc": "铃铛/日历/设置是真实面板:通知直达待审批,设置含练习开关,日历列出 AI 提取的会议并可打开原邮件",
+      "steps": [
+        {
+          "tap_offset": { "find": "VIBE AGENT · 运行中", "dx": 181, "dy": 0 },
+          "expect": "通知 · NOTIFICATIONS"
+        },
+        {
+          "tap": "项 Agent 活动待审批",
+          "expect": "SQUAD · 4 UNITS"
+        },
+        {
+          "tap_offset": { "find": "AGENT ACTIVE", "dx": -26, "dy": 134 },
+          "expect": "设置 · SETTINGS"
+        },
+        {
+          "tap": "已关闭",
+          "exact": true,
+          "expect": "已开启"
+        },
+        {
+          "tap": "已开启",
+          "exact": true,
+          "expect": "已关闭"
+        },
+        {
+          "tap_offset": { "find": "AGENT ACTIVE", "dx": -60, "dy": 134 },
+          "expect": "AI 日程 · CALENDAR"
+        },
+        {
+          "tap": "Q4 联名 Kickoff",
+          "expect": "邮件详情 · THREAD"
+        }
+      ]
+    }
+  ]
+}

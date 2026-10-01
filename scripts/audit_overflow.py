@@ -74,7 +74,7 @@ def audit_width(width):
     while time.time() - t0 < 20:
         try:
             get("/log?n=1")
-            if find("已分诊今日") or find("未添加邮箱账号"):
+            if find("已整理今日") or find("未添加邮箱账号"):
                 break
         except OSError:
             pass
@@ -99,7 +99,7 @@ def audit_width(width):
         issues += [("read-scrolled", *i) for i in overflow(width)]
     # write view
     to_top()
-    if tap("写信"):
+    if tap("写信 · AI 起草"):
         time.sleep(1.0)
         issues += [("write-top", *i) for i in overflow(width)]
         for _ in range(3):
@@ -107,7 +107,7 @@ def audit_width(width):
         issues += [("write-scrolled", *i) for i in overflow(width)]
     # agents view
     to_top()
-    if tap("Agent"):
+    if tap("Agent 小队"):
         time.sleep(1.0)
         issues += [("agents-top", *i) for i in overflow(width)]
         for _ in range(4):
@@ -118,7 +118,7 @@ def audit_width(width):
     return issues
 
 def main():
-    widths = [int(a) for a in sys.argv[1:]] or [412, 700, 1200]
+    widths = [int(a) for a in sys.argv[1:]] or [1000, 1200, 1440]
     all_issues = {}
     for w in widths:
         print(f"=== {w}px ===", flush=True)
