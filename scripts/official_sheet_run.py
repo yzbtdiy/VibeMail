@@ -85,7 +85,7 @@ for _ in range(3):
         break
     click(back)
     time.sleep(1.0)
-if not in_app(text="已分诊今日", exact=False):
+if not in_app(text="已整理今日", exact=False):
     nav = in_app(text="收件箱")
     if nav:
         click(nav)

@@ -118,17 +118,37 @@ assert has("未添加邮箱账号"), "expected the no-account state, not a missi
 time.sleep(2.0)  # clicks right after /g grabs get dropped by the bridge
 shot(EVID / "ev-13-storeform-no-account.png")
 
-# mail.add_account: the service raises its own sign-in sheet. "授权码" is
-# unique to the sheet, so it proves the sheet (not the banner) is up.
+# mailbox management lives in the settings panel: open it via the sidebar
+# footer sliders button (icon-only — located relative to the AGENT ACTIVE
+# card above it), then 添加账号 raises the host's own sign-in sheet. Wait
+# for the sheet's TextInputs WITHOUT scrolling — scroll gestures can dismiss
+# the sheet mid-rise, and no app-side text is a safe expect (the sheet's own
+# placeholders are the only TextInputs on screen).
 time.sleep(2.0)
-click_expect("添加账号", "授权码", tries=5)
+aa = find("AGENT ACTIVE")
+assert aa, "AGENT ACTIVE card not found"
+get(f"/click?x={aa[0] - 26:.0f}&y={aa[1] + 134:.0f}&wait=1")
+time.sleep(1.5)
+assert has("设置 · SETTINGS"), "settings panel did not open"
+btn = find("添加账号")
+assert btn, "添加账号 button not found in settings"
+get(f"/click?x={btn[0]:.0f}&y={btn[1]:.0f}&wait=1")
+t0 = time.time()
+while time.time() - t0 < 20:
+    if any(w.get("ty") == "TextInput" for w in snap()):
+        break
+    time.sleep(1.0)
 shot(EVID / "ev-14-sheet-signin.png")
-time.sleep(2.0)
 
 # A rejected sign-in: the service tests the credentials against the real
 # IMAP server and the sheet shows its refusal, staying up for a retry.
-inputs = text_inputs()
-assert len(inputs) >= 2, "expected the sheet's two text inputs"
+inputs = []
+for _ in range(10):           # the sheet's inputs can lag the sheet frame
+    inputs = text_inputs()
+    if len(inputs) >= 2:
+        break
+    time.sleep(1.0)
+assert len(inputs) >= 2, f"expected the sheet's two text inputs, got {len(inputs)}"
 for w, text in zip(inputs[:2], ["agentic.mail.test@qq.com", "wrong-code-000"]):
     x, y, ww, h = w["r"]
     get(f"/click?x={x + 60:.0f}&y={y + h / 2:.0f}&wait=1")

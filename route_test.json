@@ -177,6 +177,70 @@
           "expect": "已整理今日"
         }
       ]
+    },
+    {
+      "name": "sidebar-folder-cluster-filters",
+      "desc": "侧栏 AI 智能分类与邮箱文件夹是真实筛选:分类过滤列表、空文件夹有空态、收件箱导航恢复全量",
+      "steps": [
+        {
+          "tap": "工作",
+          "exact": true,
+          "expect": "AI 分类 · 工作",
+          "absent": ["中秋回家的车票订好了吗?"]
+        },
+        {
+          "tap": "社交",
+          "exact": true,
+          "expect": "中秋回家的车票订好了吗?",
+          "absent": ["林晓薇"]
+        },
+        {
+          "tap": "已加星标",
+          "exact": true,
+          "expect": "此视图暂无邮件"
+        },
+        {
+          "tap": "收件箱",
+          "exact": true,
+          "expect": "林晓薇"
+        }
+      ]
+    },
+    {
+      "name": "notification-calendar-settings-panels",
+      "desc": "铃铛/日历/设置是真实面板:通知直达待审批,设置含练习开关,日历列出 AI 提取的会议并可打开原邮件",
+      "steps": [
+        {
+          "tap_offset": { "find": "VIBE AGENT · 运行中", "dx": 181, "dy": 0 },
+          "expect": "通知 · NOTIFICATIONS"
+        },
+        {
+          "tap": "项 Agent 活动待审批",
+          "expect": "SQUAD · 4 UNITS"
+        },
+        {
+          "tap_offset": { "find": "AGENT ACTIVE", "dx": -26, "dy": 134 },
+          "expect": "设置 · SETTINGS"
+        },
+        {
+          "tap": "已关闭",
+          "exact": true,
+          "expect": "已开启"
+        },
+        {
+          "tap": "已开启",
+          "exact": true,
+          "expect": "已关闭"
+        },
+        {
+          "tap_offset": { "find": "AGENT ACTIVE", "dx": -60, "dy": 134 },
+          "expect": "AI 日程 · CALENDAR"
+        },
+        {
+          "tap": "Q4 联名 Kickoff",
+          "expect": "邮件详情 · THREAD"
+        }
+      ]
     }
   ]
 }

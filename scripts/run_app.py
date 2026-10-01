@@ -28,7 +28,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-APP = Path(__file__).resolve().parent.parent          # agentic-mail-card
+APP = Path(__file__).resolve().parent.parent          # VibeMail
 ROOT = APP.parent                                     # agenticapp26 workspace
 HUB = ROOT / "OctoSense-App-Hub"
 LOCAL_HUB = ROOT / "octosense-local-hub"

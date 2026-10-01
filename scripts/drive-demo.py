@@ -2,10 +2,11 @@
 # Makepad remote bridge (GET /snap, /click, /t, /m, /g) and captures the
 # listing screenshots plus the reply-lifecycle evidence shots.
 #
-# Forest UI (0.5.0): a sidebar (写信·AI 起草 / 收件箱 / Agent 小队) + top bar
-# (search, agent pill, theme pill), a three-pane inbox (list | reader | AI
-# Copilot), a compose card with an AI rail, and the agent squad with a live
-# activity stream. Light/dark themes flip from the top-bar pill.
+# Warm-paper UI (0.6.0): a full 264px sidebar (写信·AI 起草 / 收件箱 / Agent
+# 小队 / folders / clusters) + top bar (search, agent pill, theme pill, bell),
+# a two-pane inbox (420 list | reading pane with the INLINE AI 速览 brief), a
+# centred compose card with the COMPOSE WITH AI rail, and the agent squad with
+# a live activity stream. Boots light; the top-bar pill flips to forest dark.
 #
 # Bridge quirks this driver works around, observed on the Windows build:
 #   - a click issued too soon after a /g grab can be dropped -> every
@@ -46,13 +47,15 @@ def get(path):
 def snap():
     return json.loads(get("/snap").decode("utf-8"))["s"]
 
-def find(text, exact=False):
+def find(text, exact=False, rail=False):
     for w in snap():
         # ty "Splash" carries the WHOLE PROGRAM SOURCE as its text — it
         # substring-matches every string in the app and its rect is the full
         # window, so it must never be a click target.
         if w.get("ty") == "Splash":
             continue
+        if rail and w.get("r", [9, 0, 0, 0])[0] >= 80:
+            continue    # rail glyphs: only the icon-rail column
         t = w.get("t", "")
         if (exact and t == text) or (not exact and text in t):
             x, y, ww, h = w["r"]
@@ -70,49 +73,48 @@ def wait_for(text, timeout=8):
         time.sleep(0.5)
     raise RuntimeError(f"never saw '{text}'")
 
-def settled_pos(text, exact=False, timeout=6.0):
+def settled_pos(text, exact=False, rail=False, timeout=6.0):
     """Target position once the scroll momentum has stopped moving it.
 
     Wheel injection via /m?k=scroll arms inertia: content keeps drifting
     after the event, and a click at pre-drift coordinates hits the wrong
     widget. Sample until two reads 0.3s apart agree."""
     t0 = time.time()
-    last = find(text, exact)
+    last = find(text, exact, rail)
     while time.time() - t0 < timeout:
         time.sleep(0.3)
-        cur = find(text, exact)
+        cur = find(text, exact, rail)
         if last and cur and abs(cur[1] - last[1]) < 6 and abs(cur[0] - last[0]) < 6:
             return cur
         last = cur
     return last
 
 def wheel_x(hit):
-    """Wheel x for the pane containing the target (0.5.1: the three panes
-    scroll independently — the wheel must go to the pane that owns it)."""
+    """Wheel x for the pane containing the target (0.6.0: the panes scroll
+    independently — sidebar 264 | list 420 | reader/rail Fill+340; the wheel
+    must go to the pane that owns the target)."""
     if hit is None:
-        return 700
-    if hit[0] < 630:
-        return 450
-    if hit[0] < 945:
-        return 700
-    return 1000
+        return 474
+    if hit[0] < 684:          # sidebar / list / composer-left / squad column
+        return 474
+    return 940                 # reading pane / compose AI rail / activity feed
 
 def to_top():
     """Scroll every pane back to the top. Wheel dy is heavily scaled by the
     host (~0.15x), so a large negative delta is needed; widgets scrolled
     above the viewport are CLIPPED OUT of /snap entirely, which is how
     deep scroll offsets hide targets after screen switches."""
-    for x in (450, 700, 1000):
+    for x in (132, 474, 940):
         for _ in range(3):
             get(f"/m?k=scroll&x={x}&y=400&dy=-6000")
             time.sleep(0.3)
 
-def tap(text, exact=False):
+def tap(text, exact=False, rail=False):
     """One tap attempt at the widget's current position, with scroll-to-reach.
 
     Tall read views push targets both below AND above the viewport, so the
     search scrolls by the target's own position."""
-    hit = find(text, exact)
+    hit = find(text, exact, rail)
     tries = 0
     # Scrollable body is 29..766; the glass nav bar (776..860) is fixed and
     # perfectly clickable at its own y. Content just above 766 would be
@@ -121,7 +123,7 @@ def tap(text, exact=False):
         return p and (29 < p[1] < 766 or 776 < p[1] < 855)
     while (not in_range(hit)) and tries < 10:
         dy = 420 if (not hit or hit[1] >= 766) else -2400
-        sx = wheel_x(hit) if hit else (450, 700, 1000)[tries % 3]
+        sx = wheel_x(hit) if hit else (132, 474, 940)[tries % 3]
         get(f"/m?k=scroll&x={sx}&y=400&dy={dy}")
         time.sleep(0.5)
         hit = find(text, exact)
@@ -145,7 +147,7 @@ def search_for(text, exact=False, timeout=0):
     n = 0
     while time.time() - t0 < timeout:
         dy = -2400 if n % 2 == 0 else 620
-        get(f"/m?k=scroll&x={(450, 700, 1000)[n % 3]}&y=400&dy={dy}")
+        get(f"/m?k=scroll&x={(132, 474, 940)[n % 3]}&y=400&dy={dy}")
         time.sleep(0.7)
         if find(text, exact):
             return True
@@ -197,21 +199,22 @@ def shot(path, tries=3):
     raise RuntimeError(f"frame never settled for {path}")
 
 # ---- listing screenshots + reply lifecycle evidence -------------------------
-# FOREST UI flow (0.5.0): sidebar (写信·AI 起草 / 收件箱 / Agent 小队) + top bar
-# + three-pane inbox (list | reader | AI Copilot); compose and agents carry a
-# right rail. Reading is in-place master-detail — no back navigation.
+# 0.6.0 flow: full 264px sidebar (写信·AI 起草 / 收件箱 / Agent 小队) + top bar
+# + two-pane inbox (420 list | reading pane with INLINE AI 速览 — the old
+# copilot column folded into the brief card); compose carries the right rail.
+# The app boots in the light paper theme; shot 05 flips to forest dark.
 wait_for("已整理今日")                               # triage banner booted
 # honest practice-mode line — either no mail service answers (card-host
 # without one) or an account-less service (the vault exists, empty)
 if not has("邮件服务不可用") and not has("未添加邮箱账号"):
     raise RuntimeError("neither practice-mode banner line appeared")
 assert has("选择一封邮件开始阅读"), "reader placeholder missing"
-shot(SHOTS / "01-inbox.png")                         # 1 收件箱(侧栏+列表+阅读+Copilot)
+shot(SHOTS / "01-inbox.png")                         # 1 收件箱(侧栏+列表+阅读栏)
 
 # NOTE: expect the reader-only address prefix — 'AI 摘要' also matches mail 7's
 # "AI 摘要生成中…" chip, which pre-satisfies the check without clicking
 click_expect("Re: Q4 联名方案 — 报价确认与签署排期", "xiaowei.lin@")
-shot(SHOTS / "02-read.png")                          # 2 原地阅读 + AI Copilot(练习数据)
+shot(SHOTS / "02-read.png")                          # 2 原地阅读 + 内联 AI 速览(练习数据)
 
 # one-shot model call: card-host answers "no service answers" — the honest
 # unavailable state is part of the demo (in a Shell with model it succeeds)
@@ -274,15 +277,15 @@ shot(EVID / "ev-08-agents-approval.png")
 shot(SHOTS / "04-agents.png")                        # 4 Agent 小队(统计+开关+活动流)
 
 # dual theme: the top-bar pill flips the whole palette; same tree, content intact.
-# 0.5.2: the pill is icon-only — locate it relative to the agent pill's right
-# edge (pill + 12px gap + 58px track → centre ≈ right + 41).
+# The pill is icon-only — locate it relative to the agent pill's right edge
+# (pill + 12px gap + 58px track -> centre ~= right + 41).
 def theme_pill():
     w = find("VIBE AGENT · 运行中")
     if not w:
         return None
     x, y = w
-    # find() returns the centre; the pill is ~150 wide → right edge ≈ x + 75
-    return (x + 75 + 41, y)
+    # find() returns the centre; the pill is ~174 wide -> right edge ~= x + 87
+    return (x + 87 + 41, y)
 
 to_top()
 click_expect("收件箱", "已整理今日", exact=True)
@@ -291,9 +294,9 @@ assert tp, "theme pill not locatable"
 get(f"/click?x={tp[0]:.0f}&y={tp[1]:.0f}&wait=1")
 time.sleep(1.5)
 assert has("已整理今日"), "banner must survive the theme switch"
-shot(SHOTS / "05-light.png")                         # 5 亮色主题(自由切换)
-shot(EVID / "ev-21-theme-light.png")
-get(f"/click?x={tp[0]:.0f}&y={tp[1]:.0f}&wait=1")    # back to deep-space dark
+shot(SHOTS / "05-dark.png")                          # 5 森林墨绿暗色主题(自由切换)
+shot(EVID / "ev-21-theme-dark.png")
+get(f"/click?x={tp[0]:.0f}&y={tp[1]:.0f}&wait=1")    # back to the paper light boot
 time.sleep(1.5)
 
 (EVID / "final-snap.json").write_bytes(get("/snap"))

@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "app": { "id": "vibemail", "version": "0.5.4" },
+  "app": { "id": "vibemail", "version": "0.6.10" },
   "form": "script-app (Splash bundle, card-host / OctoSense shell)",
-  "generated": "2026-09-30",
+  "generated": "2026-10-01",
   "counts": {
-    "routes": 4,
-    "route_steps": 32,
+    "routes": 6,
+    "route_steps": 43,
     "service_unit_tests": 8,
     "bridge_unit_tests": 5,
     "listing_screenshots": 5,
@@ -32,7 +32,7 @@
     },
     {
       "what": "declarative click-through routes over the real card-host window (hidden), 1200x860, Windows 10 26100",
-      "result": "4/4 routes passed (32 steps: in-place read, model-unavailable honesty, local-template fallback, two-step confirmed send, inbox pill sync, outage -> draft kept -> retry, agent approval, theme flip)",
+      "result": "6/6 routes passed (43 steps: in-place read, model-unavailable honesty, local-template fallback, two-step confirmed send, inbox pill sync, outage -> draft kept -> retry, agent approval, theme flip, sidebar folder/cluster filters, notification/calendar/settings panels)",
       "command": "python scripts/run_routes.py 8148",
       "spec": "route_test.json",
       "date": "2026-09-30"

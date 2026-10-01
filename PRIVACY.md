@@ -7,4 +7,4 @@ This release ships host-resolved mock data only:
 - It collects, transmits and stores no personal data.
 - The card content is presentation only and contains no logic of its own.
 
-Contact: https://github.com/yzbtdiy/agentic-mail-card/issues
+Contact: https://github.com/yzbtdiy/VibeMail/issues
