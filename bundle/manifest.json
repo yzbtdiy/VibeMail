@@ -1,13 +1,28 @@
 {
+  "agent": null,
   "capabilities": [
     "model",
     "mail"
   ],
+  "compute": {
+    "instruction_budget": null,
+    "memory_bytes": null
+  },
   "id": "vibemail",
   "integrity": {
-    "bundle_blake3": "dc0a118ad88d0e755e518f7332b8243e32c43d56b0e3c130d7a394a011f5fcf0"
+    "bundle_blake3": "1aed1fe2f413f63f255987cef973b4fd570b091bf126d535f4cf7eb4d3d2ee4b",
+    "signature": {
+      "key_id": "yzbtdiy",
+      "value": "fb5a227ac7792b80358dc64a23cfaa95813b618f3283b0bd0f9779b1ac4f81a3d9eb0da8966d1202cd90246489d4f7ed705e42e46f7955c8c9c74c4b66750d08"
+    }
   },
   "name": "VibeMail",
+  "network": {
+    "hosts": []
+  },
   "schema": 1,
+  "storage": {
+    "max_bytes": null
+  },
   "version": "0.6.10"
 }

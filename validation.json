@@ -9,13 +9,13 @@
     "service_unit_tests": 8,
     "bridge_unit_tests": 5,
     "listing_screenshots": 5,
-    "evidence_images": 17
+    "evidence_images": 15
   },
   "verified": [
     {
-      "what": "App Hub gate",
-      "result": "PASSED (only the unsigned warning; signing is a human step)",
-      "command": "hub check bundle --allow-unsigned",
+      "what": "App Hub gate, publisher-signed",
+      "result": "PASSED with no warnings",
+      "command": "hub check bundle --publisher-key yzbtdiy=<public hex>",
       "where": "bundle/"
     },
     {
@@ -33,27 +33,34 @@
     {
       "what": "declarative click-through routes over the real card-host window (hidden), 1200x860, Windows 10 26100",
       "result": "6/6 routes passed (43 steps: in-place read, model-unavailable honesty, local-template fallback, two-step confirmed send, inbox pill sync, outage -> draft kept -> retry, agent approval, theme flip, sidebar folder/cluster filters, notification/calendar/settings panels)",
-      "command": "python scripts/run_routes.py 8148",
+      "command": "python scripts/run_routes.py <port>",
       "spec": "route_test.json",
-      "date": "2026-09-30"
+      "date": "2026-10-01"
     },
     {
-      "what": "mail flow with a real imap.qq.com rejection in card-host (reference mail service)",
-      "result": "recorded service-side trace with the server's verbatim NO; re-runnable",
+      "what": "layout audits, four widths",
+      "result": "940 / 1000 / 1200 / 1440 all clean (overflow) and complete (content presence)",
+      "command": "python scripts/audit_overflow.py 940 1000 1200 1440; python scripts/audit_missing.py 940 1000 1200 1440",
+      "date": "2026-10-01"
+    },
+    {
+      "what": "mail flow with a real server rejection in card-host (reference mail service)",
+      "result": "recorded service-side trace with the server's verbatim NO; re-runnable (settings -> add account -> sheet)",
       "command": "python scripts/drive-mail.py <port>",
-      "where": "evidence/ev-mail-log.txt"
+      "where": "evidence/ev-mail-log.txt, evidence/ev-13..16.png"
     },
     {
-      "what": "same bundle inside the real OctoSense desktop shell: official sign-in sheet, real IMAP rejection, real model calls (MiniMax)",
-      "result": "captures + logs",
-      "command": "python scripts/official_sheet_run.py <port>; python scripts/ai_test.py <port>",
-      "where": "evidence/ev-17..19.png, ev-22..24.png, ev-octosense-log.txt, ev-ai-test-log.txt"
+      "what": "real mailbox end-to-end inside the OctoSense desktop shell (yeah.net via IMAP)",
+      "result": "connected account; mail.sync fetched the real INBOX and the app listed 5 real messages",
+      "command": "run.cmd shell; settings -> refresh",
+      "date": "2026-10-01"
     }
   ],
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
     "image-parity / visual-similarity gates (an image-to-card concept; not applicable to a script app — listing screenshots are real captures, human-reviewed)",
-    "publisher keygen, manifest signing and the OctoSense-App-Hub submission issue (human steps)"
+    "real model calls re-captured on the 0.6.x UI (the flow passed with MiniMax at 0.5.x; the driver scripts remain, the captures were retired with the old UI)",
+    "the OctoSense-App-Hub submission issue (human step)"
   ],
   "practice_data": "the Agent squad, the activity stream and the send-failure switch are labelled local practice data; the mail and model paths are real host-service calls"
 }

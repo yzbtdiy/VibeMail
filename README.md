@@ -8,9 +8,9 @@ AI 能力经宿主 model 服务完成——凭据与密钥始终留在宿主侧,
 | | |
 | --- | --- |
 | 应用 ID / 版本 | `vibemail` / **0.6.10** |
-| 门禁状态 | `hub check` — **PASSED**(仅余未签名警告,签名属人工步骤) |
+| 门禁状态 | `hub check --publisher-key` — **PASSED,零警告**(发行者已签名) |
 | 申请能力 | `mail` + `model`(共两项,按最小化原则) |
-| 实测平台 | Windows 10(26100)——唯一实测平台,布局审计宽度 1000 / 1200 / 1440 |
+| 实测平台 | Windows 10(26100)——唯一实测平台,布局审计宽度 940 / 1000 / 1200 / 1440 |
 | 提交物 | `bundle/`(manifest、listing、main.splash、icon、5 张真实截图) |
 | 类别 / 分级 | productivity / all |
 
@@ -72,11 +72,12 @@ AI 能力经宿主 model 服务完成——凭据与密钥始终留在宿主侧,
 ## 目录结构
 
 ```text
-route_test.json 声明式路线测试:4 条点击路线(原地阅读与模型不可用态 /
-               两步确认发送 / 故障-保留-重试 / Agent 审批与主题切换)
+route_test.json 声明式路线测试:6 条点击路线(原地阅读与模型不可用态 /
+               两步确认发送 / 故障-保留-重试 / Agent 审批与主题切换 /
+               侧栏文件夹与 AI 分类筛选 / 通知·日历·设置面板)
 validation.json 机器可读状态清单:已验证项与未验证边界(诚实记录)
-source/        设计源:重做所参照的网页源码 + design-brief.md
-               (调色板、逐视图要点、响应式规则)
+docs/          design-brief.md:设计系统与实现映射(调色板、组件语言、
+               布局数学、与网页参照的取舍)
 service/       回复生命周期 reducer(controller.py,main.splash 状态机的
                验证孪生)+ unittest(test_controller.py,8 用例)
 bridge/        开发层(现为可选):IMAP/SMTP ↔ 本机 HTTP 网桥(凭据只存
@@ -89,21 +90,21 @@ scripts/       run_app.py:run.cmd 的内核(launch / demo / mail / shell /
                跑完整演示任务并截取全部证据(驱动会把真实鼠标停靠到
                远处——OS 光标事件会吞掉合成点击)
                drive-mail.py:驱动提交包在 card-host 中走平台 mail 服务
-               (无账号态 → 宿主登录面板 → 真实拒绝 → 取消;截图可再生)
-               official_sheet_run.py:同一流程在 OctoSense 桌面 Shell 内
-               (官方面板 + 官方服务的真实 imap.qq.com 拒绝)
-               ai_test.py:Shell 内 AI 摘要 / 起草驱动(ev-22..24)
-               audit_missing / audit_overflow:宽度审计
-               dev_bundle.py:组装 build/dev-bundle(仅开发,不入库)
+               (设置面板 → 宿主登录面板 → 真实拒绝 → 取消;截图可再生)
                run_routes.py:执行 route_test.json 的通用路线跑器
-               (失败时把截图 / 组件树 / 日志落到 evidence/routes/)
+               audit_missing / audit_overflow:宽度审计(940..1440 四档)
+               mailbox_probe.py:只读 IMAP 自检(列出服务器各文件夹件数)
+               check_splash.py:main.splash 括号平衡静态检查
+               official_sheet_run.py / ai_test.py:Shell 内流程驱动
+               (0.5.x 时代证据;当前账号已连接,重跑需先断开)
+               dev_bundle.py:组装 build/dev-bundle(仅开发,不入库)
 evidence/      运行证据(见下文「运行证据」)
 bundle/        THE SUBMISSION —— 唯一提交部分
-  manifest.json    id、版本、能力、完整性哈希(hub stamp 写入)
+  manifest.json    id、版本、能力、完整性哈希(hub stamp 写入)、发行者签名
   listing.json     商店展示信息(副标题、描述、截图、发布者)
   main.splash      应用本体(Splash 脚本,无编译步骤)
   assets/icon.svg  图标(listing 所指)
-  screenshots/     01..05 真实截取(inbox / read / write / agents / light)
+  screenshots/     01..05 真实截取(inbox / read / write / agents / dark)
 ```
 
 ## 环境要求
@@ -125,9 +126,9 @@ bundle/        THE SUBMISSION —— 唯一提交部分
 | `run.cmd` | 以桌面宽度(1200×860)在 card-host 中启动应用 |
 | `run.cmd mobile` | 以手机宽度(412×860)启动(不支持的布局,仅供对照) |
 | `run.cmd demo` | 桌面宽度 + 完整证据演示(drive-demo.py) |
-| `run.cmd mail` | 商店形态邮件流程(宿主面板 → 真实拒绝 → 取消) |
-| `run.cmd shell` | 启动真实 OctoSense 桌面 Shell(本地签名 hub) |
-| `run.cmd shell-drive` | Shell + official_sheet_run.py(ev-17..19 流程) |
+| `run.cmd mail` | 商店形态邮件流程(设置 → 宿主面板 → 真实拒绝 → 取消) |
+| `run.cmd shell` | 启动真实 OctoSense 桌面 Shell(本地签名 hub,真实邮箱可用) |
+| `run.cmd shell-drive` | Shell + official_sheet_run.py(官方面板流程,需未添加账号态) |
 | `run.cmd check` | 单元测试 + hub stamp + hub 门禁检查 |
 | `run.cmd stop` | 结束全部测试实例(card-host / octosense) |
 
@@ -146,10 +147,10 @@ cd ../OctoSense-App-Hub && cargo build --release -p octosense-card-host
 ```sh
 python -m unittest discover -s service      # 状态机单测
 set MAKEPAD_REMOTE=8146
-rem 路线回归:route_test.json 的 4 条路线,真实点击 + 逐步断言
+rem 路线回归:route_test.json 的 6 条路线,真实点击 + 逐步断言
 start "" D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe --bundle bundle ^
     --app-data .local-state --allow-unsigned --stamp --size 1200x860
-python scripts/run_routes.py 8146           # 4/4 路线通过则退出码 0
+python scripts/run_routes.py 8146           # 6/6 路线通过则退出码 0
 curl -s 127.0.0.1:8146/quit
 rem 证据流:重起一个新实例,重写 bundle/screenshots 与 evidence/
 start "" D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe --bundle bundle ^
@@ -157,12 +158,13 @@ start "" D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe --bundle bund
 python scripts/drive-demo.py 8146           # 完整生命周期 + 模型不可用态
 python scripts/drive-mail.py 8146           # 商店形态邮件:面板/真实拒绝/取消
 ../OctoSense-App-Hub/target/release/hub.exe stamp bundle
-../OctoSense-App-Hub/target/release/hub.exe check bundle --allow-unsigned
+../OctoSense-App-Hub/target/release/hub.exe check bundle --publisher-key yzbtdiy=<公钥>
 ```
 
-接入自己的邮箱:运行 card-host,点「添加账号」,在**宿主面板**里输入邮箱地址和服务商
-授权码(QQ / 163 / Gmail 自动识别服务器)。授权码只存宿主侧
-(`.local-state/.host/mail/`),不经过应用,也绝不进入提交包。
+接入自己的邮箱:运行应用,左下角「设置 → 邮箱账号 → 添加账号」,在**宿主面板**里
+输入邮箱地址和服务商授权码(QQ / 163 / Gmail 自动识别服务器)。授权码只存宿主侧,
+不经过应用,也绝不进入提交包。已连接后「设置 → 刷新」拉取新邮件(宿主服务只列
+INBOX 最新 20 封;订阅/广告等自动分类文件夹不计入)。
 
 核心演示任务(对应评分「任务完成 / 可靠运行 / 人机协作」):**识别**(AI 分诊横幅 +
 优先级条 + 摘要卡)→ **提议**(可编辑 AI 草稿、明确收件人、语气、一键智能回复)→
@@ -187,42 +189,57 @@ python scripts/official_sheet_run.py 8147
 ```
 
 Shell 经签名验证的目录准入提交包(同 id、同字节),将其作为窗口管理器客户端启动,
-并由**自带的 Mail 服务**处理 `mail.*`:「添加账号」唤起官方「OctoSense · Add a
-mail account」面板(地址 / 密码 / IMAP-POP3 / 服务器端口),错误凭据被真实
-`imap.qq.com:993` 拒绝(ev-19)。该 Shell 同时注册 `model` 服务——配置过 providers
-的话,应用的 AI 按钮在此环境中走真实一次性模型调用(AI 摘要与起草已在 Shell 中对
-接真实配置的 MiniMax 实测通过,见 ev-22/ev-23)。
+并由**自带的 Mail 服务**处理 `mail.*`:「设置 → 添加账号」唤起官方「OctoSense ·
+Add a mail account」面板(地址 / 密码 / IMAP-POP3 / 服务器端口),错误凭据被真实
+服务器拒绝;连接成功后应用内「刷新」经 `mail.sync` 拉取真实收件箱(0.6.10 实测
+yeah.net)。该 Shell 同时注册 `model` 服务——配置过 providers 的话,应用的 AI
+按钮在此环境中走真实一次性模型调用(0.5.x 时代已对接真实配置的 MiniMax 实测通过,
+界面文案未变)。
 
 ## 运行证据
 
-`evidence/` 下全部为真实运行截取 / 记录(截图逐张人工核验):
+`evidence/` 下全部为真实运行截取 / 记录(截图逐张人工核验;ev-01..16 与 ev-21 为
+0.6.x 界面重新捕获):
 
 | 证据 | 内容 |
 | --- | --- |
 | `ev-01..08.png` | 回复生命周期:草稿待发送 / 确认 / 已发送 / 收件箱胶囊同步 / 失败 / 草稿保留 / 重试成功 / Agent 审批 |
 | `ev-09/10.png` | 模型不可用态(宿主原文拒绝 + 本地回退标注) |
-| `ev-17..19.png` | OctoSense 桌面 Shell 内:应用作为 WM 客户端运行 / 官方 Add-a-mail-account 面板 / 官方服务真实 IMAP 拒绝 |
-| `ev-21..24.png` | 亮色主题 / Shell 内真实 AI 摘要与起草(MiniMax)/ 模型名胶囊 |
+| `ev-13..16.png` | 商店形态邮件流程:未添加账号态 / 宿主登录面板(设置内发起)/ 错误凭据真实拒绝 / 取消回未添加态 |
+| `ev-21.png` | 森林墨绿暗色主题(顶栏胶囊切换,内容布局不变) |
 | `ev-mail-log.txt` | card-host 邮件流程服务侧留痕(`add_account / sheet.submit / sign-in failed / sheet.retry / sheet.cancel`,含 imap.qq.com 原文拒绝) |
-| `ev-octosense-log.txt`、`ev-ai-test-log.txt` | Shell 运行与 AI 测试日志 |
 | `final-snap.json`、`final-log.txt` | 演示结束时的完整组件树与 card-host 日志 |
 | `hub/` | 评审包:`review.json`(hub scan 问题包)+ `SUBMISSION.md`(七问书面回答 + 复现说明) |
 
+0.5.x 时代在 OctoSense 桌面 Shell 内的官方面板 / 真实 IMAP 拒绝 / 真实模型调用
+(MiniMax)截图已随界面演进移除;对应驱动脚本仍在(`official_sheet_run.py` /
+`ai_test.py`),流程逻辑未变,可在未添加账号状态下重跑复现。
+
 练习数据边界(按黑客松 FAQ):Agent 小队、活动流与发送失败模拟为本地练习数据;邮件
-路径是**真实的**(平台 mail 宿主服务,凭据在宿主面板收集、宿主侧保存);模型调用是
-**真实的宿主请求**(一次性、schema 校验)。
+路径是**真实的**(平台 mail 宿主服务,凭据在宿主面板收集、宿主侧保存;0.6.10 实测
+yeah.net 真实邮箱 5 封落列表);模型调用是**真实的宿主请求**(一次性、schema 校验)。
 
 ## 状态与剩余人工步骤
 
-- `hub check`:`vibemail 0.6.0 — PASSED`(本地 hub 已按 sequence 16 收录 0.6.0 并
-  发行者签名,见 `../octosense-local-hub/`;`run.cmd shell` 即运行该版本)
+- **发行者签名已完成,门禁零警告**:
+
+  ```sh
+  hub keygen <仓库外路径>/publisher-yzbtdiy.key     # 私钥保存在仓库之外
+  hub stamp bundle
+  hub sign-manifest bundle --key <该密钥> --key-id yzbtdiy
+  hub check bundle --publisher-key yzbtdiy=1095438c3939742da32f74fbcc724ae452b3f1e22e4ebe9cd834c24b2b2b5759
+  # → vibemail 0.6.10 — PASSED(无任何警告)
+  ```
+
+- 本地演示 hub:`../octosense-local-hub/` 已收录 0.6.10(sequence 26),
+  `run.cmd shell` 即运行该版本;其副本按本地 hub 规则用工作密钥签名,与提交副本
+  仅差发行者签名块
 - 机器可读的状态清单(已验证项 / 未验证边界)见 [validation.json](validation.json)
 - 剩余人工步骤(发布者本人):
-  1. `hub keygen`(密钥保存在仓库之外)
-  2. `hub sign-manifest bundle --key … --key-id <publisher-id>`
-  3. `hub check bundle --publisher-key <id>=<hex>` → 无警告 PASSED
-  4. 打 tag 并在 [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub/issues)
-     开 `Submit vibemail 0.6.0` issue(附 `evidence/hub/SUBMISSION.md`)
+  1. 打 tag(`v0.6.10`)并在
+     [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub/issues)
+     开 `Submit vibemail 0.6.10` issue(附 `evidence/hub/SUBMISSION.md`,按 0.6.10
+     更新后提交)
 
 ## 隐私
 
