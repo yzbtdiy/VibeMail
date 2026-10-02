@@ -9,19 +9,31 @@ main:
         image: docker.cnb.cool/opensource.cool/octo-env:latest
       stages:
         - name: Linux 构建验证 (service 单元测试 + hub 签名门禁)
-          script: bash ci/verify.sh
-        - name: 记录验证结果
           script: |
-            set -e
+            set +e
+            LOG=/tmp/verify.log
+            bash ci/verify.sh > "$LOG" 2>&1
+            RC=$?
+            cat "$LOG"
+            echo "verify exit: $RC"
             cd /workspace
             git config user.name "cnb-pipeline"
             git config user.email "pipeline@noreply.cnb.cool"
             git checkout -q -B ci-status
-            printf '# VibeMail Linux 验证\n- 状态: PASSED\n- 完成(UTC): %s\n- 提交: %s\n\n单元测试(service)与 hub 签名门禁(--publisher-key)全部通过\n' \
-              "$(date -u +%FT%TZ)" "$(git rev-parse --short HEAD~0 2>/dev/null || git rev-parse --short HEAD)" > CI-STATUS.md
+            if [ "$RC" = 0 ]; then S=PASSED; else S=FAILED; fi
+            { echo "# VibeMail Linux 验证"
+              echo "- 状态: $S"
+              echo "- 完成(UTC): $(date -u +%FT%TZ)"
+              echo "- 提交: $(git rev-parse --short verify-base 2>/dev/null || echo n/a)"
+              echo
+              echo '```'
+              tail -40 "$LOG"
+              echo '```'
+            } > CI-STATUS.md
             git add CI-STATUS.md
-            git commit -qm "ci: PASSED $(date -u +%FT%TZ)"
+            git commit -qm "ci: $S $(date -u +%FT%TZ)"
             git push -q -f origin ci-status
+            exit $RC
 
 $:
   push:
