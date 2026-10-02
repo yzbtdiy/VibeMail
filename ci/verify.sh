@@ -15,6 +15,27 @@ command -v hub || {
   exit 1
 }
 
+echo '==> 恢复发行者盖章字节 (Windows autocrlf: 文本文件按 CRLF 盖章签名)'
+# 签名时的工作区是 autocrlf 检出的 CRLF 字节,入库被转为 LF;
+# Linux 检出为 LF 导致摘要不匹配。这里把 bundle 内文本文件恢复为
+# CRLF 字节(等价于发行者的 Windows 检出),签名验证才对着盖章字节进行。
+python3 - <<'EOF'
+import pathlib
+root = pathlib.Path('bundle')
+changed = []
+for p in root.rglob('*'):
+    if not p.is_file():
+        continue
+    b = p.read_bytes()
+    if b'\x00' in b:            # 二进制(PNG 等)不动
+        continue
+    if b'\r\n' in b:            # 已是 CRLF
+        continue
+    p.write_bytes(b.replace(b'\n', b'\r\n'))
+    changed.append(str(p))
+print(f'crlf-restored: {len(changed)} file(s)')
+EOF
+
 echo '==> [1/2] service 单元测试'
 python3 -m unittest discover -s service -v
 

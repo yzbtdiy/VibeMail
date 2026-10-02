@@ -24,7 +24,7 @@ main:
             { echo "# VibeMail Linux 验证"
               echo "- 状态: $S"
               echo "- 完成(UTC): $(date -u +%FT%TZ)"
-              echo "- 提交: $(git rev-parse --short verify-base 2>/dev/null || echo n/a)"
+              echo "- 提交: $(git rev-parse --short HEAD)"
               echo
               echo '```'
               tail -40 "$LOG"
