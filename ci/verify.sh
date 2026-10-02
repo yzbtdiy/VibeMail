@@ -35,8 +35,9 @@ echo '==> [1/3] service 单元测试'
 python3 -m unittest discover -s service -v
 
 echo '==> [2/3] Windows 约定摘要复验 (与清单声明严格比对)'
-python3 -m pip install --quiet blake3 2>/dev/null || \
-  { apt-get update -qq && apt-get install -y -qq python3-pip >/dev/null && python3 -m pip install --quiet blake3; }
+python3 -m pip install --quiet --break-system-packages blake3 2>/dev/null || \
+  { apt-get update -qq && apt-get install -y -qq python3-pip >/dev/null \
+    && python3 -m pip install --quiet --break-system-packages blake3; }
 python3 - <<'EOF'
 import json, pathlib, sys
 import blake3
