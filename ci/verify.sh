@@ -62,8 +62,34 @@ if digest != claim.lower():
 print('digest-ok')
 EOF
 
-echo '==> [3/3] hub 结构门禁 (Linux 重戳副本, --allow-unsigned)'
+echo '==> [3/3] hub 结构门禁 (副本:剥离签名+写入Linux摘要后 --allow-unsigned)'
 rm -rf /tmp/bundle-gate && cp -r bundle /tmp/bundle-gate
-hub check /tmp/bundle-gate --stamp --allow-unsigned
+python3 - <<'EOF'
+import json, pathlib
+import blake3
+
+root = pathlib.Path('/tmp/bundle-gate')
+
+def digest(sep: str) -> str:
+    rels = sorted(p.relative_to(root).as_posix()
+                  for p in root.rglob('*')
+                  if p.is_file() and p.name != 'manifest.json')
+    h = blake3.blake3()
+    for rel in rels:
+        b = (root / rel).read_bytes()
+        h.update(rel.replace('/', sep).encode())
+        h.update(b'\x00')
+        h.update(len(b).to_bytes(8, 'little'))
+        h.update(b)
+    return h.hexdigest()
+
+mf = root / 'manifest.json'
+m = json.loads(mf.read_text())
+m['integrity']['signature'] = None          # 结构门禁副本:剥签名
+m['integrity']['bundle_blake3'] = digest('/')  # Linux 分隔符摘要
+mf.write_text(json.dumps(m, ensure_ascii=False, indent=2))
+print('gate manifest prepared (linux digest)')
+EOF
+hub check /tmp/bundle-gate --allow-unsigned
 
 echo '==> Linux 构建验证全部通过'
