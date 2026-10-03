@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-"""Missing-content audit: walk each screen SCROLLING through it, and diff the
-texts that SHOULD be visible against what /snap actually reports. In this
-stack a squeezed widget vanishes from the tree entirely (its rect never
-overflows), so right-edge audits cannot see it — presence checks can.
+"""Missing-content audit: for each width, boot a FRESH instance per screen
+and diff the texts that SHOULD be visible against what /snap reports while
+sweeping the single scroll column. In this stack a squeezed widget vanishes
+from the tree entirely (its rect never overflows), so right-edge audits
+cannot see it — presence checks can.
+
+One fresh boot per (width, screen): a long-lived instance that harvests,
+taps, harvests again fights several bridge/runtime quirks at once (clicks
+riding scroll drift, screens flipping back after async host replies — both
+probed); every probe of the boot-tap-harvest pattern is stable.
 
 usage: python scripts/audit_missing.py [width ...]   (default 412 700 1200)
 """
@@ -20,213 +26,214 @@ CARD_HOST = r"D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe"
 PORT = "8145"
 BASE = f"http://127.0.0.1:{PORT}"
 
+
 def get(p):
     return urllib.request.urlopen(BASE + p, timeout=15).read()
 
+
 def snap():
     return json.loads(get("/snap").decode("utf-8"))["s"]
+
 
 def visible_texts():
     """Everything currently in the (visible) tree."""
     return {w.get("t", "") for w in snap() if w.get("t") and w.get("ty") != "Splash"}
 
-def harvest_screen(w):
-    """Sweep each independently-scrolling pane top-to-bottom, collecting
-    every visible text (0.5.1: the panes scroll separately). Pane centres
-    for the 0.6.0 full sidebar layout: sidebar ≈132, list ≈474 (264+420/2),
-    reader = 686..w (centre), and the right rail (compose AI / agents feed)
-    hugs the right edge (340 wide)."""
-    cols = (132, 474, 686 + (w - 686) // 2, w - 170)
-    seen = set()
-    for x in cols:
-        for _ in range(3):                   # to top (wheel is heavily scaled)
-            get(f"/m?k=scroll&x={x}&y=400&dy=-6000")
-            time.sleep(0.25)
-        for _ in range(14):
-            seen |= visible_texts()
-            get(f"/m?k=scroll&x={x}&y=400&dy=700")
-            time.sleep(0.5)
-    seen |= visible_texts()
-    return seen
 
-def tap_nav_agent():
-    """Click the sidebar's Agent row EXACTLY — the top-bar title says the
-    same words, so the hit must stay inside the 264px sidebar (x < 280)."""
+def find(text, exact=False):
     for w in snap():
-        if w.get("ty") != "Splash" and w.get("t") == "Agent 小队":
+        if w.get("ty") == "Splash":
+            continue
+        t = w.get("t", "")
+        if (exact and t == text) or (not exact and t and text in t):
             x, y, ww, h = w["r"]
-            if x < 280 and 29 < y < 766:
-                get(f"/click?x={x + ww // 2:.0f}&y={y + h // 2:.0f}&wait=1")
-                time.sleep(1.4)
-                return True
-    return False
+            return (x + ww / 2, y + h / 2)
+    return None
 
-def tap(text):
-    # /snap holds only the VISIBLE viewport: an off-screen target (above or
-    # below) is simply absent, so the search alternates up/down hard scrolls
-    for n in range(10):
-        pos = None
-        for w in snap():
-            if w.get("ty") != "Splash" and w.get("t") and text in w["t"]:
-                x, y, ww, h = w["r"]
-                pos = (x + ww / 2, y + h / 2)
-                break
-        if pos and (29 < pos[1] < 766 or 776 < pos[1] < 855):
-            get(f"/click?x={pos[0]:.0f}&y={pos[1]:.0f}&wait=1")
-            time.sleep(1.4)
-            return True
-        dy = (-2400 if n % 2 == 0 else 600)
-        get(f"/m?k=scroll&x={ (132, 474, CUR_W - 170)[n % 3] }&y=400&dy={dy}")
-        time.sleep(0.5)
-    return False
 
-EXPECTED = {
-    "inbox": [
-        "智能收件箱", "Vibe Agent 已整理今日", "未添加邮箱账号",
-        "全部", "紧急", "需回复", "可稍后",
-        "VIBE AGENT · 运行中", "问 Vibe Agent",
-        # 0.6.0 full sidebar: brand, CTA, nav, folders, clusters, mini card
-        "VibeMail", "AGENTIC MAIL", "写信 · AI 起草", "Ctrl N",
-        "收件箱", "Agent 小队",
-        "邮箱", "已加星标", "稍后处理", "已发送", "草稿", "归档", "垃圾箱",
-        "AI 智能分类", "工作", "财务", "订阅", "社交",
-        "AGENT ACTIVE", "1.4h", "我",
-        # every row: sender + subject + priority score + first two labels
-        "林晓薇", "Re: Q4 联名方案 — 报价确认与签署排期", "合同", "今天 18:00", "94",
-        "VibeMail 产品团队", "你的周报已生成:Agent 本周为你节省了 3.2 小时", "周报", "自动摘要", "61",
-        "陈立群 · 招聘委员会", "终面反馈:高级产品设计师候选人", "招聘", "决策待办", "88",
-        "Stripe", "发票 INV-2026-0917:云服务用量 ¥4,280.00", "发票", "55",
-        "GitHub", "[vibemail/core] PR #482:Agent 调度器重构 请求你评审", "代码评审", "CI 通过", "72",
-        "妈妈", "中秋回家的车票订好了吗?", "家人", "90",
-        "AWS Summit", "早鸟票最后 48 小时:AWS Summit 上海 2026", "营销", "28",
-        "沈括 · 数据平台", "数据看板权限申请已通过", "系统通知", "40",
-        # desktop: the reader placeholder is visible before any selection
-        "选择一封邮件开始阅读",
-    ],
-    "read-mail0": [
-        # desktop: the reader pane fills IN PLACE — the list stays visible
-        "邮件详情 · THREAD",
-        "合同", "今天 18:00", "需回复",
-        "林晓薇", "xiaowei.lin@", "今天 09:42",
-        # 0.6.0: the AI brief is INLINE in the reading pane (no copilot column)
-        "AI 速览 · BRIEF", "AI 生成",
-        "对方已确认报价 v3,财务初审通过",
-        "唯一变更:第 7 条付款节点改为 30 天账期",
-        "希望本周五 18:00 前完成电子签署",
-        "提议下周二 10:30 线上 kickoff",
-        "由 Vibe Agent 生成",
-        "待办提取", "确认接受账期调整", "回复签署排期意向", "将 kickoff 加入日历",
-        "积极 · 推进中",
-        "智能回复 · SMART REPLIES",
-        "确认条款并安排签署", "账期需内部审批,申请延期", "转发给法务复核",
-        "AI 识别到会议意向", "Q4 联名 Kickoff", "周二 10:30 – 11:30", "线上会议",
-        "加入日历", "协商改期",
-        "回复", "转发",
-    ],
-    "write": [
-        "AI 写信", "新邮件", "AI-ASSISTED DRAFT", "COMPOSE WITH AI",
-        "收件人", "林晓薇", "主题",
-        "Re: Q4 联名方案 — 报价确认与签署排期",
-        # all four tone chips + the trailing notes
-        "专业", "友好", "简洁", "有说服力", "已引用原始邮件", "长度:适中",
-        "AI 草稿 · 语气:", "本地模板",
-        "采用草稿", "重新生成",
-        "发送 →", "草稿已自动保存 · 09:47",
-        "描述你想表达的内容", "告诉 AI 你想表达什么",
-        "生成草稿", "GPT-Vibe 4",
-        "试试这样开始", "跟进上周的报价", "婉拒一个会议邀请", "请求延期交付", "约客户下周面谈",
-        "AI 上下文", "引用当前邮件线程", "练习:模拟服务中断",
-    ],
-    "agents": [
-        "Agent 小队", "运行中的 AGENT", "今日已完成任务", "本周节省时间", "待你审批",
-        "12", "3.2h",
-        "我的 AGENT 小队", "SQUAD · 4 UNITS",
-        "跟进卫士", "日程管家", "订阅清理", "周报生成",
-        "监控 12 个线程", "本周已排 5 场会议", "已合并 14 个订阅源", "下次生成:周五 17:00",
-        "自动化程度", "SEMI-AUTO", "仅建议", "半自动 · 关键动作需审批", "全自动",
-        "实时活动流", "LIVE",
-        "检测到「Q4 联名方案」超 20h 未回复,已起草跟进邮件",
-        "拒绝了与 kickoff 冲突的 1 个会议邀请",
-        "批准", "忽略",
-    ],
-}
+def wait_scroll_stable(timeout=6.0):
+    """Wheel injection arms inertia and rubber-band bounce; sample a
+    viewport landmark until three reads 0.3s apart agree."""
+    def landmark():
+        ys = sorted(w["r"][1] for w in snap()
+                    if w.get("r") and w.get("ty") not in (None, "Window", "KeyboardView", "Splash"))
+        return tuple(ys[:12]) or None
+    t0 = time.time()
+    streak = 0
+    last = None
+    while time.time() - t0 < timeout:
+        cur = landmark()
+        if last is not None and cur == last:
+            streak += 1
+            if streak >= 3:
+                return
+        else:
+            streak = 0
+        last = cur
+        time.sleep(0.3)
 
-CUR_W = 1200
 
-# 0.6.0: the AI brief lives INLINE in the reading pane (one Fill column), so
-# nothing is copilot-specific any more — no narrow-width drop list.
-COPILOT_ONLY = set()
-
-def audit(width):
-    global CUR_W
-    CUR_W = width
+def boot(width, pre_tap=None, expect=None, exact=False, tries=4):
+    """Fresh card-host at width; optionally one stable tap (pre_tap) whose
+    effect is verified by `expect`. Returns (proc, harvested_texts_fn)."""
     subprocess.run(["taskkill", "/im", "card-host.exe", "/f"], capture_output=True)
-    time.sleep(1.5)
+    time.sleep(1.2)
     env = dict(os.environ, MAKEPAD_REMOTE=PORT)
+    bundle = "build/run-bundle" if (APP / "build/run-bundle/manifest.json").exists() else "bundle"
     proc = subprocess.Popen(
-        [CARD_HOST, "--bundle", "bundle", "--app-data", ".local-state-audit",
+        [CARD_HOST, "--bundle", bundle,
+         "--app-data", ".local-state-audit",
          "--allow-unsigned", "--stamp", "--size", f"{width}x860"],
         cwd=APP, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     t0 = time.time()
     while time.time() - t0 < 20:
         try:
             get("/log?n=1")
-            if any("已整理今日" in t or "未添加邮箱账号" in t for t in visible_texts()):
+            if find("未读邮件") or find("未添加邮箱账号"):
                 break
         except OSError:
             pass
         time.sleep(0.6)
-    ctypes.windll.user32.SetCursorPos(ctypes.windll.user32.GetSystemMetrics(0)//2, ctypes.windll.user32.GetSystemMetrics(1)-12)
+    ctypes.windll.user32.SetCursorPos(
+        ctypes.windll.user32.GetSystemMetrics(0) // 2,
+        ctypes.windll.user32.GetSystemMetrics(1) - 12)
+    time.sleep(1.5)          # let the boot repaint + mail reply land
 
+    if pre_tap:
+        for n in range(tries):
+            if expect and find(expect):
+                break
+            pos = find(pre_tap, exact)
+            if pos:
+                get(f"/click?x={pos[0]:.0f}&y={pos[1]:.0f}&wait=1")
+                time.sleep(1.4)
+        if expect and not find(expect):
+            proc.kill()
+            raise RuntimeError(f"tap {pre_tap!r} never produced {expect!r}")
+    return proc
+
+
+def harvest(sx):
+    """Sweep the single scroll column top-to-bottom in SMALL steps (a big
+    dy flings past a short screen and the middle texts are never sampled),
+    collecting every visible text."""
+    seen = set()
+    for _ in range(3):
+        get(f"/m?k=scroll&x={sx}&y=400&dy=-6000")
+        time.sleep(0.25)
+    wait_scroll_stable()
+    for _ in range(26):
+        seen |= visible_texts()
+        get(f"/m?k=scroll&x={sx}&y=400&dy=300")
+        time.sleep(0.35)
+    seen |= visible_texts()
+    wait_scroll_stable()
+    return seen
+
+
+EXPECTED = {
+    "inbox": [
+        "未读邮件", "今天有", "未添加邮箱账号",
+        "全部", "专注", "愉悦", "平静", "灵感", "连接",
+        # every card: sender + subject + snippet head + vibe chip + score
+        "Mira", "周末去海边", "就是上次你说想住的那家",
+        "云服务账单", "10 月账单已生成", "本期用量超出套餐",
+        "产品周报 · Aurora", "第 42 期", "这周我们学会的第一件事",
+        "GitHub", "你关注的仓库本周有 14 个更新", "新增 headless 测试章节",
+        "读书会 · 山雾小组", "十一月共读书目投票", "目前《夜晚的潜水艇》7 票",
+        "外婆", "院子里的桂花开了", "今年开得早",
+        "设计系统双周报", "Vol.19 高斯模糊", "从 aurora 渐变到毛玻璃",
+        "HR · OctoSense", "黑客松作品提交确认", "请在周三前确认",
+        "重要度 92", "重要度 86", "重要度 95",
+        "收件箱", "星轨", "写信", "我的",
+    ],
+    "detail-mira": [
+        "收件箱",  # the back row
+        "愉悦",
+        "周末去海边吗?我订到那间玻璃小屋了!",
+        "Mira · mira@octomail.io · 08:47",
+        "AI 三行摘要", "练习摘要",
+        "Mira 订到了心仪的海边玻璃小屋",
+        "周六早出发、周日傍晚返回",
+        "需要你回复选择哪一班火车",
+        "就是上次你说想住的那家,推开窗就是海。",
+        "星标", "归档", "回复",
+    ],
+    "orbit": [
+        "星轨", "气泡大小 = 重要度 · 颜色 = vibe · 点按打开",
+        # 0.7.1: bubbles show the short display name (bname), like the
+        # reference's sender.slice(0, 6)
+        "Mira", "云服务账单", "产品周报", "GitHub",
+        "读书会", "外婆", "设计双周报", "HR",
+    ],
+    "write": [
+        "写信", "收件人", "mira@octomail.io", "主题", "Re: 周末去海边吗?",
+        "语气滑杆 · AI 实时改写", "真诚", "友好", "正式", "回信预览",
+        "发送",
+    ],
+    "set": [
+        "设置", "外观主题", "暖纸亮色 / 炭黑暗色",
+        "跟随系统", "亮色", "暗色", "当前:",
+        "OctoSense 能力声明", "最小权限 · 密码由平台保管",
+        "mail", "storage", "model", "刻意不声明",
+        # card-host: the reference mail service answers with no account ->
+        # 添加账号; the 重试连接 button only exists in the error states
+        "邮箱账号", "添加账号",
+        "练习:模拟发送失败", "账号", "me@octomail.io",
+        "VibeMail 0.7.2",
+    ],
+}
+
+# screen -> (pre_tap, expect): one stable tap after boot, verified.
+# Nav labels MUST be exact: e.g. the inbox digest line "…在「我的」里添加"
+# substring-matches 我的 and swallows the click (probed).
+SCREENS = [
+    ("inbox", None, None),
+    ("detail-mira", "周末去海边", "mira@octomail.io"),
+    ("orbit", "星轨", "气泡大小", True),
+    ("write", "写信", "语气滑杆", True),
+    ("set", "我的", "外观主题", True),
+]
+
+
+def audit_width(width):
+    sx = width // 2          # the phone column is centred
     missing = {}
-    seen = harvest_screen(width)
-    want_in = [e for e in EXPECTED["inbox"]
-               if not (width < 1150 and e in COPILOT_ONLY)]
-    missing["inbox"] = [e for e in want_in if not any(e in t for t in seen)]
-
-    if tap("Re: Q4 联名方案"):
-        time.sleep(1.0)
-        seen = harvest_screen(width)
-        want = [e for e in EXPECTED["read-mail0"]
-                if not (width < 1150 and e in COPILOT_ONLY)]
-        missing["read-mail0"] = [e for e in want if not any(e in t for t in seen)]
-        # desktop: selecting a mail fills the reader pane in place; the
-        # placeholder line below only exists when NOTHING is selected, so
-        # drop it from the post-click check
-        missing["read-mail0"] = [e for e in missing["read-mail0"]
-                                 if e != "选择一封邮件开始阅读"]
-
-    if tap("写信"):
-        time.sleep(1.0)
-        seen = harvest_screen(width)
-        missing["write"] = [e for e in EXPECTED["write"] if not any(e in t for t in seen)]
-
-    # the nav bar is global — jump straight from wherever we are
-    if tap_nav_agent():
-        time.sleep(1.0)
-        seen = harvest_screen(width)
-        missing["agents"] = [e for e in EXPECTED["agents"] if not any(e in t for t in seen)]
-
-    proc.kill()
+    for row in SCREENS:
+        name, pre_tap, expect = row[0], row[1], row[2]
+        exact = row[3] if len(row) > 3 else False
+        try:
+            proc = boot(width, pre_tap, expect, exact)
+        except RuntimeError as e:
+            missing[name] = [f"BOOT/TAP FAILED: {e}"]
+            continue
+        seen = harvest(sx)
+        proc.kill()
+        absent = [e for e in EXPECTED[name] if not any(e in t for t in seen)]
+        missing[name] = absent
+        print(f"  [{name}] {'complete' if not absent else 'MISSING ' + str(len(absent))}",
+              flush=True)
+        for a in absent:
+            print(f"    - {a!r}")
     return missing
 
+
 def main():
-    widths = [int(a) for a in sys.argv[1:]] or [1000, 1200, 1440]
+    widths = [int(a) for a in sys.argv[1:]] or [412, 700, 1200]
     report = []
     for w in widths:
         print(f"=== {w}px ===", flush=True)
-        miss = audit(w)
+        miss = audit_width(w)
         for screen, absent in miss.items():
-            if absent:
-                print(f"  [{screen}] MISSING:")
-                for a in absent:
-                    print(f"    - {a!r}")
-                    report.append(f"{w} {screen}: {a}")
-            else:
-                print(f"  [{screen}] complete")
+            for a in absent:
+                report.append(f"{w} {screen}: {a}")
     Path(APP / "build" / "missing-report.txt").write_text(
         "\n".join(report), encoding="utf-8")
-    print("report -> build/missing-report.txt")
+    if report:
+        print(f"{len(report)} missing entries -> build/missing-report.txt")
+        sys.exit(1)
+    print("all screens complete at every width; report -> build/missing-report.txt")
+
 
 if __name__ == "__main__":
     main()

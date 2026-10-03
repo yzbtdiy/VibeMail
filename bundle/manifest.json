@@ -1,8 +1,9 @@
 {
   "agent": null,
   "capabilities": [
+    "mail",
     "model",
-    "mail"
+    "storage"
   ],
   "compute": {
     "instruction_budget": null,
@@ -10,10 +11,10 @@
   },
   "id": "vibemail",
   "integrity": {
-    "bundle_blake3": "1aed1fe2f413f63f255987cef973b4fd570b091bf126d535f4cf7eb4d3d2ee4b",
+    "bundle_blake3": "48f7e38b710ea451e15cf4c17cd7f839a4cdce119214b98e68b797186b69fccb",
     "signature": {
       "key_id": "yzbtdiy",
-      "value": "fb5a227ac7792b80358dc64a23cfaa95813b618f3283b0bd0f9779b1ac4f81a3d9eb0da8966d1202cd90246489d4f7ed705e42e46f7955c8c9c74c4b66750d08"
+      "value": "11940a66b41d32eb6ba6fb68640165bc082842292d910019e010f185dcf1dfb2f730cab3ebc5f29639fa45c80507187c040a7152bd7302942f6ce8d521ba9a0e"
     }
   },
   "name": "VibeMail",
@@ -22,7 +23,7 @@
   },
   "schema": 1,
   "storage": {
-    "max_bytes": null
+    "max_bytes": 4194304
   },
-  "version": "0.6.10"
+  "version": "0.7.2"
 }

@@ -1,11 +1,14 @@
 {
   "schema_version": 1,
-  "app": { "id": "vibemail", "version": "0.6.10" },
+  "app": {
+    "id": "vibemail",
+    "version": "0.7.2"
+  },
   "form": "script-app (Splash bundle, card-host / OctoSense shell)",
-  "generated": "2026-10-01",
+  "generated": "2026-10-03",
   "counts": {
     "routes": 6,
-    "route_steps": 43,
+    "route_steps": 42,
     "service_unit_tests": 8,
     "bridge_unit_tests": 5,
     "listing_screenshots": 5,
@@ -19,10 +22,11 @@
       "where": "bundle/"
     },
     {
-      "what": "state-machine twin unit tests",
+      "what": "compose/send state-machine twin unit tests (single-tap send)",
       "result": "8/8 OK",
       "command": "python -m unittest discover -s service",
-      "where": "service/"
+      "where": "service/",
+      "date": "2026-10-03"
     },
     {
       "what": "dev bridge parsing unit tests",
@@ -31,36 +35,60 @@
       "where": "bridge/"
     },
     {
-      "what": "declarative click-through routes over the real card-host window (hidden), 1200x860, Windows 10 26100",
-      "result": "6/6 routes passed (43 steps: in-place read, model-unavailable honesty, local-template fallback, two-step confirmed send, inbox pill sync, outage -> draft kept -> retry, agent approval, theme flip, sidebar folder/cluster filters, notification/calendar/settings panels)",
+      "what": "declarative click-through routes over the real card-host window, 412x860 phone layout, Windows 10 26100",
+      "result": "6/6 routes passed (42 steps: vibe filter + detail summary, orbit bubble open + tri-state theme, tone slider 3-stop rewrite, single-tap send + replied chip, outage -> keep draft -> retry, archive/restore incl. orbit)",
       "command": "python scripts/run_routes.py <port>",
       "spec": "route_test.json",
-      "date": "2026-10-01"
+      "date": "2026-10-03"
     },
     {
-      "what": "layout audits, four widths",
-      "result": "940 / 1000 / 1200 / 1440 all clean (overflow) and complete (content presence)",
-      "command": "python scripts/audit_overflow.py 940 1000 1200 1440; python scripts/audit_missing.py 940 1000 1200 1440",
-      "date": "2026-10-01"
+      "what": "layout audits, three widths (fresh instance per screen for missing)",
+      "result": "412 / 700 / 1200 clean (overflow) and complete (5 screens x 3 widths)",
+      "command": "python scripts/audit_overflow.py 412 700 1200; python scripts/audit_missing.py 412 700 1200",
+      "date": "2026-10-03"
+    },
+    {
+      "what": "pixel-level theme and palette assertions on real grabs",
+      "result": "light paper #eaeae3 / dark charcoal #151413 grounds, dark cards #262524, all five vibe bubble colours on orbit, neon send CTA present",
+      "command": "python build/dbg_pixels2.py <port>",
+      "date": "2026-10-03"
+    },
+    {
+      "what": "listing screenshots + evidence drive over the real window",
+      "result": "01-inbox..05-dark captured with per-step text assertions; ev-01..10 cover boot/filter/detail/tone x2/sent/replied-chip/outage/retry/dark",
+      "command": "python scripts/drive-demo.py <port>",
+      "date": "2026-10-03"
     },
     {
       "what": "mail flow with a real server rejection in card-host (reference mail service)",
-      "result": "recorded service-side trace with the server's verbatim NO; re-runnable (settings -> add account -> sheet)",
+      "result": "app-side navigation updated to the 我的 screen; sheet flow unchanged (re-runnable)",
       "command": "python scripts/drive-mail.py <port>",
       "where": "evidence/ev-mail-log.txt, evidence/ev-13..16.png"
     },
     {
-      "what": "real mailbox end-to-end inside the OctoSense desktop shell (yeah.net via IMAP)",
-      "result": "connected account; mail.sync fetched the real INBOX and the app listed 5 real messages",
-      "command": "run.cmd shell; settings -> refresh",
+      "what": "real mailbox end-to-end inside the OctoSense desktop shell (0.6.10, yeah.net via IMAP)",
+      "result": "connected account; mail.sync fetched the real INBOX and the app listed 5 real messages — the adapter layer (mail data + send) is unchanged in 0.7.0, live mails now classified into vibes by keyword rules",
+      "command": "run.cmd shell; 我的 -> 刷新",
       "date": "2026-10-01"
+    },
+    {
+      "what": "three-mode theme machinery (follow-system sampling + pinned modes, theme.json persistence)",
+      "result": "carried over from 0.6.15 verified behaviour; 0.7.0 re-verified light/dark pinning via the 我的 chips (route 2) and pixel-sampled both grounds",
+      "command": "run.cmd shell / scripts/dbg_pixels2.py",
+      "date": "2026-10-03"
     }
   ],
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
-    "image-parity / visual-similarity gates (an image-to-card concept; not applicable to a script app — listing screenshots are real captures, human-reviewed)",
-    "real model calls re-captured on the 0.6.x UI (the flow passed with MiniMax at 0.5.x; the driver scripts remain, the captures were retired with the old UI)",
+    "live model calls on the 0.7.0 UI (card-host honestly reports the missing service; the model paths are schema-checked one-shots carried from 0.6.x and the tone rewrite asks the same service)",
+    "a re-run of the full real-mail flow against a live IMAP account on the 0.7.0 UI (drive-mail.py updated, not re-run against a real server this session)",
     "the OctoSense-App-Hub submission issue (human step)"
   ],
-  "practice_data": "the Agent squad, the activity stream and the send-failure switch are labelled local practice data; the mail and model paths are real host-service calls"
+  "runtime_notes": [
+    "taps reach EVERY overlapping GestureView in this runtime — the bottom nav is docked in flow, not floating (probed)",
+    "long-lived audit instances: deep-harvest scrolls arm inertia/bounce that later card taps ride onto neighbours, and nav labels need exact matches (the digest line contains 我的) — the missing audit boots a fresh instance per screen",
+    "card-host --allow-unsigned refuses SIGNED manifests: run_app.py launches an unsigned copy at build/run-bundle and the submitted bundle/ keeps its publisher signature"
+  ],
+  "practice_data": "the eight practice mails (with three tone variants each), the importance scores and the send-failure switch are labelled local practice data; the mail and model paths are real host-service calls",
+  "design_reference": "OctoSense design prototype showcase (warm paper #eaeae3 / charcoal #151413, five vibes with aura palettes, orbit inbox, tone slider, capability declaration) — extracted to docs/design-brief.md"
 }

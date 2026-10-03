@@ -12,6 +12,8 @@ let link_error = ""
 let account_id = "bridge"
 let account_addr = ""
 let live_total = 0
+let want_list = false
+let mail_arm = false
 
 fn bridge_fetch(method, url, body){
     let p = promise()
@@ -33,26 +35,26 @@ fn mail_check(){
     if res == nil {
         mail_link = "no_service"
         link_error = "网桥未启动 (python bridge/bridge.py)"
-        ui.body.render()
+        ui.appc.render()
         return
     }
     if res.status_code != 200 {
         mail_link = "no_service"
         link_error = "网桥异常 HTTP " + res.status_code
-        ui.body.render()
+        ui.appc.render()
         return
     }
     let d = res.body.to_string().parse_json()
     if d == nil {
         mail_link = "no_service"
         link_error = "网桥响应无法解析"
-        ui.body.render()
+        ui.appc.render()
         return
     }
     if d.ready != true {
         mail_link = "no_account"
         link_error = d.error
-        ui.body.render()
+        ui.appc.render()
         return
     }
     account_addr = d.email
@@ -63,33 +65,30 @@ fn mail_add_account(){
     // the bridge has no host sheet: configuration lives in bridge/config.json
     mail_link = "no_account"
     link_error = "请在 bridge/config.json 填入邮箱授权码并重启网桥"
-    ui.body.render()
+    ui.appc.render()
 }
 fn live_mail(m){
-    return {src: "live" id: m.id init: "✉" sender: m.sender address: m.address
+    let v = classify_vibe(m.subject, m.address)
+    return {src: "live" id: m.id sender: m.sender bname: m.sender handle: m.address
             subject: m.subject snippet: m.preview body: m.body
-            time: m.time date: "" unread: m.unread priority: 50 cluster: "工作"
-            av1: #x8642ff av2: #x4c1d95
-            labels: [{text: domain_of(m.address) tone: "cyan"}]
-            summary: [] actions: []
-            sent_label: "" sent_tone: "mint" sent_note: ""
-            replies: [] meeting_title: "" meeting_time: "" meeting_loc: ""
-            generating: false
-            reply: "" reply_text: "" send_error: ""
-            summary_src: "practice" ai_points: [] ai_action: ""}
+            time: m.time vibe: v unread: m.unread starred: false
+            imp: vibe_imp(v)
+            summary: [] t0: "" t1: "" t2: ""
+            reply: "" reply_text: "" send_error: "" boxed: ""
+            summary_src: "none" ai_points: []}
 }
 fn mail_load(){
     let p = bridge_fetch(net.HttpMethod.GET, "http://127.0.0.1:8443/list?limit=20", "")
     let res = p.await()
-    if res == nil { mail_link = "no_service"; link_error = "网桥不可达"; ui.body.render(); return }
+    if res == nil { mail_link = "no_service"; link_error = "网桥不可达"; ui.appc.render(); return }
     if res.status_code != 200 {
         mail_link = "error"
         link_error = "HTTP " + res.status_code
-        ui.body.render()
+        ui.appc.render()
         return
     }
     let d = res.body.to_string().parse_json()
-    if d == nil { mail_link = "error"; link_error = "列表解析失败"; ui.body.render(); return }
+    if d == nil { mail_link = "error"; link_error = "列表解析失败"; ui.appc.render(); return }
     let out = []
     for i in d.messages.len() {
         out.push(live_mail(d.messages[i]))
@@ -97,8 +96,18 @@ fn mail_load(){
     mails = out
     mail_src = "live"
     live_total = d.total
-    current = 0
-    ui.body.render()
+    open_idx = -1
+    ui.appc.render()
+}
+fn mail_list(){
+    // the dev bridge loads in one shot; mail_list mirrors the official
+    // contract for the poller
+    mail_load()
+}
+fn mail_refresh(){
+    mail_link = "checking"
+    ui.appc.render()
+    mail_check()
 }
 fn mail_open_message(i){
     // the bridge list already carries full bodies; nothing to fetch
@@ -107,30 +116,39 @@ fn mail_mark_read(i){
     let b = ({id: mails[i].id}).to_json()
     bridge_fetch(net.HttpMethod.POST, "http://127.0.0.1:8443/mark_read", b)
 }
-fn mail_send_live(i){
-    let m = mails[i]
-    let b = ({to: m.address subject: "回复:" + m.subject body: m.reply_text}).to_json()
+fn mail_disconnect(){
+    mail_arm = false
+    mail_link = "no_account"
+    ui.appc.render()
+}
+fn send_live(){
+    let idx = reply_idx
+    let b = ({to: to_input subject: subject_input body: preview_text()}).to_json()
     let p = bridge_fetch(net.HttpMethod.POST, "http://127.0.0.1:8443/send", b)
     let res = p.await()
     if res == nil {
-        mails[i].reply = "failed"
-        mails[i].send_error = "网桥不可达"
-        ui.body.render()
+        send_state = "failed"
+        send_error_msg = "网桥不可达"
+        mark_failed(idx)
+        ui.appc.render()
         return
     }
     if res.status_code != 200 {
-        mails[i].reply = "failed"
-        mails[i].send_error = "SMTP HTTP " + res.status_code
-        ui.body.render()
+        send_state = "failed"
+        send_error_msg = "SMTP HTTP " + res.status_code
+        mark_failed(idx)
+        ui.appc.render()
         return
     }
     let d = res.body.to_string().parse_json()
     if d != nil && d.accepted == true {
-        mails[i].reply = "sent"
+        send_state = "sent"
+        mark_sent(idx)
     } else {
-        mails[i].reply = "failed"
-        mails[i].send_error = "发送被拒绝"
+        send_state = "failed"
+        send_error_msg = "发送被拒绝"
+        mark_failed(idx)
     }
-    ui.body.render()
+    ui.appc.render()
 }
 // MARKER:ADAPTER-END

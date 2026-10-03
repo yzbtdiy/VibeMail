@@ -87,38 +87,32 @@ def settled_pos(base, text, exact=False, timeout=6.0):
 
 
 def wheel_x(hit):
-    """Wheel x for the pane containing the target (0.5.1: the three panes
-    scroll independently — the wheel must go to the pane that owns it)."""
-    if hit is None:
-        return 700
-    if hit[0] < 630:
-        return 450
-    if hit[0] < 945:
-        return 700
-    return 1000
+    """Wheel x for the pane containing the target — the 0.7.0 phone column
+    has ONE scroll body centred at x=206."""
+    return 206
 
 
 def to_top(base):
-    """Scroll every pane back to the top (wheel dy is heavily scaled by the
-    host; widgets scrolled out of the viewport are clipped from /snap)."""
-    for x in (450, 700, 1000):
-        for _ in range(3):
-            get(base, f"/m?k=scroll&x={x}&y=400&dy=-6000")
-            time.sleep(0.3)
+    """Scroll the phone body back to the top (wheel dy is heavily scaled by
+    the host; widgets scrolled out of the viewport are clipped from /snap)."""
+    for _ in range(3):
+        get(base, "/m?k=scroll&x=206&y=400&dy=-6000")
+        time.sleep(0.3)
 
 
 def tap(base, text, exact=False):
     """One tap attempt at the widget's current position, with scroll-to-reach."""
     hit = find(base, text, exact)
     tries = 0
-    # Scrollable body is 29..766; the glass nav bar (776..860) is fixed and
-    # perfectly clickable at its own y.
+    # Phone layout: no status bar (removed after 0.7.0's first cut), the
+    # detail back row starts at y~12, scrollable screens run to ~792, the
+    # docked nav pill sits ~792..860 (in flow — taps fall through every
+    # overlapping GestureView, so the pill must not overlay cards).
     def in_range(p):
-        return p and (29 < p[1] < 766 or 776 < p[1] < 855)
+        return p and 8 < p[1] < 856
     while (not in_range(hit)) and tries < 10:
-        dy = 420 if (not hit or hit[1] >= 766) else -2400
-        sx = wheel_x(hit) if hit else (450, 700, 1000)[tries % 3]
-        get(base, f"/m?k=scroll&x={sx}&y=400&dy={dy}")
+        dy = 420 if (not hit or hit[1] >= 792) else -2400
+        get(base, f"/m?k=scroll&x=206&y=400&dy={dy}")
         time.sleep(0.5)
         hit = find(base, text, exact)
         tries += 1
@@ -127,20 +121,23 @@ def tap(base, text, exact=False):
     hit = settled_pos(base, text, exact)
     cx, cy = hit
     get(base, f"/click?x={cx:.0f}&y={cy:.0f}&wait=1")
-    get(base, "/m?k=scroll&x=700&y=400&dy=1")      # flush one redraw
+    get(base, "/m?k=scroll&x=206&y=400&dy=1")      # flush one redraw
     time.sleep(1.2)
 
 
 def search_for(base, text, exact=False, timeout=0):
     """has() + scroll: the target may sit outside the viewport, above or
-    below, so the hunt alternates up hard and down."""
+    below. Hunt: steady +420 steps (the same reach tap() uses) with a hard
+    up-scroll every 4th step — 0.7.1's taller cards need several steps to
+    expose a bottom-of-list chip row, which the old ±620 alternation
+    (net one weak step per cycle) stalled on."""
     if find(base, text, exact):
         return True
     t0 = time.time()
     n = 0
     while time.time() - t0 < timeout:
-        dy = -2400 if n % 2 == 0 else 620
-        get(base, f"/m?k=scroll&x={(450, 700, 1000)[n % 3]}&y=400&dy={dy}")
+        dy = -2400 if n % 4 == 3 else 420
+        get(base, f"/m?k=scroll&x=206&y=400&dy={dy}")
         time.sleep(0.7)
         if find(base, text, exact):
             return True
