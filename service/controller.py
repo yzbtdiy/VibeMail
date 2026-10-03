@@ -1,34 +1,37 @@
-"""Reply-lifecycle reducer for vibemail.
+"""Compose/send reducer for vibemail 0.7.0.
 
 This module is the verification twin of the state machine implemented in
-``bundle/main.splash`` (functions ``insert_draft`` / ``ask_send`` /
-``cancel_send`` / ``do_send`` / ``finish_send`` / ``retry_send`` /
-``keep_draft`` / ``edit_draft`` / ``quick_reply``). The Splash runtime has no
-unit-test harness of its own, so the transitions live here as plain Python
-and are exercised by ``test_controller.py``; ``scripts/drive-demo.py`` then
-performs the exact same route against the real card-host window. The three
-must stay in step — a transition added to the UI belongs here too.
+``bundle/main.splash`` (functions ``open_compose`` / ``set_tone`` /
+``do_send`` / ``send_live`` / ``finish_send`` / ``mark_sent`` /
+``mark_failed`` / ``retry_send``). The Splash runtime has no unit-test
+harness of its own, so the transitions live here as plain Python and are
+exercised by ``test_controller.py``; the drive scripts then perform the
+same route against the real card-host window. The three must stay in step
+— a transition added to the UI belongs here too.
 
-State machine (per mail object):
+0.7.0 follows the reference design's SINGLE-TAP send (the 0.6.x two-step
+confirm is gone): tapping 发送 goes straight to sending, then lands on
+sent or failed. A failed send keeps the draft (reply_text never dropped)
+and offers retry. State machine:
 
-    ""  --attach_draft-->  pending
-    pending --ask_send-->  confirm --cancel_send--> pending
-    confirm --do_send-->   sending --(timer, outage?)--> sent | failed
+    ""  --do_send-->  sending --finish-->  sent | failed
     failed --retry_send--> sending (same finish rule)
-    failed --keep_draft--> pending
-    pending --edit_draft--> (draft editing; still pending)
+    failed --keep_draft--> ""            (draft text retained)
+    sent is terminal for the mail (已回复 chip)
 
-Nothing here talks to a real mail service: ``send`` is simulated, exactly as
-the UI discloses (practice data).
+Per-mail state lives on the mail object (``reply`` / ``reply_text``), the
+compose-local state (``send_state``) drives the button face. Nothing here
+talks to a real mail service: ``send`` is simulated, exactly as the UI
+discloses (practice data; live sends go through the mail host service).
 """
 
-PENDING = "pending"
-CONFIRM = "confirm"
+IDLE = "idle"
 SENDING = "sending"
 SENT = "sent"
 FAILED = "failed"
 
-VALID_REPLY_STATES = ("", PENDING, CONFIRM, SENDING, SENT, FAILED)
+VALID_SEND_STATES = (IDLE, SENDING, SENT, FAILED)
+VALID_REPLY_STATES = ("", SENT, FAILED)
 
 
 def initial_state():
@@ -37,51 +40,52 @@ def initial_state():
 
 
 def attach_draft(state, text):
+    """The tone preview / typed draft is what a send will deliver."""
     if not text:
         raise ValueError("empty draft")
     state["reply_text"] = text
-    state["reply"] = PENDING
-    return state
-
-
-def ask_send(state):
-    if state["reply"] != PENDING:
-        raise ValueError(f"ask_send from {state['reply']!r}")
-    state["reply"] = CONFIRM
-    return state
-
-
-def cancel_send(state):
-    if state["reply"] != CONFIRM:
-        raise ValueError(f"cancel_send from {state['reply']!r}")
-    state["reply"] = PENDING
     return state
 
 
 def do_send(state):
-    """The user confirmed; the UI starts a 0.9 s timer, then finish_send."""
-    if state["reply"] not in (CONFIRM, FAILED):
+    """Single tap on 发送 (0.7.0): straight to sending, no confirm step.
+    The mail's reply state is only written on finish; this returns the new
+    compose-local state."""
+    if state["reply"] not in ("", FAILED):
         raise ValueError(f"do_send from {state['reply']!r}")
-    state["reply"] = SENDING
-    return state
+    return {"send_state": SENDING}
 
 
-def finish_send(state):
-    if state["reply"] != SENDING:
-        raise ValueError(f"finish_send from {state['reply']!r}")
-    state["reply"] = FAILED if state["outage"] else SENT
-    return state
+def finish_send(state, compose):
+    """The 0.9 s practice timer (or the mail service reply) lands here."""
+    if compose["send_state"] != SENDING:
+        raise ValueError(f"finish_send from {compose['send_state']!r}")
+    if state["outage"]:
+        compose["send_state"] = FAILED
+        compose["error"] = "发送失败(练习场景)"
+        state["reply"] = FAILED
+    else:
+        compose["send_state"] = SENT
+        compose["error"] = ""
+        state["reply"] = SENT
+    return compose
 
 
-def retry_send(state):
-    return do_send(state)
+def retry_send(state, compose):
+    if compose["send_state"] != FAILED:
+        raise ValueError(f"retry_send from {compose['send_state']!r}")
+    compose["send_state"] = SENDING
+    compose["error"] = ""
+    return compose
 
 
-def keep_draft(state):
-    if state["reply"] != FAILED:
-        raise ValueError(f"keep_draft from {state['reply']!r}")
-    state["reply"] = PENDING
-    return state
+def keep_draft(state, compose):
+    """Leaving a failed compose keeps the text and clears the mail's mark."""
+    if compose["send_state"] != FAILED:
+        raise ValueError(f"keep_draft from {compose['send_state']!r}")
+    compose["send_state"] = IDLE
+    state["reply"] = ""
+    return compose
 
 
 def set_outage(state, on):
@@ -89,49 +93,39 @@ def set_outage(state, on):
     return state
 
 
-def view_model(state):
-    """What every surface shows for this mail — the same rule as ``mail_pill``
-    and ``reply_strip`` in main.splash: the live reply state outranks the
-    static triage tag."""
-    pill = {
-        SENT: "已回复",
-        PENDING: "待发送",
-        FAILED: "发送失败",
-    }.get(state["reply"])
-    strip = ""
-    if state["reply"] == PENDING:
-        first = state["reply_text"].splitlines()[0] if state["reply_text"] else ""
-        strip = f"回复草稿 · 待发送 | {first}".rstrip(" |")
-    elif state["reply"] == CONFIRM:
-        strip = "确认发送?"
-    elif state["reply"] == SENDING:
-        strip = "发送中…"
-    elif state["reply"] == SENT:
-        strip = "已回复 · 刚刚发送,已写入会话"
-    elif state["reply"] == FAILED:
-        strip = "发送失败 · 邮件服务无响应(练习场景)"
-    return {"pill": pill, "strip": strip}
+def view_model(state, compose=None):
+    """What every surface shows for this mail — the same rules as
+    ``reply_state_chip`` and ``send_button`` in main.splash: the mail's
+    live reply state outranks everything on list rows; the compose button
+    face follows the compose-local send state."""
+    pill = {SENT: "已回复", FAILED: "发送失败"}.get(state["reply"])
+    button = None
+    if compose is not None:
+        button = {
+            IDLE: "发送",
+            SENDING: "发送中…",
+            SENT: "已随波寄出",
+            FAILED: "发送失败 · 点按重试",
+        }[compose["send_state"]]
+    return {"pill": pill, "button": button}
 
 
 def demo_route():
-    """The hackathon demo route: happy path, outage path, recovery path.
-    ``scripts/drive-demo.py`` performs this same sequence on the real window
-    and captures evidence/ev-01..07."""
+    """The demo route: happy path, outage path, retry path. The drive
+    scripts perform this same sequence on the real window."""
     happy = initial_state()
-    attach_draft(happy, "确认发布会流程,按当前版本执行。")
-    ask_send(happy)
-    do_send(happy)
-    finish_send(happy)
+    c = {"send_state": IDLE, "error": ""}
+    attach_draft(happy, "Mira,太好了,我很想去!")
+    c.update(do_send(happy))
+    finish_send(happy, c)
 
     outage = initial_state()
+    c2 = {"send_state": IDLE, "error": ""}
     set_outage(outage, True)
-    attach_draft(outage, "Q2 终稿确认。")
-    ask_send(outage)
-    do_send(outage)
-    finish_send(outage)          # failed — draft kept
-    keep_draft(outage)           # back to pending
+    attach_draft(outage, "确认提交,周三前回复。")
+    c2.update(do_send(outage))
+    finish_send(outage, c2)        # failed — draft kept
+    retry_send(outage, c2)
     set_outage(outage, False)
-    ask_send(outage)
-    do_send(outage)
-    finish_send(outage)          # retry succeeds
+    finish_send(outage, c2)        # retry succeeds
     return {"happy": happy, "outage": outage}

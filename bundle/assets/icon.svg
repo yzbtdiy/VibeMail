@@ -1,6 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="4" y="4" width="56" height="56" rx="14" fill="#0a0e14"/>
-  <rect x="13" y="23" width="38" height="25" rx="5" fill="none" stroke="#e8ecf4" stroke-width="3"/>
-  <path d="M14 27 L32 39 L50 27" fill="none" stroke="#e8ecf4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M45 6 L47.2 11.8 L53 14 L47.2 16.2 L45 22 L42.8 16.2 L37 14 L42.8 11.8 Z" fill="#32d74b"/>
+  <!-- VibeMail 0.7.0: warm-paper tile, orbit ring of five vibe dots, ink envelope -->
+  <rect x="3" y="3" width="58" height="58" rx="14" fill="#eaeae3" stroke="#2a2a2a" stroke-width="2.5"/>
+  <ellipse cx="32" cy="32" rx="23" ry="14" fill="none" stroke="#2a2a2a" stroke-width="1.8" opacity="0.55" transform="rotate(-18 32 32)"/>
+  <rect x="20" y="26" width="24" height="16" rx="3.5" fill="#ffffff" stroke="#2a2a2a" stroke-width="2.2"/>
+  <path d="M22 29.5 L32 36.5 L42 29.5" fill="none" stroke="#2a2a2a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="rotate(-18 32 32)">
+    <circle cx="55" cy="32" r="4.6" fill="#ff6a3d" stroke="#2a2a2a" stroke-width="1.6"/>
+    <circle cx="43.5" cy="12" r="4.6" fill="#f6ff91" stroke="#2a2a2a" stroke-width="1.6"/>
+    <circle cx="20.5" cy="12" r="4.6" fill="#7de888" stroke="#2a2a2a" stroke-width="1.6"/>
+    <circle cx="9" cy="32" r="4.6" fill="#ff90ff" stroke="#2a2a2a" stroke-width="1.6"/>
+    <circle cx="20.5" cy="52" r="4.6" fill="#2a7dfa" stroke="#2a2a2a" stroke-width="1.6"/>
+  </g>
 </svg>

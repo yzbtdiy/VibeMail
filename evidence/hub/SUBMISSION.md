@@ -1,7 +1,7 @@
-# vibemail 0.6.10 — submission packet
+# vibemail 0.6.16 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated for 0.6.10), plus the reproduction evidence for the hackathon
+regenerated for 0.6.16), plus the reproduction evidence for the hackathon
 ("Agentic App 黑客松 2026", scene 01 邮件场景). The manifest is
 **publisher-signed** (`yzbtdiy`; key kept outside the repo) and the gate
 passes with **no warnings**. The only remaining human steps are the git tag
@@ -12,7 +12,9 @@ and this issue itself.
 1. **Does the app do what its name, subtitle and description claim?**
    Yes. `bundle/main.splash` implements exactly what the listing names: a
    **desktop-landscape** agentic mail app in the 0.6 warm-paper × forest-ink
-   design (light theme default, dark theme one tap away) — a 264px sidebar
+   design (light default, dark one tap away, and since 0.6.11/0.6.16 a
+   three-mode 主题 setting — 跟随系统 / 亮色 / 暗色 — that follows the
+   shell's live appearance switches) — a 264px sidebar
    (brand, gradient compose CTA, nav with live badges, mailbox folders, AI
    clusters, AGENT ACTIVE status card, calendar/settings footer), a 60px top
    bar (agent search, VIBE AGENT pill, theme slider, notification bell) and
@@ -34,7 +36,7 @@ and this issue itself.
    shells (fixed top-bar content ≈640 logical px; the audits now span 940 /
    1000 / 1200 / 1440). 0.6.10 makes a real mailbox work end to end inside
    the OctoSense shell (details in Q3). Every screenshot in the listing is
-   a real capture of these screens, regenerated on the final 0.6.10 bytes.
+   a real capture of these screens, regenerated on the final 0.6.16 bytes.
 
 2. **Do the listing's platforms and category fit?**
    Yes. `productivity` matches a mail app. `platforms: ["windows"]` is the
@@ -116,7 +118,7 @@ and this issue itself.
 
    ```
    hub check bundle --publisher-key yzbtdiy=1095438c…b5759
-   vibemail 0.6.10 — PASSED
+   vibemail 0.6.16 — PASSED
      grants: capabilities {"mail", "model"}, hosts {}, storage 16777216 bytes, agent none
    ```
 
@@ -142,7 +144,7 @@ Everything below is reproducible on Windows with the bundled scripts:
   simulated outage → **send fails, draft kept** → re-enable → **retry
   succeeds** → agent approval. Captures: `bundle/screenshots/01..05` (the
   listing; 05 is the dark theme) and `evidence/ev-01..10` — all
-  regenerated on the final 0.6.10 UI.
+  regenerated on the final 0.6.16 UI.
 - `scripts/drive-mail.py` drives the **shipped bundle** through the
   platform mail service: settings → 邮箱账号 → 添加账号 raises the
   host's own sign-in sheet → a wrong authorization code is refused by the
@@ -156,6 +158,13 @@ Everything below is reproducible on Windows with the bundled scripts:
   mailbox: 5 real messages). New mail arrives via 设置 → 刷新
   (`mail.sync` then `mail.list`; the service lists the newest 20 INBOX
   messages).
+- **Three-mode theme follows the shell** (0.6.11 + the 0.6.16 direction
+  fix): inside the shell, the bar's Light/Dark toggle was flipped both
+  ways while a pixel sampler watched the app — shell light → app light at
+  boot, live flips followed within ~1s each way; the pinned 亮色 / 暗色
+  chips ignore the shell and 跟随系统 re-syncs (2026-10-02). The bug the
+  fix closes: `resolve_theme()` returned "is dark" while `apply_theme(l)`
+  consumed "is light", inverting every path.
 - Final widget tree and host log: `evidence/final-snap.json`,
   `evidence/final-log.txt`.
 
@@ -173,5 +182,5 @@ configured MiniMax at 0.5.x; the flows are unchanged).
 - [x] `hub keygen` (publisher key kept outside the repo)
 - [x] `hub sign-manifest bundle --key … --key-id yzbtdiy`
 - [x] `hub check bundle --publisher-key yzbtdiy=<hex>` → PASSED, no warnings
-- [ ] Tag the commit (`v0.6.10`), open `Submit vibemail 0.6.10` on
+- [ ] Tag the commit (`v0.6.16`), open `Submit vibemail 0.6.16` on
       OctoSense-App-Hub with this packet's answers attached

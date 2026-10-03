@@ -103,35 +103,30 @@ def shot(path, tries=3):
 def text_inputs():
     return [w for w in snap() if w.get("ty") == "TextInput"]
 
-# Back to the inbox first (a stray tap may have opened a detail page).
-if has("‹ 返回"):
-    tap("‹ 返回")
+# Back to the inbox first (a stray tap may have opened the detail page).
+if has("AI 三行摘要"):
+    tap("收件箱", exact=True)
 # A leftover sheet from an earlier run would swallow every tap.
 if has("授权码"):
     tap("取消", exact=True)
     time.sleep(1.5)
 
-# The banner no longer says the service is missing: the mail family is
+# The digest line no longer says the service is missing: the mail family is
 # registered, there simply is no account yet.
 wait_for_any(["未添加邮箱账号", "no service"], timeout=30)
 assert has("未添加邮箱账号"), "expected the no-account state, not a missing service"
 time.sleep(2.0)  # clicks right after /g grabs get dropped by the bridge
 shot(EVID / "ev-13-storeform-no-account.png")
 
-# mailbox management lives in the settings panel: open it via the sidebar
-# footer sliders button (icon-only — located relative to the AGENT ACTIVE
-# card above it), then 添加账号 raises the host's own sign-in sheet. Wait
-# for the sheet's TextInputs WITHOUT scrolling — scroll gestures can dismiss
-# the sheet mid-rise, and no app-side text is a safe expect (the sheet's own
-# placeholders are the only TextInputs on screen).
+# Mailbox management lives on the 我的 screen (0.7.0): the 添加账号 button
+# raises the host's own sign-in sheet. Wait for the sheet's TextInputs
+# WITHOUT scrolling — scroll gestures can dismiss the sheet mid-rise, and no
+# app-side text is a safe expect (the sheet's own placeholders are the only
+# TextInputs on screen).
 time.sleep(2.0)
-aa = find("AGENT ACTIVE")
-assert aa, "AGENT ACTIVE card not found"
-get(f"/click?x={aa[0] - 26:.0f}&y={aa[1] + 134:.0f}&wait=1")
-time.sleep(1.5)
-assert has("设置 · SETTINGS"), "settings panel did not open"
+click_expect("我的", ["外观主题"], exact=True)
 btn = find("添加账号")
-assert btn, "添加账号 button not found in settings"
+assert btn, "添加账号 button not found on the settings screen"
 get(f"/click?x={btn[0]:.0f}&y={btn[1]:.0f}&wait=1")
 t0 = time.time()
 while time.time() - t0 < 20:
@@ -168,11 +163,11 @@ while has("授权码") and time.time() - t0 < 10:
     time.sleep(1.0)
 assert not has("授权码"), "the sheet should be gone"
 # a click that fell through the closing sheet may have opened a mail; come
-# back to the inbox so the banner is on screen
+# back to the inbox so the digest line is on screen
 for _ in range(3):
-    if not has("‹ 返回"):
+    if not has("AI 三行摘要"):
         break
-    tap("‹ 返回")
+    tap("收件箱", exact=True)
     time.sleep(1.0)
 wait_for_any(["未添加邮箱账号"], timeout=10)
 shot(EVID / "ev-16-cancelled-back-to-no-account.png")

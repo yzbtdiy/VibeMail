@@ -22,6 +22,7 @@ the app to boot, and prints what to do next.
 import argparse
 import ctypes
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -103,8 +104,8 @@ def wait_up(port, timeout=25):
 
 
 def wait_card_booted(port, timeout=25):
-    """The bridge answers before the card renders; wait for the triage
-    banner text to exist in the widget tree."""
+    """The bridge answers before the card renders; wait for the greeting
+    text to exist in the widget tree."""
     base = f"http://127.0.0.1:{port}"
     t0 = time.time()
     while time.time() - t0 < timeout:
@@ -115,7 +116,7 @@ def wait_card_booted(port, timeout=25):
             )
             for w in snap.get("s", []):
                 t = w.get("t") or ""
-                if w.get("ty") != "Splash" and ("已整理今日" in t or "未添加邮箱账号" in t):
+                if w.get("ty") != "Splash" and ("未读邮件" in t or "未添加邮箱账号" in t):
                     return True
         except OSError:
             pass
@@ -123,20 +124,38 @@ def wait_card_booted(port, timeout=25):
     return False
 
 
+def make_run_bundle():
+    """card-host --allow-unsigned refuses SIGNED manifests (it installs no
+    verifier), so runs always target a refreshed unsigned copy of bundle/;
+    the submitted bundle keeps its publisher signature."""
+    import json
+    src, dst = APP / "bundle", APP / "build" / "run-bundle"
+    if dst.exists():
+        shutil.rmtree(dst)
+    shutil.copytree(src, dst)
+    m = dst / "manifest.json"
+    d = json.loads(m.read_text(encoding="utf-8"))
+    d.get("integrity", {}).pop("signature", None)
+    m.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
+    return dst
+
+
 def launch_card_host(width, height, port=MOBILE_PORT):
     if not Path(CARD_HOST).exists():
         sys.exit(f"card-host not found: {CARD_HOST} (build it: "
                  f"cd {HUB} && cargo build --release -p octosense-card-host, "
                  f"or set CARD_HOST_EXE)")
+    run_bundle = make_run_bundle()
     env = dict(os.environ, MAKEPAD_REMOTE=port)
     exe = subprocess.Popen(
-        [CARD_HOST, "--bundle", "bundle", "--app-data", ".local-state",
+        [CARD_HOST, "--bundle", str(run_bundle), "--app-data", ".local-state",
          "--allow-unsigned", "--stamp", "--size", f"{width}x{height}"],
         cwd=APP, env=env,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
     )
-    print(f"card-host pid {exe.pid} on :{port} at {width}x{height}")
+    print(f"card-host pid {exe.pid} on :{port} at {width}x{height} "
+          f"(bundle: {run_bundle})")
     if not wait_up(port) or not wait_card_booted(port):
         sys.exit("card-host did not boot (see the window / try `run.cmd stop`)")
     return exe
@@ -208,7 +227,9 @@ def main():
         launch_shell(drive=True)
         return
 
-    width, height = (1200, 860) if args.mode != "mobile" else (412, 860)
+    # demo drives the store-form phone column (wheel anchor x=206, screenshot
+    # geometry 412x860 — the shipped shots are 824x1720 @2x): mobile width
+    width, height = (412, 860) if args.mode in ("mobile", "demo") else (1200, 860)
     launch_card_host(width, height)
 
     if args.mode in ("demo", "mail"):
