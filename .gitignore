@@ -15,3 +15,7 @@ build/
 .octos/OUTER_LOOP_REVIEW.md
 .octos/EVOLUTION.md
 .octos/active-profile
+# local UI before/after comparison artifacts (regenerable, dev-only)
+.judge2/
+# route-runner failure diagnostics (only failed steps leave captures; a pass writes nothing)
+evidence/routes/

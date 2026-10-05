@@ -1,2 +1,6 @@
-*.sh text eol=lf 
+# The bundle's blake3 digest (manifest integrity.bundle_blake3) covers exact
+# bytes: hub check on a checked-out tag must see byte-identical files. Never
+# let git normalize line endings inside the bundle.
+bundle/** -text
+*.sh text eol=lf
 *.yml text eol=lf

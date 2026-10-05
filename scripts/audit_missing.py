@@ -180,7 +180,7 @@ EXPECTED = {
         # 添加账号; the 重试连接 button only exists in the error states
         "邮箱账号", "添加账号",
         "练习:模拟发送失败", "账号", "me@octomail.io",
-        "VibeMail 0.7.2",
+        "VibeMail 0.7.25",
     ],
 }
 

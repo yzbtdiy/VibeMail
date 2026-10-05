@@ -161,7 +161,7 @@ def launch_card_host(width, height, port=MOBILE_PORT):
     return exe
 
 
-def launch_shell(drive=False):
+def launch_shell(drive=False, log=False):
     if not Path(OCTOSENSE).exists():
         sys.exit(f"octosense.exe not found: {OCTOSENSE} (build it per "
                  f"../octosense-local-hub/README.md, or set OCTOSENSE_EXE)")
@@ -175,10 +175,19 @@ def launch_shell(drive=False):
         OCTOSENSE_HUB_ANCHOR=HUB_ANCHOR,
         OCTOSENSE_APP_DATA=str(device),
     )
+    # shell-log keeps the shell's stderr: script errors ([E] splash:… lines,
+    # e.g. property-not-found throws) and service logs land in build/shell.log
+    out = subprocess.DEVNULL
+    if log:
+        logpath = APP / "build" / "shell.log"
+        logpath.parent.mkdir(parents=True, exist_ok=True)
+        logpath.write_text("", encoding="utf-8")
+        out = open(logpath, "ab", buffering=0)
+        print(f"shell stderr -> {logpath}")
     exe = subprocess.Popen(
         [OCTOSENSE, "--test-action", "launch-hub:vibemail"],
         cwd=LOCAL_HUB, env=env,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        stdout=out, stderr=subprocess.STDOUT,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
     )
     print(f"octosense pid {exe.pid} on :{SHELL_PORT} "
@@ -200,7 +209,7 @@ def main():
                                  description=__doc__.splitlines()[1])
     ap.add_argument("mode", nargs="?", default="desktop",
                     choices=["mobile", "desktop", "demo", "mail",
-                             "shell", "shell-drive", "check", "stop"])
+                             "shell", "shell-log", "shell-drive", "check", "stop"])
     args = ap.parse_args()
 
     if args.mode == "stop":
@@ -222,6 +231,9 @@ def main():
 
     if args.mode == "shell":
         launch_shell(drive=False)
+        return
+    if args.mode == "shell-log":
+        launch_shell(drive=False, log=True)
         return
     if args.mode == "shell-drive":
         launch_shell(drive=True)

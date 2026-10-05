@@ -8,6 +8,8 @@ rem   run.cmd mobile       ... at phone width (412x860, unsupported layout)
 rem   run.cmd demo         desktop width + the FULL evidence run (drive-demo.py)
 rem   run.cmd mail         store-form mail flow (drive-mail.py: sheet -> real rejection)
 rem   run.cmd shell        the real OctoSense desktop shell (local signed hub)
+rem   run.cmd shell-log    ... with stderr captured to build\shell.log (script
+rem                        [E] lines — the 0.7.24 first-open diagnosis used it)
 rem   run.cmd shell-drive  shell + official_sheet_run.py (ev-17..19 flow)
 rem   run.cmd check        unit tests + hub stamp + hub gate check
 rem   run.cmd stop         kill every test instance (card-host / octosense)

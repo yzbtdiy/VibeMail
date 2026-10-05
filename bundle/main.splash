@@ -1,4 +1,4 @@
-// VibeMail 0.7.2 — 有情绪的邮件 (emails carry vibes)
+// VibeMail 0.7.25 — 有情绪的邮件 (emails carry vibes)
 // Complete rebuild after the OctoSense design prototype reference: a phone
 // column (412 logical px, centred) carrying five vibe moods — coral 专注 /
 // neon 愉悦 / mint 平静 / pink 灵感 / blue 连接 — on a warm-paper light theme
@@ -22,6 +22,7 @@ let open_idx = -1          // opened mail index, -1 = none (detail overlays)
 let filter = "all"         // all | focus | joy | calm | spark | link
 let anim_t = 0.0           // orbit drift clock (advanced by the anim interval)
 let greeting_word = "早上好"  // time-adaptive: 早上好/中午好/下午好/晚上好
+let nav_gate_t = -10.0       // anim_t of the last nav tap (floating-pill guard)
 
 // ---- greeting ----------------------------------------------------------------
 // Time-adaptive greeting. std.local_time() reports UTC on card-host (the host
@@ -69,16 +70,43 @@ fn vibe_color(v){
 // keyword classifier for live platform mails (labelled 规则标注; focus beats
 // joy beats spark beats link, calm is the FYI default)
 fn classify_vibe(subject, address){
+    // 0.7.13: real-world lexicon (the practice-only word list sent nearly
+    // every real mail to the calm fallback = all-green orbit). s.search is
+    // the one string probe PROVEN in every runner; unknown senders spread
+    // deterministically across joy/link/spark/calm by name length so the
+    // orbit stays colourful and each sender keeps a stable colour.
     let s = subject + " " + address
     if s.search("账单") >= 0 { return "focus" }
     if s.search("发票") >= 0 { return "focus" }
     if s.search("扣款") >= 0 { return "focus" }
     if s.search("截止") >= 0 { return "focus" }
     if s.search("需回复") >= 0 { return "focus" }
+    if s.search("验证") >= 0 { return "focus" }
+    if s.search("登录") >= 0 { return "focus" }
+    if s.search("安全") >= 0 { return "focus" }
+    if s.search("账号") >= 0 { return "focus" }
+    if s.search("密码") >= 0 { return "focus" }
+    if s.search("支付") >= 0 { return "focus" }
+    if s.search("订单") >= 0 { return "focus" }
+    if s.search("发货") >= 0 { return "focus" }
+    if s.search("快递") >= 0 { return "focus" }
+    if s.search("签收") >= 0 { return "focus" }
+    if s.search("逾期") >= 0 { return "focus" }
+    if s.search("确认") >= 0 { return "focus" }
     if s.search("billing") >= 0 { return "focus" }
     if s.search("invoice") >= 0 { return "focus" }
     if s.search("payment") >= 0 { return "focus" }
+    if s.search("order") >= 0 { return "focus" }
+    if s.search("shipping") >= 0 { return "focus" }
+    if s.search("verify") >= 0 { return "focus" }
+    if s.search("security") >= 0 { return "focus" }
+    if s.search("password") >= 0 { return "focus" }
+    if s.search("login") >= 0 { return "focus" }
     if s.search("deadline") >= 0 { return "focus" }
+    if s.search("confirm") >= 0 { return "focus" }
+    // (no account_addr reference here: reading a late-declared global from a
+    // nested fn inside a callback throws "not found in scope" in the shell
+    // runtime and killed the whole live list — 0.7.13 finding)
     if s.search("外婆") >= 0 { return "joy" }
     if s.search("妈妈") >= 0 { return "joy" }
     if s.search("家人") >= 0 { return "joy" }
@@ -86,17 +114,53 @@ fn classify_vibe(subject, address){
     if s.search("祝贺") >= 0 { return "joy" }
     if s.search("周末") >= 0 { return "joy" }
     if s.search("生日") >= 0 { return "joy" }
-    if s.search("周报") >= 0 { return "spark" }
-    if s.search("双周报") >= 0 { return "spark" }
-    if s.search("newsletter") >= 0 { return "spark" }
-    if s.search("digest") >= 0 { return "spark" }
+    if s.search("节日") >= 0 { return "joy" }
+    if s.search("红包") >= 0 { return "joy" }
+    if s.search("happy") >= 0 { return "joy" }
+    if s.search("birthday") >= 0 { return "joy" }
     if s.search("小组") >= 0 { return "link" }
     if s.search("社区") >= 0 { return "link" }
     if s.search("投票") >= 0 { return "link" }
     if s.search("邀请") >= 0 { return "link" }
+    if s.search("聚会") >= 0 { return "link" }
+    if s.search("沙龙") >= 0 { return "link" }
+    if s.search("论坛") >= 0 { return "link" }
+    if s.search("评论") >= 0 { return "link" }
     if s.search("club") >= 0 { return "link" }
     if s.search("community") >= 0 { return "link" }
-    return "calm"
+    if s.search("forum") >= 0 { return "link" }
+    if s.search("comment") >= 0 { return "link" }
+    if s.search("invite") >= 0 { return "link" }
+    if s.search("meetup") >= 0 { return "link" }
+    if s.search("周报") >= 0 { return "spark" }
+    if s.search("双周报") >= 0 { return "spark" }
+    if s.search("通讯") >= 0 { return "spark" }
+    if s.search("订阅") >= 0 { return "spark" }
+    if s.search("报告") >= 0 { return "spark" }
+    if s.search("白皮书") >= 0 { return "spark" }
+    if s.search("研究") >= 0 { return "spark" }
+    if s.search("newsletter") >= 0 { return "spark" }
+    if s.search("digest") >= 0 { return "spark" }
+    if s.search("insight") >= 0 { return "spark" }
+    if s.search("report") >= 0 { return "spark" }
+    if s.search("通知") >= 0 { return "calm" }
+    if s.search("公告") >= 0 { return "calm" }
+    if s.search("提醒") >= 0 { return "calm" }
+    if s.search("回执") >= 0 { return "calm" }
+    if s.search("系统") >= 0 { return "calm" }
+    if s.search("noreply") >= 0 { return "calm" }
+    if s.search("no-reply") >= 0 { return "calm" }
+    if s.search("service") >= 0 { return "calm" }
+    if s.search("notice") >= 0 { return "calm" }
+    if s.search("notify") >= 0 { return "calm" }
+    if s.search("alert") >= 0 { return "calm" }
+    // search() POSITIONS (the shell VM has no string len) give a
+    // deterministic, well-spread hash per sender/subject
+    let h = s.search("a") + s.search("e") + s.search("o")
+    if h < 0 { h = 0 - h }
+    if h % 3 == 0 { return "joy" }
+    if h % 3 == 1 { return "link" }
+    return "spark"
 }
 fn vibe_imp(v){
     if v == "focus" { return 80 }
@@ -119,6 +183,8 @@ let mails = [
      time: "08:47" vibe: "joy" unread: true starred: true imp: 92
      summary: ["Mira 订到了心仪的海边玻璃小屋","周六早出发、周日傍晚返回","需要你回复选择哪一班火车"]
      t0: "Mira!玻璃小屋也太棒了吧,我必须去!周六 9:20 那班车我 OK,晚上一起吹海风~"
+     th: "哈哈 Mira 你这是要把我钉在海边了是吧!周六 9:20 那班我上钩,晚风我自带外套,你负责带防晒~"
+     tp: "Mira 你好,周六 9:20 车次可行,按此安排。傍晚风力较大,我会备好外套。"
      t1: "Mira,太好了,我很想去!周六 9:20 的车次方便,就这么定。"
      t2: "Mira 你好,感谢安排。我可以乘坐周六 9:20 的班次,请以此为准。期待同行。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -130,6 +196,8 @@ let mails = [
      time: "07:30" vibe: "focus" unread: true starred: false imp: 86
      summary: ["10 月账单 ¥236.40,10 月 6 日自动扣款","对象存储用量超套餐 12%","建议检查 vibemail-assets 桶"]
      t0: "收到!这个月存储确实传了些大文件,我看看能不能清一波 bucket,先别急着扣款哈~"
+     th: "好家伙,12% 超量全是我传的工作文件(坚决不承认是猫片)!我这就去清 bucket,钱包已做好心理准备~"
+     tp: "您好,账单已核对。超套部分源于对象存储用量,我方将于两日内完成清理优化,扣款按原计划执行。"
      t1: "你好,账单已确认。对象存储超套餐的部分我会在这两天清理,请按原计划扣款。"
      t2: "您好,10 月账单已核对无误。请按计划于 10 月 6 日扣款;超量部分我方将尽快优化存储结构。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -141,6 +209,8 @@ let mails = [
      time: "09:12" vibe: "spark" unread: true starred: false imp: 64
      summary: ["北极星指标环比 +12%","一个红色弹窗实验失败,转化 -8%","全文约 12 分钟,适合通勤慢读"]
      t0: "红色弹窗那个实验也太真实了哈哈,我们上周也踩过类似的坑。北极星涨 12% 不错啊,恭喜!"
+     th: "红弹窗实验笑死,用户用点击教会了设计团队做人哈哈哈。+12% 很可以,下期求加更猫片占比数据~"
+     tp: "您好,本期复盘质量很高,红色弹窗案例对我们有直接参考价值。祝贺北极星指标增长,期待下期。"
      t1: "周报写得很扎实,红色弹窗的复盘特别有启发。期待下一期。"
      t2: "您好,第 42 期周报已阅。北极星指标涨幅可观,失败实验的复盘坦诚且有价值。祝越办越好。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -152,6 +222,8 @@ let mails = [
      time: "昨天" vibe: "calm" unread: false starred: false imp: 32
      summary: ["关注的 3 个仓库共 14 个更新","均为信息同步,无需操作"]
      t0: "都是信息同步,知道了~周末再慢慢看。"
+     th: "14 个更新……你们仓库比我朋友圈还活跃,我周末过来围观一下战况~"
+     tp: "收到,周报已阅。headless 测试章节我将安排在本周内阅读,如有问题再反馈。"
      t1: "收到,本周抽空把 headless 测试那章读完。"
      t2: "您好,感谢周报同步。相关更新我将在工作时间统一查看。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -163,6 +235,8 @@ let mails = [
      time: "昨天" vibe: "link" unread: false starred: false imp: 50
      summary: ["十一月书目投票周五截止","《夜晚的潜水艇》暂时领先","正在征集十二月聚会场地"]
      t0: "投《夜晚的潜水艇》!十二月的聚会我推荐找家有暖气的咖啡馆,我列了三家发群里~"
+     th: "必须《夜晚的潜水艇》!另外十二月选咖啡馆的标准我建议加一条:暖气要足到能穿短袖读书~"
+     tp: "你好,我的票投给《夜晚的潜水艇》。十二月聚会地点确定后请同步,我届时参加。"
      t1: "我投《夜晚的潜水艇》。十二月聚会我有空,地点到时候群里商量。"
      t2: "你好,我的投票是《夜晚的潜水艇》。十二月线下聚会如有地点征集,我随后在群里补充建议。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -174,6 +248,8 @@ let mails = [
      time: "周二" vibe: "joy" unread: false starred: true imp: 95
      summary: ["桂花开了,给你留了糖桂花","妈妈说下周寄出","「不用回信」——但也许可以打个电话"]
      t0: "外婆!糖桂花留好,我下周回去拿。天冷您也多穿点,我周末给您打电话~"
+     th: "外婆您这桂花一开,整条街都羡慕咱家吧哈哈!糖桂花给我留着,我带朋友回去帮您"验收",顺便看您~"
+     tp: "外婆,消息收到啦。糖桂花先留着,我下周回去取。天气转凉,您和妈妈都注意添衣。"
      t1: "外婆,收到啦。糖桂花谢谢您,让妈妈下周寄来。您也注意保暖。"
      t2: "外婆您好,糖桂花有劳您费心。请母亲下周按地址寄出即可。天气转凉,请您保重身体。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -185,6 +261,8 @@ let mails = [
      time: "周一" vibe: "spark" unread: false starred: false imp: 58
      summary: ["柔焦 / 高斯模糊材质复兴","6 个案例附实现代码","neon 黄是本季热门强调色"]
      t0: "高斯模糊永远的神!霓虹黄那个案例刚好在做了,抄作业了哈哈。"
+     th: "柔焦复兴?设计圈这是要把上一次的滤镜再盘出包浆哈哈,案例代码已收藏,回头光明正大地"参考"~"
+     tp: "您好,本期柔焦专题内容扎实,案例代码已验证可用。霓虹黄趋势的观察与我们当前项目方向一致,感谢整理。"
      t1: "柔焦材质那篇很受用,附的实现代码我跑了一遍,效果很好。"
      t2: "您好,Vol.19 已阅。柔焦材质回归的趋势分析与案例拆解均很有价值,感谢整理。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -196,6 +274,8 @@ let mails = [
      time: "周一" vibe: "focus" unread: false starred: false imp: 90
      summary: ["黑客松提交确认 10 月 8 日截止","需回复:id、版本、key 指纹、check 输出","逾期视为放弃评审资格"]
      t0: "确认提交!信息都对,我周三前把 hub check 输出补发您~"
+     th: "放心,材料齐得很!应用 id、版本号、key 指纹一个不少,周三前准时送达,评审老师辛苦啦~"
+     tp: "您好,已确认提交信息完整。应用 id、版本号、publisher key 指纹及 hub check 输出将于本周三前回复至本邮箱。"
      t1: "你好,确认提交。应用 id、版本号和 key 指纹我会整理好在本周三前回复。"
      t2: "您好,确认参加本次黑客松评审。提交信息(应用 id、版本号、publisher key 指纹及 hub check 输出)将于 10 月 8 日前完整回复本邮件。"
      reply: "" reply_text: "" send_error: "" boxed: ""
@@ -206,14 +286,15 @@ let mails = [
 let reply_idx = -1             // mail being replied to, -1 = fresh compose
 let to_input = "mira@octomail.io"
 let subject_input = "Re: 周末去海边吗?"
-let tone = 1                   // 0 真诚 | 1 自然 | 2 正式
+let tone = 2                   // 0 真诚 | 1 幽默 | 2 自然 | 3 专业 | 4 正式
 let tone_src = "canned"        // canned | asking | ai | unavailable
 let tone_note = ""
 let live_preview = ""          // model-rewritten preview (live targets)
 let send_state = "idle"        // idle | sending | sent | failed
 let send_error_msg = ""
 let simulate_outage = false    // practice switch: next practice send fails
-let ai_model = ""              // host-reported model display name (meta.model)
+let digest_model = ""          // model-written mood line (0.7.6)
+let digest_src = "template"    // template | asking | ai
 let restored_note = ""         // transient settings feedback after a restore
 
 // ---- palette (warm paper light / charcoal dark) ---------------------------
@@ -280,6 +361,7 @@ fn resolve_theme(){
     return !d
 }
 fn apply_theme_mode(m){
+    if nav_recent() { return }
     themeMode = m
     save_theme_mode()
     apply_theme(resolve_theme())
@@ -312,6 +394,7 @@ fn apply_theme(l){
     dotJoy  = pick(l, #xc9b300, #xf6ff91)
 }
 fn toggle_theme(){
+    if nav_recent() { return }
     apply_theme_mode(pick(themeLight, "dark", "light"))
 }
 // settings state word: what the three-mode row actually resolved to
@@ -322,6 +405,15 @@ fn theme_now_note(){
 }
 fn repaint(){
     ui.appc.render()
+}
+let ui_dirty = false
+// async callbacks land here: in the Shell's isolate runner a repaint issued
+// inside a host-reply callback never reaches the screen (0.7.7 finding — the
+// first mail open stored its AI summary but drew nothing until the second
+// tap), while the top-level poller's repaint does (theme following proves
+// it). Callbacks set the flag; poll_step flushes it on the next 0.4s beat.
+fn soft_repaint(){
+    ui_dirty = true
 }
 
 // ---- helpers ---------------------------------------------------------------
@@ -387,6 +479,79 @@ fn digest_line(){
     return "今天有 " + vibe_count("focus") + " 件需要你行动,"
          + vibe_count("joy") + " 封让人开心,还有 " + vibe_count("spark") + " 篇值得慢读。"
 }
+// the mood line the digest card shows: the model's sentence once it answers,
+// the fixed count line until then (labelled honestly either way)
+fn digest_shown(){
+    if digest_src == "ai" {
+        if digest_model != "" { return digest_model }
+    }
+    return digest_line()
+}
+fn digest_src_word(){
+    if digest_src == "asking" { return "生成中…" }
+    if digest_src == "ai" { return "模型生成" }
+    if digest_src == "budget" { return "今日额度用完" }
+    return "固定文案"
+}
+// ONE model.complete per list load does BOTH jobs (0.7.12 user call: let the
+// model classify): per-mail vibe labels (the five moods, replacing the
+// keyword-rule guesses for live mails) + the mood line. The payload is the
+// visible list (subject + sender + current rule label, capped at 12), never
+// bodies or addresses. Any failure lands back on keyword rules + the fixed
+// line — same honest degrade as summaries. Issues from the poller queue
+// only (want_insight), never nested in a gesture or another callback.
+fn ask_insight(){
+    if !host.has("model") { digest_src = "template"; return }
+    if mails.len() == 0 { digest_src = "template"; return }
+    let feed = []
+    let live_i = []
+    let n = 0
+    while n < mails.len() {
+        if mails[n].boxed == "" {
+            feed.push({s: mails[n].subject f: mails[n].sender v: vibe_label(mails[n].vibe)})
+            if mails[n].src == "live" { live_i.push(n) }
+        }
+        n = n + 1
+    }
+    if feed.len() == 0 { digest_src = "template"; return }
+    digest_src = "asking"
+    insight_inflight = true
+    soft_repaint()
+    host.request("model.complete", {
+        task: "两件事。1)给每封邮件标注一个 vibe,只能是 focus/joy/calm/spark/link 之一(focus=需要你行动,joy=开心,calm=知道即可,spark=值得慢读,link=社交社群),按顺序输出,每封一个。2)用一句话(30 字内)概括今天收件箱的整体氛围,温暖口语,不要列清单。"
+        input: {mails: feed}
+        schema: {type: "object" required: ["vibes", "line"] additionalProperties: false
+                 properties: {
+                     vibes: {type: "array" items: {type: "string" enum: ["focus", "joy", "calm", "spark", "link"]}}
+                     line: {type: "string" maxLength: 60}}}
+        class: "fast"
+    }, fn(r){
+        insight_inflight = false
+        if r.is_ok {
+            let vs = r.data.output.vibes
+            let j = 0
+            while j < live_i.len() {
+                if j < vs.len() {
+                    let v = vs[j]
+                    if v == "focus" { mails[live_i[j]].vibe = "focus" }
+                    if v == "joy"   { mails[live_i[j]].vibe = "joy" }
+                    if v == "calm"  { mails[live_i[j]].vibe = "calm" }
+                    if v == "spark" { mails[live_i[j]].vibe = "spark" }
+                    if v == "link"  { mails[live_i[j]].vibe = "link" }
+                }
+                j = j + 1
+            }
+            digest_model = r.data.output.line
+            digest_src = "ai"
+        } else {
+            digest_src = "template"
+            // same honest classification as summaries (0.7.25): the daily
+            // budget refusal deserves its own word, not a bare 固定文案
+            if r.error.search("for today") >= 0 { digest_src = "budget" }
+        }
+        soft_repaint()
+    })
+}
 // active vibe filter indicator — appears only while a filter is on
 fn filter_note(){
     if filter == "all" { return "" }
@@ -394,7 +559,10 @@ fn filter_note(){
 }
 fn banner_line(){
     if mail_link == "checking" { return "正在连接邮件服务…" }
-    if mail_link == "live" { return "已连接 " + account_addr + " · " + live_total + " 封真实邮件" }
+    if mail_link == "live" {
+        if syncing { return "已连接 " + account_addr + " · 正在同步邮箱(首次可能需要一分钟)…" }
+        return "已连接 " + account_addr + " · " + live_total + " 封真实邮件"
+    }
     if mail_link == "no_account" { return "未添加邮箱账号 · 在「我的」里添加" }
     if mail_link == "error" { return "邮箱连接失败:" + link_error }
     return "邮件服务不可用 · 当前为练习数据"
@@ -402,14 +570,17 @@ fn banner_line(){
 fn summary_state_word(m){
     if m.summary_src == "asking" { return "生成中" }
     if m.summary_src == "ai" { return "模型生成" }
+    if m.summary_src == "budget" { return "今日额度用完" }
+    if m.summary_src == "busy" { return "限速·重开重试" }
     if m.summary_src == "unavailable" { return "服务不可用" }
     if m.summary_src == "live-fallback" { return "正文截取" }
     return "练习摘要"
 }
 // the summary lines to draw: AI points once generated, else the dataset
+// (0.7.25: ai_points also carries the snippet fallback set on refusals, for
+// any state — the state word says why, the point says what)
 fn summary_lines(m){
-    if m.summary_src == "ai" { return m.ai_points }
-    if m.summary_src == "live-fallback" { return m.ai_points }
+    if m.ai_points.len() > 0 { return m.ai_points }
     return m.summary
 }
 
@@ -426,83 +597,123 @@ let link_error = ""
 let account_id = ""
 let account_addr = ""
 let live_total = 0
+let want_sync = false         // sync queued by the accounts callback
+let syncing = false           // a mail.sync is in flight (banner progress)
+let sync_tries = 0            // re-issue cap (IMAP is genuinely slow)
 let want_list = false
+let mail_dbg = "boot"          // TEMP probe: where mail_list dies in the shell
+// 0.7.9: requests issued from a GESTURE handler get their replies pumped
+// only by the next input event in the Shell (first mail open: no body, no
+// summary for tens of seconds — the reopen tap pumps them). Requests issued
+// from this poller deliver on its own beats, so gestures only RAISE these
+// flags and poll_step issues the requests here.
+let want_body = -1             // mail index awaiting mail.message
+let want_summary = -1          // mail index awaiting gen_summary
+let want_mark = -1             // mail index awaiting mark_read
+let want_send = false          // live send queued by 写信
+let want_insight = false       // vibe classify + mood line re-ask
+let insight_inflight = false   // one insight request at a time
+let poll_beat = 0              // poll_step counter (retry pacing)
+let body_tries = 0             // mail.message re-issues for the open mail
+let summary_wait = 0          // beats since the open mail's summary request
 let mail_arm = false           // 断开邮箱 needs a second confirming tap
 
 fn mail_check(){
     if !host.has("mail") {
         mail_link = "no_service"
         link_error = "此环境未提供邮件服务(card-host)"
-        repaint()
+        soft_repaint()
         return
     }
     host.request("mail.accounts", {}, fn(r){
         if !r.is_ok {
             mail_link = "no_service"
             link_error = r.error
-            repaint()
+            soft_repaint()
             return
         }
         if r.data.len() == 0 {
             mail_link = "no_account"
-            repaint()
+            soft_repaint()
             return
         }
         account_id = r.data[0].id
         account_addr = r.data[0].address
         mail_link = "live"
-        mail_load()
+        want_sync = true
     })
 }
 fn mail_add_account(){
+    if nav_recent() { return }
     // the service raises its own sign-in sheet; passwords never reach the app
     host.request("mail.add_account", {}, fn(r){
         if r.is_ok { mail_check() return }
         link_error = r.error
-        repaint()
+        soft_repaint()
     })
 }
 fn live_mail(m){
     // list replies carry headers only; body arrives with mail.message on open
+    // DIRECT field access ONLY — the makepad VM the shell runs has no
+    // mod.std.text/object helpers at all (0.7.21 probe: even object.keys
+    // fails), and this exact shape loaded live mails in the shell at 0.7.11
     let v = classify_vibe(m.subject, m.address)
     return {src: "live" id: m.id sender: m.sender bname: m.sender handle: m.address
             subject: m.subject snippet: m.preview body: ""
-            time: m.time vibe: v unread: m.unread starred: false
+            time: m.time vibe: v unread: m.unread
+            starred: false
             imp: vibe_imp(v)
-            summary: [] t0: "" t1: "" t2: ""
+            summary: [] t0: "" th: "" t1: "" tp: "" t2: ""
             reply: "" reply_text: "" send_error: "" boxed: ""
             summary_src: "none" ai_points: []}
 }
 fn mail_load(){
     // sync FIRST (mail.list only reads the local cache; mail.sync fills it),
     // then the list goes out over TWO channels: nested here (card-host
-    // honours it) and re-issued by the poller (shell delivery proved flaky).
+    // honours it) and re-issued by the poller. 0.7.18: mail_load itself is
+    // now only ever entered FROM the poller — the sync request issued inside
+    // the accounts callback never got its reply pumped by the shell.
+    // IMAP is genuinely slow and its reply waits for a later pump, so the
+    // banner shows honest progress and the poller re-issues (capped).
+    syncing = true
     host.request("mail.sync", {account: account_id}, fn(r){
+        syncing = false
         if r.is_ok { live_total = r.data.total }
         want_list = true
-        repaint()
+        soft_repaint()
     })
 }
 fn mail_list(){
+    mail_dbg = "issued"
     host.request("mail.list", {account: account_id limit: 20}, fn(r){
+        mail_dbg = "cb-enter"
         if !r.is_ok {
             mail_link = "error"
             link_error = r.error
-            repaint()
+            mail_dbg = "cb-err"
+            soft_repaint()
             return
         }
+        mail_dbg = "cb-parsed"
         let out = []
-        for i in r.data.messages.len() {
+        let i = 0
+        while i < r.data.messages.len() {
             out.push(live_mail(r.data.messages[i]))
+            i = i + 1
         }
+        mail_dbg = "assign"
         mails = out
+        mail_dbg = "done n=" + mails.len()
         mail_src = "live"
         live_total = r.data.total
         open_idx = -1
-        repaint()
+        want_insight = true
+        soft_repaint()
     })
 }
 fn mail_refresh(){
+    if nav_recent() { return }
+    sync_tries = 0
     mail_link = "checking"
     repaint()
     mail_check()
@@ -510,15 +721,22 @@ fn mail_refresh(){
 fn mail_open_message(i){
     host.request("mail.message", {account: account_id message: mails[i].id}, fn(r){
         if r.is_ok {
+            // raw as delivered: HTML-cleaning needs text tools the shell
+            // runtime does not expose (0.7.13 finding) — marketing mails
+            // will show their raw text, which is honest, visible content
             mails[i].body = r.data.body
-            repaint()
+        } else {
+            // 解析异常 shows its reason instead of a silent blank
+            mails[i].body = "(正文暂时无法获取:" + r.error + ")"
         }
+        soft_repaint()
     })
 }
 fn mail_mark_read(i){
     host.request("mail.mark_read", {account: account_id message: mails[i].id}, fn(r){ })
 }
 fn mail_disconnect(){
+    if nav_recent() { return }
     if mail_arm {
         host.request("mail.remove_account", {account: account_id}, fn(r){
             mail_arm = false
@@ -526,7 +744,7 @@ fn mail_disconnect(){
         })
     } else {
         mail_arm = true
-        repaint()
+        soft_repaint()
     }
 }
 // live sends go out through the platform service with the compose fields
@@ -542,7 +760,7 @@ fn send_live(){
             if !r.is_ok { send_error_msg = r.error } else { send_error_msg = "服务未接受" }
             mark_failed(idx)
         }
-        repaint()
+        soft_repaint()
     })
 }
 // MARKER:ADAPTER-END
@@ -563,36 +781,40 @@ fn gen_summary(i){
         class: "fast"
     }, fn(r){
         if !r.is_ok {
-            mails[i].summary_src = "unavailable"
-            // honest fallback when the real body already landed: its first
-            // non-empty lines stand in as the three points
-            if mails[i].body != "" {
-                let lines = mails[i].body.split("\n")
-                let pts = []
-                let n = 0
-                while n < lines.len() {
-                    if lines[n] != "" {
-                        if pts.len() < 3 { pts.push(lines[n]) }
-                    }
-                    n = n + 1
-                }
-                if pts.len() > 0 {
-                    mails[i].ai_points = pts
-                    mails[i].summary_src = "live-fallback"
-                }
+            // classify the refusal honestly (0.7.25): the host's ledger says
+            // "…for today." once the per-app daily budget is spent, and
+            // "…a minute; …" when the rate limit trips. search() is the only
+            // string tool the shell VM has.
+            let st = "unavailable"
+            if r.error.search("for today") >= 0 { st = "budget" } else {
+                if r.error.search("a minute") >= 0 { st = "busy" }
             }
-            repaint()
+            mails[i].summary_src = st
+            // content fallback when the real body already landed: the list's
+            // snippet (180 chars, service-side) stands in as the one point.
+            // NO string methods here — the shell VM has none (0.7.21).
+            if mails[i].snippet != "" {
+                mails[i].ai_points = [mails[i].snippet]
+            }
+            soft_repaint()
             return
         }
         mails[i].ai_points = r.data.output.points
         mails[i].summary_src = "ai"
-        ai_model = r.data.meta.model
-        repaint()
+        // NOTE no meta read: the shell's model service answers meta with
+        // {class, requested, attempts, usage, budget} — NO model name.
+        // Reading r.data.meta.model threw property-not-found (0.7.24 shell
+        // log), which killed this callback BEFORE soft_repaint: the summary
+        // arrived but the open detail never repainted — it only showed after
+        // the second open's gesture repaint.
+        soft_repaint()
     })
 }
 fn tone_label(){
     if tone == 0 { return "真诚随意" }
-    if tone == 1 { return "自然友好" }
+    if tone == 1 { return "轻松幽默" }
+    if tone == 2 { return "自然友好" }
+    if tone == 3 { return "简洁专业" }
     return "正式得体"
 }
 // rewrite the live reply preview at the current tone (practice targets use
@@ -616,13 +838,14 @@ fn gen_tone(){
         if !r.is_ok {
             tone_src = "unavailable"
             tone_note = "模型服务不可用,已保留原文"
-            repaint()
+            soft_repaint()
             return
         }
         live_preview = r.data.output.text
         tone_src = "ai"
-        ai_model = r.data.meta.model
-        repaint()
+        // same 0.7.24 finding as gen_summary: meta has no model field, and
+        // any throw here skips the soft_repaint below (stale preview)
+        soft_repaint()
     })
 }
 fn preview_text(){
@@ -630,17 +853,32 @@ fn preview_text(){
         let m = mails[reply_idx]
         if m.src == "live" { return live_preview }
         if tone == 0 { return m.t0 }
-        if tone == 1 { return m.t1 }
+        if tone == 1 { return m.th }
+        if tone == 2 { return m.t1 }
+        if tone == 3 { return m.tp }
         return m.t2
     }
     // fresh compose: the reference demo defaults (Mira thread)
     if tone == 0 { return mails[0].t0 }
-    if tone == 1 { return mails[0].t1 }
+    if tone == 1 { return mails[0].th }
+    if tone == 2 { return mails[0].t1 }
+    if tone == 3 { return mails[0].tp }
     return mails[0].t2
 }
 
 // ---- navigation & actions ---------------------------------------------------
+// floating-pill guard: a tap reaches EVERY overlapping GestureView, so a
+// nav tap also fires the handler of whatever card/button sits under the
+// pill. go() stamps the drift clock; content handlers entered within 0.25s
+// (same dispatch) are dropped. Either dispatch order converges on the nav
+// switch: card-first leaves the flag unset and go() clears open_idx after.
+fn nav_recent(){
+    let d = anim_t - nav_gate_t
+    if d < 0 { return false }
+    return d < 0.25
+}
 fn go(s){
+    nav_gate_t = anim_t
     screen = s
     open_idx = -1
     send_state = "idle"
@@ -648,15 +886,22 @@ fn go(s){
     repaint()
 }
 fn open_mail(i){
+    if nav_recent() { return }
     open_idx = i
     let m = mails[i]
     if m.unread {
         mails[i].unread = false
-        if m.src == "live" { mail_mark_read(i) }
+        if m.src == "live" { want_mark = i }
     }
     if m.src == "live" {
-        if m.body == "" { mail_open_message(i) }
-        if m.summary_src == "none" { gen_summary(i) }
+        if m.body == "" { want_body = i }
+        // "busy" (rate limit) and "unavailable" (transient) re-ask on the
+        // next open — a natural, user-paced retry that costs one call;
+        // "budget" does not (pointless until the UTC-day rollover)
+        if m.summary_src == "none" || m.summary_src == "busy" || m.summary_src == "unavailable" {
+            mails[i].summary_src = "asking"
+            want_summary = i
+        }
     }
     repaint()
 }
@@ -669,23 +914,29 @@ fn set_filter(v){
     repaint()
 }
 fn toggle_star(i){
+    if nav_recent() { return }
     mails[i].starred = !mails[i].starred
     repaint()
 }
 fn archive_mail(i){
+    if nav_recent() { return }
     mails[i].boxed = "archive"
     open_idx = -1
+    want_insight = true
     repaint()
 }
 fn restore_archived(){
+    if nav_recent() { return }
     let n = archived_cnt()
     for i in mails.len() {
         if mails[i].boxed == "archive" { mails[i].boxed = "" }
     }
     if n > 0 { restored_note = "已恢复 " + n + " 封到收件箱" }
+    want_insight = true
     repaint()
 }
 fn open_compose(idx){
+    if nav_recent() { return }
     reply_idx = idx
     if idx >= 0 {
         to_input = mails[idx].handle
@@ -705,7 +956,7 @@ fn open_compose(idx){
         tone_src = "canned"
         tone_note = ""
     }
-    tone = 1
+    tone = 2
     send_state = "idle"
     send_error_msg = ""
     screen = "write"
@@ -713,6 +964,7 @@ fn open_compose(idx){
     repaint()
 }
 fn set_tone(t){
+    if nav_recent() { return }
     tone = t
     if reply_idx >= 0 {
         if mails[reply_idx].src == "live" {
@@ -727,11 +979,12 @@ fn set_tone(t){
 // single-tap send (reference behaviour): sending -> sent | failed; failed
 // keeps the draft on the mail and offers retry
 fn do_send(){
+    if nav_recent() { return }
     send_state = "sending"
     send_error_msg = ""
     repaint()
     if mail_link == "live" {
-        send_live()
+        want_send = true
         return
     }
     let idx = reply_idx
@@ -762,20 +1015,125 @@ fn mark_failed(idx){
     }
 }
 fn retry_send(){ do_send() }
-fn toggle_outage(){ simulate_outage = !simulate_outage; repaint() }
+fn toggle_outage(){
+    if nav_recent() { return }
+    simulate_outage = !simulate_outage
+    repaint()
+}
 
 // ---- boot, poller, drift clock ----------------------------------------------
 let mail_poll = nil
 let anim_poll = nil
 let sys_checks = 0
 fn poll_step(){
+    // flush repaints deferred by host-reply callbacks / timers (see
+    // soft_repaint): the poller's own render reaches the screen in every
+    // runner, the callbacks' does not
+    if ui_dirty {
+        ui_dirty = false
+        repaint()
+    }
     // requests are issued only from this top-level interval or gestures:
     // timers registered inside host-reply callbacks are dropped by the
     // shell's runner. In system mode the same poller samples the host
     // palette every ~2s and follows a Shell light/dark flip.
+    //
+    // 0.7.9: gesture-raised requests queue here and are issued on this
+    // beat — a poller-issued request's reply arrives on later beats, so
+    // first-open body/summary no longer wait for the next input event.
+    if want_body >= 0 {
+        let i = want_body
+        want_body = -1
+        body_tries = 1
+        mail_open_message(i)
+    }
+    if want_summary >= 0 {
+        let i = want_summary
+        // 0.7.24: never summarize before the body landed — issuing the model
+        // call on the same beat as mail.message sent body:"" and the model
+        // answered 「邮件正文为空」 for mails that had one. The flag simply
+        // waits (re-checked every beat); a failed fetch (its error-marker
+        // body) cancels the ask honestly instead.
+        let b = mails[i].body
+        if b != "" {
+            want_summary = -1
+            if b.search("正文暂时无法获取") < 0 {
+                summary_wait = 1
+                gen_summary(i)
+            } else {
+                mails[i].summary_src = "unavailable"
+                soft_repaint()
+            }
+        }
+    }
+    if want_mark >= 0 {
+        let i = want_mark
+        want_mark = -1
+        mail_mark_read(i)
+    }
+    if want_send {
+        want_send = false
+        send_live()
+    }
+    if want_insight {
+        if !insight_inflight {
+            want_insight = false
+            ask_insight()
+        }
+    }
+    if want_sync {
+        want_sync = false
+        mail_load()
+    }
+    if syncing {
+        if sync_tries < 3 {
+            if poll_beat % 25 == 0 {
+                sync_tries = sync_tries + 1
+                mail_load()
+            }
+        } else {
+            syncing = false
+            soft_repaint()
+        }
+    }
     if want_list {
         want_list = false
         mail_list()
+    }
+    // paced re-issues while the open live mail is still pending (a reply
+    // can be dropped by the shell's runner; ask again every ~2.4s, capped)
+    poll_beat = poll_beat + 1
+    if open_idx >= 0 {
+        let m = mails[open_idx]
+        if m.src == "live" {
+            if m.body == "" {
+                if body_tries > 0 {
+                    if body_tries < 5 {
+                        if poll_beat % 6 == 0 {
+                            body_tries = body_tries + 1
+                            mail_open_message(open_idx)
+                        }
+                    }
+                }
+            }
+            if m.summary_src == "asking" {
+                // PATIENCE ONLY — never re-request (0.7.25): every
+                // model.complete is billed to the host's per-app budget
+                // (default 100 calls / 6 a minute), and re-issuing every
+                // 3.2 s while a slow provider was still thinking burned a
+                // whole day's budget in one browsing session — every reply
+                // then refused, all summaries fell back to 正文截取. One
+                // call per open; if nothing lands in ~30 s say so honestly.
+                if summary_wait > 0 {
+                    summary_wait = summary_wait + 1
+                    if summary_wait > 75 {
+                        summary_wait = 0
+                        mails[open_idx].summary_src = "unavailable"
+                        soft_repaint()
+                    }
+                }
+            }
+        }
     }
     let g = greeting_for_now()
     if g != greeting_word {
@@ -813,6 +1171,7 @@ fn boot(){
     apply_theme(resolve_theme())
     greeting_word = greeting_for_now()
     repaint()
+    want_insight = true
     mail_check()
     mail_poll = start_interval(0.4, || poll_step())
     anim_poll = start_interval(0.15, || anim_step())
@@ -1273,17 +1632,21 @@ fn soft_note(t, size){
 // ---- inbox -----------------------------------------------------------------
 // vibe filter chips: TEXT ONLY in the vibe's own colour (0.7.2 user call —
 // the drawn glyphs read poorly at chip size, so emotion is carried by the
-// word + a tinted ground; 全部 stays neutral, the active chip inverts to ink)
+// word + a tinted ground; 全部 stays neutral, the active chip inverts to ink).
+// Six EQUAL Fill-width chips split the content row (0.7.3: the shell's CJK
+// glyph metrics run wider than card-host's, so fixed-width chips clipped
+// 连接 there — equal fills adapt to whatever the fonts measure). 全部 is the
+// neutral swatch, the active chip inverts to ink.
 fn filter_chip(key, label){
     let act = filter == key
-    GestureView{width: Fit height: Fit on_tap: |x, y| set_filter(key)
-        RoundedView{width: Fit height: Fit padding: Inset{top: 6 bottom: 6 left: 12 right: 12}
+    GestureView{width: Fill height: Fit on_tap: |x, y| set_filter(key)
+        RoundedView{width: Fill height: Fit padding: Inset{top: 6 bottom: 6 left: 4 right: 4}
             draw_bg +: {color: pick(act, ink, pick(key == "all", paper3, chip_bg(key)))
                        border_radius: 15.0
                        border_size: pick(act, 0.0, pick(key == "all", 1.0, 0.0))
-                       border_color: line}
+                       border_color: line} align: Align{x: 0.5}
             Label{text: label draw_text.color: pick(act, paper, pick(key == "all", inkSoft, chip_fg(key)))
-                   draw_text.text_style.font_size: 11}
+                   draw_text.text_style.font_size: 11 align: Align{x: 0.5}}
         }
     }
 }
@@ -1340,7 +1703,7 @@ fn inbox_empty(){
 }
 fn inbox_screen(){
     ScrollYView{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 36 left: 16 right: 16}
+        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 92 left: 16 right: 16}
             // greeting + brand aura (the aura sways on the drift clock)
             View{width: Fill height: Fit flow: Right align: Align{y: 0.0}
                 View{width: Fill height: Fit flow: Down
@@ -1357,15 +1720,23 @@ fn inbox_screen(){
                 View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
                     View{width: 12 height: 12 align: Align{x: 0.5 y: 0.5}
                         spark_icon(inkSoft, 11)}
-                    Label{width: Fill text: digest_line() draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+                    View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
+                        Label{width: Fill text: digest_shown() draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+                        Label{text: digest_src_word() draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                    }
                 }
                 Label{width: Fill text: banner_line() draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                if mail_link == "live" {
+                    if mail_src == "practice" {
+                        Label{width: Fill text: "真实邮件正在同步,稍候片刻…" draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                    }
+                }
                 if filter != "all" {
                     Label{width: Fill text: filter_note() draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
                 }
             }
-            // vibe filter chips — tight enough that all six stay on screen
-            ScrollXView{width: Fill height: Fit flow: Right spacing: 4 padding: Inset{top: 2 bottom: 2}
+            // vibe filter chips — six fit the content width, no scrolling
+            View{width: Fill height: Fit flow: Right spacing: 4 padding: Inset{top: 2 bottom: 2}
                 filter_chip("all", "全部")
                 filter_chip("focus", "专注")
                 filter_chip("joy", "愉悦")
@@ -1413,7 +1784,7 @@ fn action_capsule(icon_key, label, bg, fg, border, cut){
 fn detail_screen(){
     let m = mails[open_idx]
     ScrollYView{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 12 bottom: 36 left: 16 right: 16}
+        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 12 bottom: 92 left: 16 right: 16}
             GestureView{width: Fit height: Fit on_tap: |x, y| close_detail()
                 View{width: Fit height: Fit flow: Right spacing: 5 align: Align{y: 0.5} padding: Inset{top: 4 bottom: 4}
                     View{width: 15 height: 15 align: Align{x: 0.5 y: 0.5}
@@ -1440,7 +1811,7 @@ fn detail_screen(){
                             Label{width: Fill text: "正在向模型服务请求要点…" draw_text.color: inkSoft draw_text.text_style.font_size: 11}
                         } else {
                             if summary_lines(m).len() == 0 {
-                                Label{width: Fill text: "暂无摘要 · 模型服务不可用" draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+                                Label{width: Fill text: "暂无摘要 · " + summary_state_word(m) draw_text.color: inkSoft draw_text.text_style.font_size: 11}
                             } else {
                                 for pi in summary_lines(m).len() {
                                     summary_row(summary_lines(m)[pi], m.vibe)
@@ -1448,7 +1819,27 @@ fn detail_screen(){
                             }
                         }
                     }
-                    Label{width: Fill text: m.body draw_text.color: ink draw_text.text_style.font_size: 13}
+                    if m.src == "live" {
+                        if m.body == "" {
+                            // FIRST OPEN, zero round-trip: the list already
+                            // carries a preview — show it now; the full body
+                            // upgrades this spot when its reply is pumped.
+                            // m.SNIPPET: live mails keep the list preview
+                            // under snippet — reading m.preview here threw
+                            // property-not-found and the shell discarded the
+                            // WHOLE render pass while the body was in flight
+                            // (0.7.24 log: on_render closure failed).
+                            if m.snippet != "" {
+                                Label{width: Fill text: "正文预览" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                                Label{width: Fill text: m.snippet draw_text.color: ink draw_text.text_style.font_size: 13}
+                            }
+                            Label{width: Fill text: "完整正文与摘要稍后自动补全 · 轻点任意处立即获取" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                        } else {
+                            Label{width: Fill text: m.body draw_text.color: ink draw_text.text_style.font_size: 13}
+                        }
+                    } else {
+                        Label{width: Fill text: m.body draw_text.color: ink draw_text.text_style.font_size: 13}
+                    }
                     if m.reply == "failed" {
                         Label{width: Fill text: "上次发送失败:" + m.send_error + " · 可在「写信」里重试" draw_text.color: failT draw_text.text_style.font_size: 10}
                     }
@@ -1468,44 +1859,42 @@ fn detail_screen(){
 }
 
 // ---- orbit (star map) -------------------------------------------------------
-// Preset anchor points (percent of the 380x560 field), size = 52 + imp*0.62,
-// gentle sin/cos drift per bubble; the field repaints on the anim interval.
-fn orbit_x(i){
-    if i == 0 { return 16 + 8 * 38 / 10 }
-    if i == 1 { return 16 + 52 * 38 / 10 }
-    if i == 2 { return 16 + 18 * 38 / 10 }
-    if i == 3 { return 16 + 60 * 38 / 10 }
-    if i == 4 { return 16 + 6 * 38 / 10 }
-    if i == 5 { return 16 + 48 * 38 / 10 }
-    if i == 6 { return 16 + 24 * 38 / 10 }
-    return 16 + 64 * 38 / 10
+// 0.7.5: the field is FILL-WIDTH (fixed height 560) and every anchor is a
+// FRACTION of it, so the constellation spreads across whatever width the
+// window gives — the old fixed 380 canvas left a narrow centred strip with
+// dead flanks on wide screens. Size = 52 + imp*0.62; drift is fractional
+// too (the px swing of the phone design, expressed against any width).
+fn orbit_fx(i){
+    if i == 0 { return 0.13 }
+    if i == 1 { return 0.65 }
+    if i == 2 { return 0.29 }
+    if i == 3 { return 0.76 }
+    if i == 4 { return 0.10 }
+    if i == 5 { return 0.62 }
+    if i == 6 { return 0.36 }
+    return 0.80
 }
-fn orbit_y(i){
-    if i == 0 { return 26 + 6 * 52 / 10 }
-    if i == 1 { return 26 + 2 * 52 / 10 }
-    if i == 2 { return 26 + 32 * 52 / 10 }
-    if i == 3 { return 26 + 30 * 52 / 10 }
-    if i == 4 { return 26 + 60 * 52 / 10 }
-    if i == 5 { return 26 + 58 * 52 / 10 }
-    if i == 6 { return 26 + 80 * 52 / 10 }
-    return 26 + 78 * 52 / 10
+fn orbit_fy(i){
+    if i == 0 { return 0.12 }
+    if i == 1 { return 0.06 }
+    if i == 2 { return 0.38 }
+    if i == 3 { return 0.36 }
+    if i == 4 { return 0.64 }
+    if i == 5 { return 0.62 }
+    if i == 6 { return 0.84 }
+    return 0.82
 }
 fn bubble(i){
     let m = mails[i]
     let size = 52 + m.imp * 62 / 100
-    let dx = cos(anim_t * (0.6 + i * 0.07)) * 4.0
-    let dy = sin(anim_t * (0.8 + i * 0.09)) * 5.0
-    let x = orbit_x(i) + dx
-    let y = orbit_y(i) + dy
+    let fx = orbit_fx(i) + cos(anim_t * (0.6 + i * 0.07)) * 0.012
+    let fy = orbit_fy(i) + sin(anim_t * (0.8 + i * 0.09)) * 0.012
     let c = vibe_color(m.vibe)
     // the wrapper canvas is 1.66x the bubble (leftover glow headroom, the
     // halos themselves were removed in 0.7.2 — the link blue's halo read as
-    // stray circles while the other vibes' were invisible; anchor fractions
-    // are re-derived so the BUBBLE CENTRE stays on the preset field point)
+    // stray circles while the other vibes' were invisible)
     let g = size * 1.66
-    let fxg = ((x / 380.0) * (380.0 - size) + size * 0.5 - g * 0.5) / (380.0 - g)
-    let fyg = ((y / 560.0) * (560.0 - size) + size * 0.5 - g * 0.5) / (560.0 - g)
-    View{width: 380 height: 560 align: Align{x: fxg y: fyg}
+    View{width: Fill height: 560 align: Align{x: fx y: fy}
         View{width: g height: g flow: Overlay
             GestureView{width: size height: size align: Align{x: 0.5 y: 0.5} on_tap: |x, y| open_mail(i)
                 RoundedView{width: size height: size draw_bg +: {color: c border_radius: size / 2.0} flow: Overlay align: Align{x: 0.5 y: 0.5}
@@ -1530,10 +1919,11 @@ fn bubble(i){
 }
 fn orbit_screen(){
     ScrollYView{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 14 bottom: 36 left: 16 right: 16}
+        View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 14 bottom: 92 left: 16 right: 16}
             screen_title("星轨")
             soft_note("气泡大小 = 重要度 · 颜色 = vibe · 点按打开", 11)
-            View{width: 380 height: 560 flow: Overlay
+            // star map: full-width field, anchors are fractions of it
+            View{width: Fill height: 560 flow: Overlay
                 for i in mails.len() {
                     if mails[i].boxed == "" { bubble(i) }
                 }
@@ -1544,65 +1934,58 @@ fn orbit_screen(){
 
 // ---- write (tone slider) ------------------------------------------------------
 // the drawn slider: visuals first, three tap segments minted LAST so they
-// sit above the track for hit testing (late children win in an Overlay)
+// sit above the track for hit testing (late children win in an Overlay).
+// 0.7.5: track/dots/knob/tap stack is ONE fixed-348 overlay centred by a
+// Fill wrapper — in a wider column the Fill-wide dot/knob rows would drift
+// off the 348 track; fixed siblings cannot.
+fn tone_col(k){
+    // one adaptive stop: dot centred, knob (with paper ring) stacked over it
+    // when active, whole column tappable — alignment is structural
+    GestureView{width: Fill height: 28 on_tap: |x, y| set_tone(k)
+        View{width: Fill height: 28 flow: Overlay
+            View{width: Fill height: 28 align: Align{x: 0.5 y: 0.5}
+                RoundedView{width: 8 height: 8 draw_bg +: {color: pick(tone == k, pinkC, line2) border_radius: 4.0}}}
+            if tone == k {
+                View{width: Fill height: 28 align: Align{x: 0.5 y: 0.5}
+                    RoundedView{width: 20 height: 20 draw_bg +: {color: ink border_radius: 10.0 border_size: 3.0 border_color: paper3}}}
+            }
+        }
+    }
+}
+fn tone_label_col(k, label){
+    GestureView{width: Fill height: 20 on_tap: |x, y| set_tone(k)
+        View{width: Fill height: 20 align: Align{x: 0.5 y: 0.5}
+            Label{text: label draw_text.color: pick(tone == k, ink, inkSoft)
+                   draw_text.text_style.font_size: 9.5}}
+    }
+}
+// ---- write (tone slider) ------------------------------------------------------
+// 0.7.5 REDESIGN — three EQUAL FILL columns over a full-width track: dot,
+// knob and tap zone share one column each, so every stop is aligned by
+// construction at ANY width (the old fixed-348 stack put the knob off-stop
+// for 真诚/正式 since 0.7.0 — only the middle stop could ever line up).
 fn tone_slider(){
     View{width: Fill height: Fit flow: Down spacing: 7
         View{width: Fill height: 28 flow: Overlay
             // base track
-            View{width: Fill height: 28 align: Align{x: 0.5 y: 0.5}
-                RoundedView{width: 348 height: 6 draw_bg +: {color: paper2 border_radius: 3.0 border_size: 1.0 border_color: line}}}
-            // stop dots
+            View{width: Fill height: 28 align: Align{y: 0.5}
+                RoundedView{width: Fill height: 6 draw_bg +: {color: paper2 border_radius: 3.0 border_size: 1.0 border_color: line}}}
+            // five equal stops: dot + knob + tap zone per column
             View{width: Fill height: 28 flow: Right
-                View{width: 116 height: 28 align: Align{x: 0.5 y: 0.5}
-                    RoundedView{width: 8 height: 8 draw_bg +: {color: pick(tone == 0, pinkC, line2) border_radius: 4.0}}}
-                View{width: 116 height: 28 align: Align{x: 0.5 y: 0.5}
-                    RoundedView{width: 8 height: 8 draw_bg +: {color: pick(tone == 1, pinkC, line2) border_radius: 4.0}}}
-                View{width: 116 height: 28 align: Align{x: 0.5 y: 0.5}
-                    RoundedView{width: 8 height: 8 draw_bg +: {color: pick(tone == 2, pinkC, line2) border_radius: 4.0}}}
-            }
-            // knob at the active stop
-            View{width: Fill height: 28 flow: Right
-                if tone == 0 {
-                    View{width: 58 height: 28 align: Align{x: 0.5 y: 0.5}
-                        RoundedView{width: 20 height: 20 draw_bg +: {color: ink border_radius: 10.0 border_size: 3.0 border_color: paper3}}}
-                } else {
-                    View{width: 58 height: 28}
-                }
-                if tone == 1 {
-                    View{width: 116 height: 28 align: Align{x: 0.5 y: 0.5}
-                        RoundedView{width: 20 height: 20 draw_bg +: {color: ink border_radius: 10.0 border_size: 3.0 border_color: paper3}}}
-                } else {
-                    View{width: 116 height: 28}
-                }
-                if tone == 2 {
-                    View{width: 58 height: 28 align: Align{x: 1.0 y: 0.5}
-                        RoundedView{width: 20 height: 20 draw_bg +: {color: ink border_radius: 10.0 border_size: 3.0 border_color: paper3}}}
-                } else {
-                    View{width: 58 height: 28}
-                }
-                View{width: Fill height: 28}
-            }
-            // tap zones (minted last = on top)
-            View{width: 348 height: 28 flow: Right
-                GestureView{width: 116 height: 28 on_tap: |x, y| set_tone(0)
-                    View{width: 116 height: 28}}
-                GestureView{width: 116 height: 28 on_tap: |x, y| set_tone(1)
-                    View{width: 116 height: 28}}
-                GestureView{width: 116 height: 28 on_tap: |x, y| set_tone(2)
-                    View{width: 116 height: 28}}
+                tone_col(0)
+                tone_col(1)
+                tone_col(2)
+                tone_col(3)
+                tone_col(4)
             }
         }
-        // labels (tappable too — same three stops)
-        View{width: 348 height: Fit flow: Right
-            GestureView{width: 116 height: 20 on_tap: |x, y| set_tone(0)
-                View{width: 116 height: 20 align: Align{x: 0.5 y: 0.5}
-                    Label{text: "真诚" draw_text.color: pick(tone == 0, ink, inkSoft) draw_text.text_style.font_size: 9.5}}}
-            GestureView{width: 116 height: 20 on_tap: |x, y| set_tone(1)
-                View{width: 116 height: 20 align: Align{x: 0.5 y: 0.5}
-                    Label{text: "友好" draw_text.color: pick(tone == 1, ink, inkSoft) draw_text.text_style.font_size: 9.5}}}
-            GestureView{width: 116 height: 20 on_tap: |x, y| set_tone(2)
-                View{width: 116 height: 20 align: Align{x: 0.5 y: 0.5}
-                    Label{text: "正式" draw_text.color: pick(tone == 2, ink, inkSoft) draw_text.text_style.font_size: 9.5}}}
+        // labels (tappable too — same five columns)
+        View{width: Fill height: Fit flow: Right
+            tone_label_col(0, "真诚")
+            tone_label_col(1, "幽默")
+            tone_label_col(2, "友好")
+            tone_label_col(3, "专业")
+            tone_label_col(4, "正式")
         }
     }
 }
@@ -1648,7 +2031,7 @@ fn send_button(){
 }
 fn write_screen(){
     ScrollYView{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 36 left: 16 right: 16}
+        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 92 left: 16 right: 16}
             screen_title("写信")
             RoundedView{width: Fill height: Fit padding: Inset{top: 16 bottom: 16 left: 16 right: 16}
                 draw_bg +: {color: paper3 border_radius: 20.0 border_size: 1.0 border_color: line} flow: Down spacing: 13
@@ -1684,7 +2067,9 @@ fn write_screen(){
                         View{width: 12 height: 12 align: Align{x: 0.5 y: 0.5}
                             spark_icon(inkSoft, 11)}
                         if tone_src == "ai" {
-                            Label{width: Fill text: pick(ai_model == "", "模型改写", ai_model) draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
+                            // the model service's meta carries no model name
+                            // (0.7.24), so the tag stays honest and generic
+                            Label{width: Fill text: "模型改写" draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
                         } else {
                             if tone_src == "asking" {
                                 Label{width: Fill text: "模型改写中…" draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
@@ -1728,7 +2113,7 @@ fn capability_row(cap, why){
 }
 fn set_screen(){
     ScrollYView{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 36 left: 16 right: 16}
+        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 92 left: 16 right: 16}
             screen_title("设置")
             // 外观主题
             RoundedView{width: Fill height: Fit padding: Inset{top: 15 bottom: 15 left: 16 right: 16}
@@ -1850,7 +2235,7 @@ fn set_screen(){
                         }
                     }
                 }
-                Label{width: Fill text: "VibeMail 0.7.2 · vibemail · 有情绪的邮件" draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                Label{width: Fill text: "VibeMail 0.7.25 · vibemail · 有情绪的邮件" draw_text.color: inkDim draw_text.text_style.font_size: 9}
             }
         }
     }
@@ -1866,7 +2251,7 @@ fn nav_item(label, target){
                 View{width: 16 height: 16 align: Align{x: 0.5 y: 0.5}
                     if target == "inbox" { tray_icon(pick(act, paper, inkSoft), 16) } else {
                     if target == "orbit" { orbit_icon(pick(act, paper, inkSoft), 16) } else {
-                    if target == "write" { pen_icon(pick(act, paper, inkSoft), 16, pick(act, ink, glass)) } else {
+                    if target == "write" { pen_icon(pick(act, paper, inkSoft), 16, pick(act, ink, paper)) } else {
                     sliders_icon(pick(act, paper, inkSoft), 16) }}}}
                 Label{text: label draw_text.color: pick(act, paper, inkSoft) draw_text.text_style.font_size: 9}
             }
@@ -1874,9 +2259,10 @@ fn nav_item(label, target){
     }
 }
 fn bottom_nav(){
-    // glass pill docked at the bottom of the phone column — in FLOW, not an
-    // overlay: taps in this runtime reach EVERY overlapping GestureView, so
-    // a floating pill over the list would also open the card beneath it
+    // glass pill FLOATING over the column's bottom edge — the screen scrolls
+    // behind it, so every screen keeps a bottom inset (88) with no tappable
+    // card under the band: taps reach EVERY overlapping GestureView here, and
+    // a card under the pill would open together with the nav item
     View{width: Fill height: Fit align: Align{x: 0.5} padding: Inset{top: 8 bottom: 16}
         RoundedView{width: Fit height: Fit padding: Inset{top: 5 bottom: 5 left: 7 right: 7}
             draw_bg +: {color: glass border_radius: 27.0 border_size: 1.0 border_color: line}
@@ -1893,36 +2279,47 @@ fn bottom_nav(){
 // ---- root -----------------------------------------------------------------
 // ONE on_render root mints the whole window (probed: separate on_render
 // underlays composite above later UI, so layers must share a single mint
-// with the ground first and the nav last): full-window paper ground, four
-// dim side auras framing the phone on wide desktop windows, then the 412px
-// phone column — status bar, screen bodies, and the floating nav pill on
-// top. The static SolidView ground only shows if the app fails to boot.
+// with the ground first and the nav last): full-window paper ground, then
+// the app column. The static SolidView ground only shows if the app fails
+// to boot.
+// WIDTH ADAPTATION (0.7.5): the column FILLS the window — fluid at every
+// width. A fixed 660 with centring was probed first and does NOT clamp to
+// the container: in a 412 window it centre-overflows and clips both edges
+// (unread dots left, 连接 chip right), so the 0.6.x "fixed width clamps"
+// note is dead. No window-size API exists for scripts either (only math/
+// json/text/array/object + host services) — Fill is the only honest
+// responsive primitive. Inner fixed-width pieces (tone slider, star map)
+// are centred by their Fill wrappers so they keep proportions when wide.
 SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: #xeaeae3
     appc := View{width: Fill height: Fill flow: Overlay on_render: || {
         // full-window theme ground
         RoundedView{width: Fill height: Fill draw_bg +: {color: paper border_radius: 0.0}}
-        // phone column, centred — OPAQUE ground: the design keeps its glow
-        // per mail card (and behind the phone on the marketing page), never
-        // as circles bleeding through the content, so the column blocks the
-        // window ground completely
-        View{width: Fill height: Fill align: Align{x: 0.5 y: 0.5}
-            View{width: 412 height: Fill flow: Overlay
-                RoundedView{width: Fill height: Fill draw_bg +: {color: paper border_radius: 0.0}}
-                View{width: Fill height: Fill flow: Down
-                    // active screen (scrolls itself)
-                    View{width: Fill height: Fill flow: Overlay
-                        if open_idx >= 0 {
-                            detail_screen()
-                        } else {
-                            if screen == "inbox" { inbox_screen() }
-                            if screen == "orbit" { orbit_screen() }
-                            if screen == "write" { write_screen() }
-                            if screen == "set" { set_screen() }
-                        }
+        // app column — fluid Fill. The SCREEN fills the whole column and the
+        // glass nav pill FLOATS over its bottom edge (0.7.5 user call: the
+        // pill stays, but the paper slab around it goes — the pill hangs on
+        // the window like the reference). Overlay caveat: a tap reaches EVERY
+        // overlapping GestureView, so the list keeps a bottom inset (the nav
+        // band) with no tappable card content under the pill; the pill's own
+        // items sit inside their glass capsule, not over any card.
+        View{width: Fill height: Fill flow: Overlay
+            View{width: Fill height: Fill flow: Down
+                // active screen (scrolls itself, full column height)
+                View{width: Fill height: Fill flow: Overlay
+                    if open_idx >= 0 {
+                        detail_screen()
+                    } else {
+                        if screen == "inbox" { inbox_screen() }
+                        if screen == "orbit" { orbit_screen() }
+                        if screen == "write" { write_screen() }
+                        if screen == "set" { set_screen() }
                     }
-                    // nav pill docked below the screen area (in flow)
-                    bottom_nav()
                 }
+            }
+            // glass pill floats over the column's bottom edge — the anchor
+            // wrapper is Fill-height so its y:1.0 lands the Fit pill at the
+            // bottom (a Fit wrapper in Overlay parks at the top, 0.7.5 probe)
+            View{width: Fill height: Fill align: Align{x: 0.5 y: 1.0} padding: Inset{bottom: 14}
+                bottom_nav()
             }
         }
     }}
