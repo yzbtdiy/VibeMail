@@ -1,0 +1,42 @@
+# VibeMail - CNB Linux 构建验证
+# 镜像来自 OctoSense 开发环境制品(hub/card-host/card-studio 已烘焙,见
+# cnb.cool/opensource.cool/octo-env 的 web_trigger_update_deps 更新按钮)
+# 自包含替代方案(不依赖制品镜像时):rust:1-bookworm + ci/install-deps.sh +
+# ci/setup-toolchain.sh + ci/verify-full.sh(约60-90分钟)
+main:
+  push:
+    - docker:
+        image: docker.cnb.cool/opensource.cool/octo-env:latest
+      stages:
+        - name: Linux 构建验证 (service 单元测试 + hub 签名门禁)
+          script: |
+            set +e
+            LOG=/tmp/verify.log
+            bash ci/verify.sh > "$LOG" 2>&1
+            RC=$?
+            cat "$LOG"
+            echo "verify exit: $RC"
+            cd /workspace
+            git config user.name "cnb-pipeline"
+            git config user.email "pipeline@noreply.cnb.cool"
+            git checkout -q -B ci-status
+            if [ "$RC" = 0 ]; then S=PASSED; else S=FAILED; fi
+            { echo "# VibeMail Linux 验证"
+              echo "- 状态: $S"
+              echo "- 完成(UTC): $(date -u +%FT%TZ)"
+              echo "- 提交: $(git rev-parse --short HEAD)"
+              echo
+              echo '```'
+              tail -40 "$LOG"
+              echo '```'
+            } > CI-STATUS.md
+            git add CI-STATUS.md
+            git commit -qm "ci: $S $(date -u +%FT%TZ)"
+            git push -q -f origin ci-status
+            exit $RC
+
+$:
+  push:
+    - stages:
+        - name: skip
+          script: echo "非 main 分支,跳过验证"

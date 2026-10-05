@@ -11,10 +11,10 @@
   },
   "id": "vibemail",
   "integrity": {
-    "bundle_blake3": "48f7e38b710ea451e15cf4c17cd7f839a4cdce119214b98e68b797186b69fccb",
+    "bundle_blake3": "b495782ccb5b7c8ee57567ad492237223fa02e9e462e1da5aead48d2b886112c",
     "signature": {
       "key_id": "yzbtdiy",
-      "value": "11940a66b41d32eb6ba6fb68640165bc082842292d910019e010f185dcf1dfb2f730cab3ebc5f29639fa45c80507187c040a7152bd7302942f6ce8d521ba9a0e"
+      "value": "173dbd3a35e44ec9163e93f8e3ff4ee191b97b5b09a83a49192af9b60861d331b394931ff514c93f083f409e9bc111bdd307b3f462b3e9968c0046ac77dc5e02"
     }
   },
   "name": "VibeMail",
@@ -25,5 +25,5 @@
   "storage": {
     "max_bytes": 4194304
   },
-  "version": "0.7.2"
+  "version": "0.7.25"
 }
