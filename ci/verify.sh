@@ -19,47 +19,55 @@ cd "$(dirname "$0")/.."
 echo '==> hub 工具(制品镜像烘焙)'
 command -v hub || { echo 'hub 不在 PATH:需要 octo-env 制品镜像' >&2; exit 1; }
 
-echo '==> 恢复发行者盖章字节 (Windows autocrlf: 文本文件按 CRLF 盖章)'
+echo '==> [1/3] service 单元测试'
+python3 -m unittest discover -s service -v
+
+echo '==> [2/3] Windows 约定摘要复验 (与清单声明严格比对)'
+# 两段式:仓库自 `bundle/** -text` 后字节精确(0.7.25+),按原样验;
+# 旧版本(0.6.x,autocrlf 洗成 LF 入库)需恢复 CRLF 后再验。
+python3 -m pip install --quiet --break-system-packages blake3 2>/dev/null || \
+  { apt-get update -qq && apt-get install -y -qq python3-pip >/dev/null \
+    && python3 -m pip install --quiet --break-system-packages blake3; }
 python3 - <<'EOF'
-import pathlib
-for p in pathlib.Path('bundle').rglob('*'):
+import json, pathlib, subprocess, sys
+import blake3
+
+root = pathlib.Path('bundle')
+
+def digest() -> str:
+    rels = sorted(p.relative_to(root).as_posix()
+                  for p in root.rglob('*')
+                  if p.is_file() and p.name != 'manifest.json')
+    h = blake3.blake3()
+    for rel in rels:
+        b = (root / rel).read_bytes()
+        h.update(rel.replace('/', '\\').encode())
+        h.update(b'\x00')
+        h.update(len(b).to_bytes(8, 'little'))
+        h.update(b)
+    return h.hexdigest()
+
+claim = json.loads((root / 'manifest.json').read_text())['integrity']['bundle_blake3'].lower()
+first = digest()
+if first == claim:
+    print(f'computed: {first}')
+    print('digest-ok (原样字节)')
+    sys.exit(0)
+
+# 旧版回退:文本文件恢复 CRLF(Windows autocrlf 盖章场景)后重验
+for p in root.rglob('*'):
     if p.is_file():
         b = p.read_bytes()
         if b'\x00' in b or b'\r\n' in b:
             continue
         p.write_bytes(b.replace(b'\n', b'\r\n'))
-print('crlf restored')
-EOF
-
-echo '==> [1/3] service 单元测试'
-python3 -m unittest discover -s service -v
-
-echo '==> [2/3] Windows 约定摘要复验 (与清单声明严格比对)'
-python3 -m pip install --quiet --break-system-packages blake3 2>/dev/null || \
-  { apt-get update -qq && apt-get install -y -qq python3-pip >/dev/null \
-    && python3 -m pip install --quiet --break-system-packages blake3; }
-python3 - <<'EOF'
-import json, pathlib, sys
-import blake3
-
-root = pathlib.Path('bundle')
-rels = sorted(p.relative_to(root).as_posix()
-              for p in root.rglob('*')
-              if p.is_file() and p.name != 'manifest.json')
-h = blake3.blake3()
-for rel in rels:
-    b = (root / rel).read_bytes()          # 已按 CRLF 恢复的盖章字节
-    h.update(rel.replace('/', '\\').encode())  # Windows 原生分隔符
-    h.update(b'\x00')
-    h.update(len(b).to_bytes(8, 'little'))
-    h.update(b)
-digest = h.hexdigest()
-claim = json.loads((root / 'manifest.json').read_text())['integrity']['bundle_blake3']
-print(f'computed: {digest}')
+second = digest()
+print(f'computed: {first} (原样) / {second} (CRLF恢复)')
 print(f'claimed : {claim}')
-if digest != claim.lower():
-    sys.exit('digest mismatch')
-print('digest-ok')
+if second == claim:
+    print('digest-ok (CRLF 恢复)')
+    sys.exit(0)
+sys.exit('digest mismatch')
 EOF
 
 echo '==> [3/3] hub 结构门禁 (副本:剥离签名+写入Linux摘要后 --allow-unsigned)'
