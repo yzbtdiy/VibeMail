@@ -1,8 +1,11 @@
-# VibeMail - CNB Linux 构建验证
-# 镜像来自 OctoSense 开发环境制品(hub/card-host/card-studio 已烘焙,见
-# cnb.cool/opensource.cool/octo-env 的 web_trigger_update_deps 更新按钮)
+# VibeMail - CNB 配置
+#
+# 1. Linux 构建验证 (main 推送自动触发,镜像来自 octo-env 制品)
+# 2. 云原生开发环境 (仓库页面「云原生开发」按钮,同 octo-env 制品镜像)
+#
 # 自包含替代方案(不依赖制品镜像时):rust:1-bookworm + ci/install-deps.sh +
 # ci/setup-toolchain.sh + ci/verify-full.sh(约60-90分钟)
+
 main:
   push:
     - docker:
@@ -11,10 +14,9 @@ main:
         - name: Linux 构建验证 (service 单元测试 + hub 签名门禁)
           script: |
             set +e
-            LOG=/tmp/verify.log
-            bash ci/verify.sh > "$LOG" 2>&1
+            bash ci/verify.sh > /tmp/verify.log 2>&1
             RC=$?
-            cat "$LOG"
+            cat /tmp/verify.log
             echo "verify exit: $RC"
             cd /workspace
             git config user.name "cnb-pipeline"
@@ -27,7 +29,7 @@ main:
               echo "- 提交: $(git rev-parse --short HEAD)"
               echo
               echo '```'
-              tail -40 "$LOG"
+              tail -40 /tmp/verify.log
               echo '```'
             } > CI-STATUS.md
             git add CI-STATUS.md
@@ -35,8 +37,42 @@ main:
             git push -q -f origin ci-status
             exit $RC
 
+# ---------- 云原生开发环境:复用 octo-env 制品镜像 ----------
+# 镜像内已烘焙:rust + makepad 全套依赖 + hub/card-host/card-studio(/usr/local/bin)
+# + Xvfb/XFCE/x11vnc/noVNC 桌面组件 + OctoSense 工具链(/opt/octosense-ws)
 $:
   push:
     - stages:
         - name: skip
           script: echo "非 main 分支,跳过验证"
+
+  vscode:
+    - docker:
+        image: docker.cnb.cool/opensource.cool/octo-env:latest
+      services:
+        - vscode
+        - docker
+      env:
+        # run_app.py 等工具通过 HUB_EXE 定位 hub;镜像内已在 PATH
+        HUB_EXE: /usr/local/bin/hub
+        OCTOSENSE_WS: /opt/octosense-ws
+      stages:
+        - name: vscode go
+          type: vscode:go
+        - name: 启动容器内 Web 桌面 (Xvfb+XFCE+noVNC, 端口3000)
+          script: |
+            set -e
+            export DISPLAY=:1
+            if ss -ltn 2>/dev/null | grep -q ':3000 '; then
+              echo '[skip] Web 桌面已在运行'
+              exit 0
+            fi
+            Xvfb :1 -screen 0 1600x900x24 -ac +extension GLX +render -noreset >/tmp/xvfb.log 2>&1 &
+            sleep 2
+            eval "$(dbus-launch --sh-syntax)"
+            xfce4-session >/tmp/xfce.log 2>&1 &
+            sleep 3
+            x11vnc -display :1 -rfbport 5900 -forever -shared -nopw -quiet -o /tmp/x11vnc.log &
+            websockify --web=/usr/share/novnc 3000 localhost:5900 >/tmp/novnc.log 2>&1 &
+            echo "export DISPLAY=:1" > /etc/profile.d/webtop-display.sh
+            echo "web-desktop-ready: PORTS 面板映射 3000,打开 /vnc.html?autoconnect=1"

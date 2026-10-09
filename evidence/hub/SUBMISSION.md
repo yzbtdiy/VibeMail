@@ -1,11 +1,14 @@
-# vibemail 0.7.25 — submission packet
+# vibemail 0.7.26 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated on the final 0.7.25 bytes), plus the reproduction evidence for the
-hackathon ("Agentic App 黑客松 2026", scene 01 邮件场景). The manifest is
-**publisher-signed** (`yzbtdiy`; key kept outside the repo) and the gate
-passes with **no warnings**. The only remaining human steps are the git tag
-and this issue itself.
+regenerated on the final 0.7.26 bytes with a hub built from current App-Hub
+main), plus the reproduction evidence for the hackathon ("Agentic App 黑客松
+2026", scene 01 邮件场景). **Submission route: GitHub publisher provenance**
+(`.github/workflows/publish-app.yml` seals and attests the tag; no developer
+publisher key). The editable source is deliberately unsigned; the only
+inherent gate note is the `--allow-unsigned` warning, which the workflow's
+attested manifest replaces. The remaining human steps are the tag push (which
+runs the workflow) and the submit-app.yml issue.
 
 ## The seven scan questions
 
@@ -34,16 +37,16 @@ and this issue itself.
    switch, and the version row). A floating glass nav pill docks at the
    bottom with a tap-guard so a covered card is not opened by accident.
    All five screenshots in the listing are real captures of these screens
-   (2026-10-04).
+   (2026-10-09, current runtime).
 
 2. **Do the listing's platforms and category fit?**
    Yes. `productivity` matches a mail app. `platforms: ["windows"]` is the
    only platform actually tested: every capture and interaction in this
    packet ran on Windows 10 (26100) — in the App Hub `card-host.exe`
-   (local build linking the reference mail service) at 412 / 700 / 1200
-   ×860, and in the OctoSense desktop shell itself (local build, app-hub
-   feature, bundle installed from a local signed catalog). No other
-   platform was tested, so none is claimed.
+   (built from current main, with the reference mail service wired as
+   documented dev wiring) at 412 / 700 / 1200 ×860, and in the OctoSense
+   desktop shell (local build, app-hub feature, bundle installed from a
+   local signed catalog). No other platform was tested, so none is claimed.
 
 3. **Do the granted capabilities match what the app visibly does?**
    Yes — the app requests exactly three capabilities: `mail`, `model`,
@@ -62,9 +65,10 @@ and this issue itself.
      and opening them produces real AI summaries (0.7.24/0.7.25 captures
      ev-20/21: a JD verification-code mail summarised as code/expiry/
      handling, a NetEase marketing mail honestly reported as having no
-     readable body). Wrong credentials are refused by the real server (the
-     service-side trace with the verbatim NO is `evidence/ev-mail-log.txt`;
-     the store-shape capture of the sheet flow is ev-13..16).
+     readable body). Wrong credentials are refused by the real server —
+     re-verified on the 0.7.26 toolchain (2026-10-09): the store-shape
+     flow ev-13..16 shows the host sheet, the real server's refusal, and
+     cancel back to the no-account state.
    - `model` backs three visible features: the AI 三行摘要, the tone-slider
      rewrite and the 心情播报 line — one-shot `model.complete` calls with a
      JSON schema (keys never reach the app). Since 0.7.25 the request
@@ -89,8 +93,8 @@ and this issue itself.
    Settings), every AI feature carries its provenance line
    (模型生成 / 生成中 / 固定文案 / 模型改写 / 练习文案), and the mailbox
    banner states exactly which state it is in (未添加 / 已连接 + address +
-   count / 不可用 / 0.7.20's honest 「真实邮件正在同步,稍候片刻…」). No
-   password/OTP inputs exist in the app.
+   count / 不可用 / 「真实邮件正在同步,稍候片刻…」). No password/OTP
+   inputs exist in the app.
 
 5. **Does any text read as an instruction to an assistant rather than
    content for a person?**
@@ -103,63 +107,58 @@ and this issue itself.
 
 7. **Route: pass, human-review, or reject?**
    Pass. Static, capability-lean, honest about being a concept demo whose
-   mail and model paths are real host-service calls. The hub check output
-   on the exact submitted bytes (publisher-signed, no
-   `--allow-unsigned`):
+   mail and model paths are real host-service calls. The gate on the
+   editable source at the tag (hub built from current main):
 
    ```
-   hub check bundle --publisher-key yzbtdiy=1095438c…b5759
-   vibemail 0.7.25 — PASSED
+   hub check bundle --allow-unsigned
+   vibemail 0.7.26 — PASSED
+     [warning] publisher-signature: unsigned: accountability rests on the hub alone
      grants: capabilities {"mail", "model", "storage"}, hosts {}, storage 4194304 bytes, agent none
    ```
+
+   The warning is inherent to the GitHub-provenance route: the editable
+   source stays unsigned and the tag workflow's attested manifest
+   (`publisher-github-v1`) provides the seal; `hub publisher-verify` on the
+   downloaded pack re-runs the gate on the sealed bytes.
 
 ## Reproduction evidence (hackathon: 真实任务、授权与结果核验)
 
 Everything below is reproducible on Windows with the bundled scripts
-(0.7.25 bytes, 2026-10-04 unless noted):
+(0.7.26 bytes, 2026-10-09, card-host rebuilt from current App-Hub main
+with the reference mail service wired as dev wiring):
 
 - **Route regression** (`route_test.json`, 6 routes / 42 steps,
   `scripts/run_routes.py`): real clicks against the real card-host window
   at 412×860 — vibe filter + detail summary, orbit bubble open + tri-state
   theme, tone-slider rewrite, single-tap send + replied chip, outage →
   draft kept → retry, archive/restore. 6/6 pass (the runner exits 0 only
-  on a full pass; failed steps leave diagnostic captures, which are kept
-  out of the repo).
+  on a full pass).
 - **Width robustness**: `scripts/audit_overflow.py 412 700 1200` and
-  `scripts/audit_missing.py 412 700 1200` walk every screen at all three
-  audited widths — no clipped geometry, every expected text present (the
-  missing audit boots a fresh instance per screen: long-lived instances'
-  scrolls and clicks interfere, a measured finding).
+  `scripts/audit_missing.py 412 700 1200` — no clipped geometry, every
+  expected text present on all five screens at all three widths.
 - **Unit tests**: `python -m unittest discover -s service` — 8/8 (the
   compose/send state-machine twin of `main.splash`); bridge parsers 5/5.
-- `scripts/drive-demo.py` drives the **real card-host window** over the
-  Makepad remote bridge through the full task: boot inbox → vibe filter →
-  detail AI summary → tone slider (真诚 / 正式) → single-tap send (已回复
-  pill syncs) → simulated outage → **send fails, draft kept** → retry
-  succeeds → dark theme. Captures: `bundle/screenshots/01..05` (the
-  listing; 05 is the dark theme) and `evidence/ev-01..10` (2026-10-04).
+- `scripts/drive-demo.py` drives the **real card-host window** through the
+  full task: boot inbox → vibe filter → detail AI summary → tone slider
+  (真诚 / 正式) → single-tap send (已回复 pill syncs) → simulated outage →
+  **send fails, draft kept** → retry succeeds → dark theme. Captures:
+  `bundle/screenshots/01..05` (the listing; 05 is the dark theme) and
+  `evidence/ev-01..10` (2026-10-09).
 - `scripts/drive-mail.py` drives the **shipped bundle** through the
   platform mail service: Settings → 邮箱账号 → 添加账号 raises the host's
   own sign-in sheet → a wrong authorization code is refused by the real
-  server → 取消 returns to the no-account state (ev-13..16; service-side
-  verbatim NO in `evidence/ev-mail-log.txt`; last run 2026-10-02,
-  re-runnable).
-- **A real mailbox with real model output in the shell**: `run.cmd shell`
-  (local signed catalog, `../octosense-local-hub/`) → settings → 添加账号
-  with a valid authorization code → the banner reads 已连接 + the real
-  INBOX is listed (keyword vibe classification, 0.7.20's honest sync
-  notice during the ~1 min IMAP window). Opening a real mail fetches the
-  body and produces a real three-line summary on first open (ev-20/21,
-  0.7.24/0.7.25); with the local-hub budget override in place a whole
-  validation round consumed **5 model calls** — the 0.7.25 one-call-per-
-  open discipline, verified.
-- **Three-mode theme follows the shell**: flipping the shell's appearance
-  both ways is followed within ~1-2 s each way (direction semantics fixed
-  in 0.6.15); pinned 亮色 / 暗色 ignore the shell; the choice persists in
-  `theme.json`. Pixel-sampled by `build/dbg_pixels2.py` (grounds, dark
-  cards, all five vibe colours on orbit, neon send CTA).
-- Final widget tree and host log snapshots: `evidence/final-snap.json`,
-  `evidence/final-log.txt`.
+  server → 取消 returns to the no-account state (ev-13..16, re-captured
+  2026-10-09).
+- **A real mailbox with real model output in the shell** (app bytes
+  unchanged in 0.7.26): `run.cmd shell` → settings → 添加账号 with a valid
+  authorization code → the banner reads 已连接 + the real INBOX is listed;
+  opening a real mail produces a real three-line summary on first open
+  (ev-20/21, 2026-10-04); a whole validation round consumed **5 model
+  calls** — the 0.7.25 one-call-per-open discipline, verified.
+- **Three-mode theme follows the shell**: flips followed within ~1-2 s
+  each way; pinned modes ignore the shell; the choice persists in
+  `theme.json`.
 
 Practice-data boundary (per the hackathon FAQ): the eight practice mails
 (with five tone variants each), their importance scores and the
@@ -172,8 +171,10 @@ configured the same buttons produce real model output (ev-20/21).
 
 ## Remaining human steps
 
-- [x] `hub keygen` (publisher key kept outside the repo)
-- [x] `hub sign-manifest bundle --key … --key-id yzbtdiy`
-- [x] `hub check bundle --publisher-key yzbtdiy=<hex>` → PASSED, no warnings
-- [ ] Tag the commit (`v0.7.25`), open `Submit vibemail 0.7.25` on
-      OctoSense-App-Hub with this packet's answers attached
+- [x] Editable source stamped with the portable digest, gate PASSED
+- [x] `.github/workflows/publish-app.yml` installed (`tools/octo publish-github`)
+- [x] Commit, push, tag `v0.7.26` (the tag push runs the workflow)
+- [ ] Workflow success → download the pack → `hub publisher-unpack` +
+      `hub publisher-verify` → record outputs
+- [ ] Open `Submit vibemail 0.7.26` via the submit-app.yml form with the
+      release evidence (field answers drafted in `evidence/hub/ISSUE.md`)

@@ -2,3 +2,5 @@
 # bytes: hub check on a checked-out tag must see byte-identical files. Never
 # let git normalize line endings inside the bundle.
 bundle/** -text
+*.sh text eol=lf
+*.yml text eol=lf
