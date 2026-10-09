@@ -2,7 +2,7 @@
   "schema_version": 1,
   "app": {
     "id": "vibemail",
-    "version": "0.7.26"
+    "version": "0.7.27"
   },
   "form": "script-app (Splash bundle, card-host / OctoSense shell)",
   "generated": "2026-10-09",
@@ -63,7 +63,7 @@
       "date": "2026-10-09"
     },
     {
-      "what": "live model output inside the OctoSense desktop shell (0.7.24/0.7.25, real mailbox connected; app bytes unchanged in 0.7.26)",
+      "what": "live model output inside the OctoSense desktop shell (0.7.24/0.7.25, real mailbox connected; app bytes unchanged in 0.7.27)",
       "result": "first-open three-line summaries render as 模型生成 within seconds (JD verification-code mail: code/expiry/handling; NetEase marketing mail honestly reports no readable body); 0.7.25 request discipline verified — one call per open, whole validation round consumed 5 calls after the local-hub budget override; mood line returns to 模型生成",
       "command": "run.cmd shell",
       "where": "evidence/ev-20-shell-live-summary.png, evidence/ev-21-shell-netease-summary.png",
@@ -84,7 +84,7 @@
   ],
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
-    "the GitHub release workflow run and downloaded-pack verification for v0.7.26 (executes on tag push; evidence lands in the submission issue)",
+    "the GitHub release workflow run and downloaded-pack verification for v0.7.27 (executes on tag push; evidence lands in the submission issue)",
     "the OctoSense-App-Hub submission issue (human step: submit-app.yml form)"
   ],
   "runtime_notes": [

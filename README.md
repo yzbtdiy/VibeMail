@@ -10,7 +10,7 @@ OctoSense 设计原型参考重构为一部流式手机列应用(任意窗口宽
 
 | | |
 | --- | --- |
-| 应用 ID / 版本 | `vibemail` / **0.7.26** |
+| 应用 ID / 版本 | `vibemail` / **0.7.27** |
 | 门禁状态 | `hub check --allow-unsigned` — **PASSED**(可编辑源码,新可移植摘要口径) |
 | 提交通道 | **GitHub publisher 工作流**(`.github/workflows/publish-app.yml`,tag push 出证明 release;无需发行者私钥) |
 | 申请能力 | `mail` + `model` + `storage`(共三项,按最小化原则) |
@@ -174,7 +174,7 @@ hub scan bundle --packet build/review.json  # 评审问题包(七问)
 ```
 
 > 工具链注意:hub 必须从 OctoSense-App-Hub 当前 main 构建(本机产物在
-> `%CARGO_TARGET_DIR%`,仓库本地 `target/` 里可能是旧货)。0.7.26 起摘要为
+> `%CARGO_TARGET_DIR%`,仓库本地 `target/` 里可能是旧货)。0.7.27 起摘要为
 > 跨平台可移植口径,Windows 与 Linux 计算一致;`ci/verify.sh` 已同步。
 
 接入自己的邮箱:运行应用,「我的 → 邮箱账号 → 添加账号」,在**宿主面板**里输入
@@ -223,7 +223,7 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 | `ev-13..16.png` | 商店形态邮件流程:未添加账号态 / 宿主登录面板 / 错误凭据真实拒绝 / 取消回未添加态 |
 | `ev-20/21.png` | 桌面 Shell 真实邮件首开实证(0.7.24):京东验证码邮件首开即出模型生成三行摘要(验证码/时效/保管要点)+ 完整正文;网易营销邮件摘要如实说明正文无可读文案 |
 | `ev-mail-log.txt` | card-host 邮件流程服务侧留痕(含服务器原文拒绝) |
-| `hub/` | 评审包:`review.json`(hub scan 问题包,0.7.26 字节生成)+ `SUBMISSION.md`(七问书面回答,已按 0.7.26 更新);`ISSUE.md` 为 submit-app.yml 表单各字段的答案底稿 |
+| `hub/` | 评审包:`review.json`(hub scan 问题包,0.7.27 字节生成)+ `SUBMISSION.md`(七问书面回答,已按 0.7.27 更新);`ISSUE.md` 为 submit-app.yml 表单各字段的答案底稿 |
 
 练习数据边界(按黑客松 FAQ):八封练习邮件(Mira 海边小屋 / 云服务账单 / Aurora
 周报 / GitHub / 读书会 / 外婆桂花 / 设计双周报 / HR 黑客松)与发送失败模拟为本地
@@ -232,14 +232,14 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 
 ## 状态与剩余人工步骤
 
-- **提交通道已迁移到 GitHub publisher 工作流**(0.7.26 起;App-Hub RC1 文档
+- **提交通道已迁移到 GitHub publisher 工作流**(0.7.27 起;App-Hub RC1 文档
   `docs/SUBMITTING.md` 的新默认路线,新应用无需发行者私钥):
 
   ```sh
   hub stamp bundle                              # 可移植摘要(app-contract 1.x)
   hub check bundle --allow-unsigned             # 可编辑源码门禁 → PASSED
   # .github/workflows/publish-app.yml 已装(tools/octo publish-github)
-  git tag -a v0.7.26 -m "…" && git push origin main v0.7.26
+  git tag -a v0.7.27 -m "…" && git push origin main v0.7.27
   # → tag 工作流:publisher-prepare → GitHub Sigstore 证明 → publisher-verify/pack
   #   → release 资产 app.bundle.pack.json + release-receipt.json
   hub publisher-unpack app.bundle.pack.json --out review-bundle
@@ -257,7 +257,7 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 - 剩余人工步骤(发布者本人):
   1. 在
      [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub/issues/new?template=submit-app.yml)
-     按 **Submit an app 表单**开 `Submit vibemail 0.7.26` issue(各字段答案见
+     按 **Submit an app 表单**开 `Submit vibemail 0.7.27` issue(各字段答案见
      `evidence/hub/ISSUE.md`,工作流运行 URL / release 链接开 issue 时回填)
 
 ## 隐私
@@ -266,6 +266,11 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 
 ## 近期版本
 
+- **0.7.27** —— **tag 触发竞态修正**(纯提交设施,应用与 bundle 字节与 0.7.26
+  完全相同,摘要不变)。0.7.26 的 main 与 tag 在同一次 push 中推送,tag 事件
+  先于新装的 publish-app.yml 工作流注册被处理,未触发任何运行;按「已推送
+  tag 不可移动,修正需更高版本与新 tag」规则升版,并改为先推 main、确认
+  工作流 active 后再推 tag。manifest 版本号是唯一变更。
 - **0.7.26** —— **提交通道迁移 GitHub publisher 工作流 + 新摘要口径重制**。
   上游 App-Hub 在 10-06~10-08 连续演进:bundle 摘要改为跨平台可移植口径
   (相对路径以正斜杠入哈希,Windows/Linux 一致——旧口径把平台分隔符计入,

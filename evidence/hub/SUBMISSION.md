@@ -1,7 +1,7 @@
-# vibemail 0.7.26 — submission packet
+# vibemail 0.7.27 — submission packet
 
 Answers to the seven `hub scan` questions (packet: `evidence/hub/review.json`,
-regenerated on the final 0.7.26 bytes with a hub built from current App-Hub
+regenerated on the final 0.7.27 bytes with a hub built from current App-Hub
 main), plus the reproduction evidence for the hackathon ("Agentic App 黑客松
 2026", scene 01 邮件场景). **Submission route: GitHub publisher provenance**
 (`.github/workflows/publish-app.yml` seals and attests the tag; no developer
@@ -66,7 +66,7 @@ runs the workflow) and the submit-app.yml issue.
      ev-20/21: a JD verification-code mail summarised as code/expiry/
      handling, a NetEase marketing mail honestly reported as having no
      readable body). Wrong credentials are refused by the real server —
-     re-verified on the 0.7.26 toolchain (2026-10-09): the store-shape
+     re-verified on the 0.7.27 toolchain (2026-10-09): the store-shape
      flow ev-13..16 shows the host sheet, the real server's refusal, and
      cancel back to the no-account state.
    - `model` backs three visible features: the AI 三行摘要, the tone-slider
@@ -112,7 +112,7 @@ runs the workflow) and the submit-app.yml issue.
 
    ```
    hub check bundle --allow-unsigned
-   vibemail 0.7.26 — PASSED
+   vibemail 0.7.27 — PASSED
      [warning] publisher-signature: unsigned: accountability rests on the hub alone
      grants: capabilities {"mail", "model", "storage"}, hosts {}, storage 4194304 bytes, agent none
    ```
@@ -125,7 +125,7 @@ runs the workflow) and the submit-app.yml issue.
 ## Reproduction evidence (hackathon: 真实任务、授权与结果核验)
 
 Everything below is reproducible on Windows with the bundled scripts
-(0.7.26 bytes, 2026-10-09, card-host rebuilt from current App-Hub main
+(0.7.27 bytes, 2026-10-09, card-host rebuilt from current App-Hub main
 with the reference mail service wired as dev wiring):
 
 - **Route regression** (`route_test.json`, 6 routes / 42 steps,
@@ -151,7 +151,7 @@ with the reference mail service wired as dev wiring):
   server → 取消 returns to the no-account state (ev-13..16, re-captured
   2026-10-09).
 - **A real mailbox with real model output in the shell** (app bytes
-  unchanged in 0.7.26): `run.cmd shell` → settings → 添加账号 with a valid
+  unchanged in 0.7.27): `run.cmd shell` → settings → 添加账号 with a valid
   authorization code → the banner reads 已连接 + the real INBOX is listed;
   opening a real mail produces a real three-line summary on first open
   (ev-20/21, 2026-10-04); a whole validation round consumed **5 model
@@ -173,8 +173,8 @@ configured the same buttons produce real model output (ev-20/21).
 
 - [x] Editable source stamped with the portable digest, gate PASSED
 - [x] `.github/workflows/publish-app.yml` installed (`tools/octo publish-github`)
-- [x] Commit, push, tag `v0.7.26` (the tag push runs the workflow)
+- [x] Commit, push, tag `v0.7.27` (the tag push runs the workflow)
 - [ ] Workflow success → download the pack → `hub publisher-unpack` +
       `hub publisher-verify` → record outputs
-- [ ] Open `Submit vibemail 0.7.26` via the submit-app.yml form with the
+- [ ] Open `Submit vibemail 0.7.27` via the submit-app.yml form with the
       release evidence (field answers drafted in `evidence/hub/ISSUE.md`)
