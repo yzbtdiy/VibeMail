@@ -10,8 +10,9 @@ OctoSense 设计原型参考重构为一部流式手机列应用(任意窗口宽
 
 | | |
 | --- | --- |
-| 应用 ID / 版本 | `vibemail` / **0.7.25** |
-| 门禁状态 | `hub check --publisher-key` — **PASSED,零警告**(发行者已签名) |
+| 应用 ID / 版本 | `vibemail` / **0.7.26** |
+| 门禁状态 | `hub check --allow-unsigned` — **PASSED**(可编辑源码,新可移植摘要口径) |
+| 提交通道 | **GitHub publisher 工作流**(`.github/workflows/publish-app.yml`,tag push 出证明 release;无需发行者私钥) |
 | 申请能力 | `mail` + `model` + `storage`(共三项,按最小化原则) |
 | 实测平台 | Windows 10(26100)——唯一实测平台,布局审计宽度 412 / 700 / 1200 |
 | 提交物 | `bundle/`(manifest、listing、main.splash、icon、5 张真实截图) |
@@ -93,9 +94,7 @@ bridge/        开发层(现为可选):IMAP/SMTP ↔ 本机 HTTP 网桥(凭据�
                config.json,已 gitignore;5 个解析单测)——已被平台服务
                路线取代,不进提交包
 dev/           开发层:网桥适配器(替换 main.splash 的 MARKER:ADAPTER 块)
-scripts/       run_app.py:run.cmd 的内核(启动前自动生成去签名运行副本
-               build/run-bundle——card-host 的 --allow-unsigned 拒绝带
-               签名 manifest,提交包保持签名)
+scripts/       run_app.py:run.cmd 的内核(启动前生成运行副本 build/run-bundle)
                drive-demo.py:经 Makepad 远程桥驱动真实 card-host 窗口
                截取商店截图与证据流(驱动会把真实鼠标停靠到远处——OS
                光标事件会吞掉合成点击)
@@ -109,8 +108,12 @@ scripts/       run_app.py:run.cmd 的内核(启动前自动生成去签名运行
                check_splash.py:main.splash 括号平衡静态检查
                dev_bundle.py:组装 build/dev-bundle(仅开发,不入库)
 evidence/      运行证据(见下文「运行证据」)
-bundle/        THE SUBMISSION —— 唯一提交部分
-  manifest.json    id、版本、能力、完整性哈希(hub stamp 写入)、发行者签名
+.github/workflows/publish-app.yml
+               tag push 发布工作流(tools/octo publish-github 生成;
+               publisher-prepare → GitHub Sigstore 证明 → verify/pack)
+bundle/        THE SUBMISSION —— 可编辑提交源码(最终证明字节由工作流生成)
+  manifest.json    id、版本、能力、完整性哈希(hub stamp 写入;未签名——
+                   GitHub provenance 路线,无需发行者私钥)
   listing.json     商店展示信息(副标题、描述、截图、发布者)
   main.splash      应用本体(Splash 脚本,无编译步骤)
   assets/icon.svg  图标(暖纸方板 + 轨道环五色点 + 墨色信封)
@@ -123,7 +126,9 @@ bundle/        THE SUBMISSION —— 唯一提交部分
 - Rust stable(rustup)——用于构建带 mail 服务的 card-host
 - Python 3.9+,无第三方依赖(像素探针另需 Pillow)
 - 同级目录下的 [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub)
-  检出(`crates/card-host/src/host.rs` 已接好 `octosense_mail_service::register()`)
+  检出(开发接线:`crates/mail-service/` 为 OctoSense 仓库参考 mail 服务的
+  本地拷贝,`crates/card-host/src/host.rs` 在 mount 时
+  `octosense_mail_service::register()`——两项均为本机开发环境改动,不入上游)
 - 桌面 Shell 演示另需:本地 [OctoSense](https://github.com/OctoSense-org/OctoSense)
   检出与本地签名 hub 目录(`../octosense-local-hub/`,见其 README)
 
@@ -163,9 +168,14 @@ python scripts/drive-mail.py 8146           # 商店形态邮件:面板/真实�
 python scripts/audit_overflow.py 412 700 1200   # 溢出审计(全 clean)
 python scripts/audit_missing.py 412 700 1200    # 缺失审计(五屏全 complete)
 python build/dbg_pixels2.py 8146                # 像素级主题/配色断言
-../OctoSense-App-Hub/target/release/hub.exe stamp bundle
-../OctoSense-App-Hub/target/release/hub.exe check bundle --publisher-key yzbtdiy=<公钥>
+hub stamp bundle                            # 可移植摘要(app-contract 1.x 口径)
+hub check bundle --allow-unsigned           # 门禁(可编辑源码未签名)
+hub scan bundle --packet build/review.json  # 评审问题包(七问)
 ```
+
+> 工具链注意:hub 必须从 OctoSense-App-Hub 当前 main 构建(本机产物在
+> `%CARGO_TARGET_DIR%`,仓库本地 `target/` 里可能是旧货)。0.7.26 起摘要为
+> 跨平台可移植口径,Windows 与 Linux 计算一致;`ci/verify.sh` 已同步。
 
 接入自己的邮箱:运行应用,「我的 → 邮箱账号 → 添加账号」,在**宿主面板**里输入
 邮箱地址和服务商授权码(QQ / 163 / Gmail 自动识别服务器)。授权码只存宿主侧,
@@ -202,8 +212,8 @@ Add a mail account」面板(地址 / 密码 / IMAP-POP3 / 服务器端口),错�
 
 ## 运行证据
 
-`evidence/` 下全部为真实运行截取 / 记录(0.7.x 界面;ev-01..10 与商店截图
-2026-10-04 重截,ev-13..16 为 2026-10-02):
+`evidence/` 下全部为真实运行截取 / 记录(0.7.x 界面;ev-01..10、商店截图与
+ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 
 | 证据 | 内容 |
 | --- | --- |
@@ -213,7 +223,7 @@ Add a mail account」面板(地址 / 密码 / IMAP-POP3 / 服务器端口),错�
 | `ev-13..16.png` | 商店形态邮件流程:未添加账号态 / 宿主登录面板 / 错误凭据真实拒绝 / 取消回未添加态 |
 | `ev-20/21.png` | 桌面 Shell 真实邮件首开实证(0.7.24):京东验证码邮件首开即出模型生成三行摘要(验证码/时效/保管要点)+ 完整正文;网易营销邮件摘要如实说明正文无可读文案 |
 | `ev-mail-log.txt` | card-host 邮件流程服务侧留痕(含服务器原文拒绝) |
-| `hub/` | 评审包:`review.json`(hub scan 问题包,0.7.25 字节重新生成)+ `SUBMISSION.md`(七问书面回答,已按 0.7.25 更新);issue 正文模板为 `ISSUE.md` |
+| `hub/` | 评审包:`review.json`(hub scan 问题包,0.7.26 字节生成)+ `SUBMISSION.md`(七问书面回答,已按 0.7.26 更新);`ISSUE.md` 为 submit-app.yml 表单各字段的答案底稿 |
 
 练习数据边界(按黑客松 FAQ):八封练习邮件(Mira 海边小屋 / 云服务账单 / Aurora
 周报 / GitHub / 读书会 / 外婆桂花 / 设计双周报 / HR 黑客松)与发送失败模拟为本地
@@ -222,25 +232,33 @@ Add a mail account」面板(地址 / 密码 / IMAP-POP3 / 服务器端口),错�
 
 ## 状态与剩余人工步骤
 
-- **发行者签名已完成,门禁零警告**:
+- **提交通道已迁移到 GitHub publisher 工作流**(0.7.26 起;App-Hub RC1 文档
+  `docs/SUBMITTING.md` 的新默认路线,新应用无需发行者私钥):
 
   ```sh
-  hub keygen <仓库外路径>/publisher-yzbtdiy.key     # 私钥保存在仓库之外
-  hub stamp bundle
-  hub sign-manifest bundle --key <该密钥> --key-id yzbtdiy
-  hub check bundle --publisher-key yzbtdiy=1095438c3939742da32f74fbcc724ae452b3f1e22e4ebe9cd834c24b2b2b5759
-  # → vibemail 0.7.25 — PASSED(无任何警告)
+  hub stamp bundle                              # 可移植摘要(app-contract 1.x)
+  hub check bundle --allow-unsigned             # 可编辑源码门禁 → PASSED
+  # .github/workflows/publish-app.yml 已装(tools/octo publish-github)
+  git tag -a v0.7.26 -m "…" && git push origin main v0.7.26
+  # → tag 工作流:publisher-prepare → GitHub Sigstore 证明 → publisher-verify/pack
+  #   → release 资产 app.bundle.pack.json + release-receipt.json
+  hub publisher-unpack app.bundle.pack.json --out review-bundle
+  hub publisher-verify review-bundle            # 下载包本地核验
   ```
 
-- 本地演示 hub:`../octosense-local-hub/` 已收录 **0.7.25**(sequence 56,
-  working.key 重签发布),`run.cmd shell` 即运行该版本;后续每个修复版本按
-  「hub 拒绝重发同版本」规则升版发布(0.7.3/0.7.5 即由此而来)
+  旧版 0.7.25 曾按 legacy Ed25519 路线完成发行者签名(门禁零警告,tag 已推送),
+  因上游摘要口径改版(平台原生分隔符 → 可移植路径)该 tag 的清单摘要已不被
+  当前门禁接受,按官方规则「已推送 tag 不可移动」升版重制;发行者密钥
+  `yzbtdiy` 保留在仓库外备用。
+
+- 本地演示 hub:`../octosense-local-hub/` 收录 0.7.25(legacy 目录;`run.cmd shell`
+  演示用;后续按「hub 拒绝重发同版本」规则升版)
 - 机器可读的状态清单(已验证项 / 未验证边界)见 [validation.json](validation.json)
 - 剩余人工步骤(发布者本人):
-  1. 打 tag(`v0.7.25`)并在
-     [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub/issues)
-     开 `Submit vibemail 0.7.25` issue(正文用 `evidence/hub/ISSUE.md`,
-     开 issue 时回填提交 SHA)
+  1. 在
+     [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub/issues/new?template=submit-app.yml)
+     按 **Submit an app 表单**开 `Submit vibemail 0.7.26` issue(各字段答案见
+     `evidence/hub/ISSUE.md`,工作流运行 URL / release 链接开 issue 时回填)
 
 ## 隐私
 
@@ -248,6 +266,22 @@ Add a mail account」面板(地址 / 密码 / IMAP-POP3 / 服务器端口),错�
 
 ## 近期版本
 
+- **0.7.26** —— **提交通道迁移 GitHub publisher 工作流 + 新摘要口径重制**。
+  上游 App-Hub 在 10-06~10-08 连续演进:bundle 摘要改为跨平台可移植口径
+  (相对路径以正斜杠入哈希,Windows/Linux 一致——旧口径把平台分隔符计入,
+  已 tag 的 0.7.25 签名清单在新门禁下 REFUSED,按「已推送 tag 不可动」规则
+  升版本);提交通道改版为 GitHub publisher 路线(新默认:`.github/workflows/
+  publish-app.yml` 在 tag push 时构建 pin 修订的 hub、publisher-prepare、
+  GitHub Sigstore 证明、publisher-verify/pack,产出 release 资产;新应用不再
+  需要发行者私钥;issue 改用 submit-app.yml 表单)。应用代码零改动——0.7.26
+  与 0.7.25 的 main.splash 字节相同,仅 manifest 升版、剥签名、新口径 stamp。
+  同轮开发环境跟进:card-host 按当前源码重建(上游 10-06 的整词换行修复 +
+  makepad re-pin 32d6415f script-compute-VM),参考 mail 服务重新接回本地
+  App-Hub 检出(上游已把 mail-service 移出该仓库,本地 vendor 到
+  crates/mail-service 并在 card-host 注册——两项均为本机开发改动);在新
+  运行时上全量复核:8/8 单测、6/6 路线、412/700/1200 双审计全绿、截图与
+  ev-01..10 重截、商店形态邮件流(真实服务器拒绝)ev-13..16 重截;ci/verify.sh
+  摘要复验同步改为可移植口径。
 - **0.7.25** —— **「都成了正文截取」= 模型日预算打满**(用户实测:所有 AI 三行摘要
   降级为正文截取、心情播报降级为固定文案)。宿主 model 服务对每个应用有**预算台账**
   (`device/.host/model/ledger.json`,默认 6 次/分、100 次/天、10 万 tokens/天,UTC 日

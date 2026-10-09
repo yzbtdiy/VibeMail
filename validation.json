@@ -2,10 +2,10 @@
   "schema_version": 1,
   "app": {
     "id": "vibemail",
-    "version": "0.7.25"
+    "version": "0.7.26"
   },
   "form": "script-app (Splash bundle, card-host / OctoSense shell)",
-  "generated": "2026-10-05",
+  "generated": "2026-10-09",
   "counts": {
     "routes": 6,
     "route_steps": 42,
@@ -16,58 +16,58 @@
   },
   "verified": [
     {
-      "what": "App Hub gate, publisher-signed",
-      "result": "PASSED with no warnings",
-      "command": "hub check bundle --publisher-key yzbtdiy=<public hex>",
+      "what": "App Hub gate on the editable source, portable digest (app-contract 1.x), current main hub build",
+      "result": "PASSED (unsigned warning inherent to the GitHub-provenance editable source)",
+      "command": "hub check bundle --allow-unsigned",
       "where": "bundle/",
-      "date": "2026-10-05"
+      "date": "2026-10-09"
     },
     {
       "what": "compose/send state-machine twin unit tests (single-tap send)",
       "result": "8/8 OK",
       "command": "python -m unittest discover -s service",
       "where": "service/",
-      "date": "2026-10-04"
+      "date": "2026-10-09"
     },
     {
       "what": "dev bridge parsing unit tests",
       "result": "5/5 OK",
       "command": "python -m unittest discover -s bridge -p \"test_*.py\"",
       "where": "bridge/",
-      "date": "2026-10-03"
+      "date": "2026-10-09"
     },
     {
-      "what": "declarative click-through routes over the real card-host window, 412x860 phone layout, Windows 10 26100",
+      "what": "declarative click-through routes over the real card-host window, 412x860 phone layout, Windows 10 26100, card-host rebuilt from current source (word-wrap fix + makepad 32d6415f)",
       "result": "6/6 routes passed (42 steps: vibe filter + detail summary, orbit bubble open + tri-state theme, tone slider five-stop rewrite, single-tap send + replied chip, outage -> keep draft -> retry, archive/restore incl. orbit)",
       "command": "python scripts/run_routes.py <port>",
       "spec": "route_test.json",
-      "date": "2026-10-04"
+      "date": "2026-10-09"
     },
     {
-      "what": "layout audits, three widths (fresh instance per screen for missing)",
+      "what": "layout audits, three widths (fresh instance per screen for missing), on the rebuilt card-host with the reference mail service wired",
       "result": "412 / 700 / 1200 clean (overflow) and complete (5 screens x 3 widths)",
       "command": "python scripts/audit_overflow.py 412 700 1200; python scripts/audit_missing.py 412 700 1200",
-      "date": "2026-10-04"
+      "date": "2026-10-09"
     },
     {
-      "what": "listing screenshots + evidence drive over the real window",
+      "what": "listing screenshots + evidence drive over the real window, current runtime",
       "result": "01-inbox..05-dark captured with per-step text assertions; ev-01..10 cover boot/filter/detail/tone x2/sent/replied-chip/outage/retry/dark",
       "command": "python scripts/drive-demo.py <port>",
-      "date": "2026-10-04"
+      "date": "2026-10-09"
     },
     {
-      "what": "live model output inside the OctoSense desktop shell (0.7.24/0.7.25, real mailbox connected)",
+      "what": "mail flow with a real server rejection in card-host (reference mail service re-wired: vendored crates/mail-service + host.rs register)",
+      "result": "store-shape flow re-captured: no-account state -> host sign-in sheet -> wrong authorization code refused by the real server -> cancel restores no-account (ev-13..16)",
+      "command": "python scripts/drive-mail.py <port>",
+      "where": "evidence/ev-13..16.png",
+      "date": "2026-10-09"
+    },
+    {
+      "what": "live model output inside the OctoSense desktop shell (0.7.24/0.7.25, real mailbox connected; app bytes unchanged in 0.7.26)",
       "result": "first-open three-line summaries render as 模型生成 within seconds (JD verification-code mail: code/expiry/handling; NetEase marketing mail honestly reports no readable body); 0.7.25 request discipline verified — one call per open, whole validation round consumed 5 calls after the local-hub budget override; mood line returns to 模型生成",
       "command": "run.cmd shell",
       "where": "evidence/ev-20-shell-live-summary.png, evidence/ev-21-shell-netease-summary.png",
       "date": "2026-10-04"
-    },
-    {
-      "what": "mail flow with a real server rejection in card-host (reference mail service)",
-      "result": "app-side navigation updated to the 我的 screen; sheet flow unchanged (re-runnable)",
-      "command": "python scripts/drive-mail.py <port>",
-      "where": "evidence/ev-mail-log.txt, evidence/ev-13..16.png",
-      "date": "2026-10-02"
     },
     {
       "what": "real mailbox end-to-end inside the OctoSense desktop shell (first closed 0.6.10, yeah.net via IMAP; re-verified live through 0.7.25 with a real inbox)",
@@ -80,24 +80,19 @@
       "result": "follows the shell's live appearance switches both ways (~1-2s, direction semantics fixed in 0.6.15); pinned modes verified via the 我的 chips (route 2) and pixel-sampled grounds",
       "command": "run.cmd shell / scripts/dbg_pixels2.py",
       "date": "2026-10-04"
-    },
-    {
-      "what": "pixel-level theme and palette assertions on real grabs",
-      "result": "light paper #eaeae3 / dark charcoal #151413 grounds, dark cards #262524, all five vibe bubble colours on orbit, neon send CTA present",
-      "command": "python build/dbg_pixels2.py <port>",
-      "date": "2026-10-03"
     }
   ],
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
-    "the card-host store-shape mail flow re-run on the exact 0.7.25 bytes (drive-mail.py is re-runnable; the last run recorded is 2026-10-02 on 0.7.x — the shell live-mail path, re-verified 2026-10-04, exercises the same mail methods end to end)",
-    "the OctoSense-App-Hub submission issue (human step: tag + Submit vibemail 0.7.25)"
+    "the GitHub release workflow run and downloaded-pack verification for v0.7.26 (executes on tag push; evidence lands in the submission issue)",
+    "the OctoSense-App-Hub submission issue (human step: submit-app.yml form)"
   ],
   "runtime_notes": [
     "taps reach EVERY overlapping GestureView in this runtime — the bottom nav is docked in flow, not floating (probed)",
     "long-lived audit instances: deep-harvest scrolls arm inertia/bounce that later card taps ride onto neighbours, and nav labels need exact matches (the digest line contains 我的) — the missing audit boots a fresh instance per screen",
-    "card-host --allow-unsigned refuses SIGNED manifests: run_app.py launches an unsigned copy at build/run-bundle and the submitted bundle/ keeps its publisher signature",
-    "the host model service keeps a per-app budget ledger (device/.host/model/ledger.json, defaults 6/min, 100/day, 100k tokens/day, UTC reset); 0.7.25 issues one request per open with a 30s patience and classifies rate/budget refusals honestly — local hub raises vibemail's limits for development (must edit while the shell is stopped)"
+    "the host model service keeps a per-app budget ledger (device/.host/model/ledger.json, defaults 6/min, 100/day, 100k tokens/day, UTC reset); 0.7.25+ issues one request per open with a 30s patience and classifies rate/budget refusals honestly — local hub raises vibemail's limits for development (must edit while the shell is stopped)",
+    "upstream App-Hub moved the bundle digest to a portable cross-platform definition (app-contract 1.x, forward-slash relative paths, path-component order): manifests stamped with the pre-10-06 Windows-separator digest no longer pass the current gate; ci/verify.sh reimplements the portable algorithm",
+    "the reference mail service no longer ships in the App-Hub repository; this dev environment vendors it at OctoSense-App-Hub/crates/mail-service (from the OctoSense repo) and registers it in card-host's host.rs — local dev wiring only, not part of any submission"
   ],
   "practice_data": "the eight practice mails (with five tone variants each), the importance scores and the send-failure switch are labelled local practice data; the mail and model paths are real host-service calls",
   "design_reference": "OctoSense design prototype showcase (warm paper #eaeae3 / charcoal #151413, five vibes with aura palettes, orbit inbox, tone slider, capability declaration) — extracted to docs/design-brief.md"
