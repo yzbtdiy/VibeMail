@@ -33,20 +33,26 @@ APP = Path(__file__).resolve().parent.parent          # VibeMail
 ROOT = APP.parent                                     # agenticapp26 workspace
 HUB = ROOT / "OctoSense-App-Hub"
 LOCAL_HUB = ROOT / "octosense-local-hub"
+# Prebuilt release binaries (cnb.cool opensource.cool/octoscense-builder,
+# tag win-20261009-131233), unpacked by the workspace's octosense-win/.
+WIN = ROOT / "octosense-win"
 
 CARD_HOST = os.environ.get(
     "CARD_HOST_EXE",
-    r"D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe",
+    str(WIN / "apphub-tools" / "card-host.exe"),
 )
 OCTOSENSE = os.environ.get(
     "OCTOSENSE_EXE",
-    r"D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\octosense.exe",
+    str(WIN / "octosense-shell" / "octosense.exe"),
 )
-HUB_EXE = os.environ.get("HUB_EXE", str(HUB / "target" / "release" / "hub.exe"))
+HUB_EXE = os.environ.get(
+    "HUB_EXE",
+    str(WIN / "apphub-tools" / "hub.exe"),
+)
 
 # The anchor public hex of the local dev hub (octosense-local-hub/README.md).
 # OCTOSENSE_HUB_ANCHOR is the documented development-only override.
-HUB_ANCHOR = "a7f2748ad5556ecee95931dbbe54857ee138dd34b8e6bb44927db4f7eb7995e2"
+HUB_ANCHOR = "a627eed38190d1c7d76d3110353102561a5268b4bed949732f04f53c4c695226"
 
 MOBILE_PORT = "8146"
 SHELL_PORT = "8147"
@@ -142,9 +148,8 @@ def make_run_bundle():
 
 def launch_card_host(width, height, port=MOBILE_PORT):
     if not Path(CARD_HOST).exists():
-        sys.exit(f"card-host not found: {CARD_HOST} (build it: "
-                 f"cd {HUB} && cargo build --release -p octosense-card-host, "
-                 f"or set CARD_HOST_EXE)")
+        sys.exit(f"card-host not found: {CARD_HOST} (unpack the octoscense-builder "
+                 f"release into {WIN}\\apphub-tools, or set CARD_HOST_EXE)")
     run_bundle = make_run_bundle()
     env = dict(os.environ, MAKEPAD_REMOTE=port)
     exe = subprocess.Popen(
@@ -163,10 +168,15 @@ def launch_card_host(width, height, port=MOBILE_PORT):
 
 def launch_shell(drive=False, log=False):
     if not Path(OCTOSENSE).exists():
-        sys.exit(f"octosense.exe not found: {OCTOSENSE} (build it per "
-                 f"../octosense-local-hub/README.md, or set OCTOSENSE_EXE)")
+        sys.exit(f"octosense.exe not found: {OCTOSENSE} (unpack the "
+                 f"octoscense-builder release into {WIN}\\octosense-shell, "
+                 f"or set OCTOSENSE_EXE)")
     device = LOCAL_HUB / "device"
-    if not (device / "vibemail" / "bundle").exists():
+    # app-hub 18cd41d9 migrated installs to <root>/.bundles/<id>/bundle on
+    # first run; accept either layout.
+    layouts = [device / ".bundles" / "vibemail" / "bundle",
+               device / "vibemail" / "bundle"]
+    if not any(p.exists() for p in layouts):
         sys.exit(f"no install layout under {device} — republish first "
                  f"(../octosense-local-hub/README.md)")
     env = dict(
@@ -174,6 +184,12 @@ def launch_shell(drive=False, log=False):
         MAKEPAD_REMOTE=SHELL_PORT,
         OCTOSENSE_HUB_ANCHOR=HUB_ANCHOR,
         OCTOSENSE_APP_DATA=str(device),
+        # app-hub 18cd41d9 defaults to the GitHub v2 catalog channel
+        # (catalog-v2.json); a legacy mirror is only read when explicitly
+        # selected, else every open dies with "no catalog has been accepted".
+        OCTOSENSE_HUB_CATALOG="legacy",
+        # refresh from the local mirror, not the production hub URL.
+        OCTOSENSE_HUB=str(LOCAL_HUB),
     )
     # shell-log keeps the shell's stderr: script errors ([E] splash:… lines,
     # e.g. property-not-found throws) and service logs land in build/shell.log

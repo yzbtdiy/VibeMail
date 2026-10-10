@@ -83,12 +83,75 @@ class ComposeSendTests(unittest.TestCase):
         self.assertEqual(controller.view_model(s, c)["button"], "发送")
         c["send_state"] = "sending"
         self.assertEqual(controller.view_model(s, c)["button"], "发送中…")
+        c["send_state"] = "cancelled"
+        self.assertEqual(controller.view_model(s, c)["button"], "已取消审阅 · 点按重发")
+        c["send_state"] = "sending"
+        self.assertEqual(controller.view_model(s, c, live=True)["button"], "宿主审阅中…")
         c["send_state"] = "sent"
         self.assertEqual(controller.view_model(s, c)["button"], "已随波寄出")
         s["reply"] = "sent"
         self.assertEqual(controller.view_model(s)["pill"], "已回复")
         s["reply"] = "failed"
         self.assertEqual(controller.view_model(s)["pill"], "发送失败")
+
+    def test_review_accepted_marks_sent(self):
+        s = controller.initial_state()
+        c = self.compose()
+        controller.attach_draft(s, "确认参加,期待见面。")
+        c.update(controller.do_send(s))
+        controller.finish_review(s, c, {"is_ok": True, "accepted": True})
+        self.assertEqual((c["send_state"], s["reply"]), ("sent", "sent"))
+
+    def test_review_cancelled_keeps_draft_without_failure_mark(self):
+        s = controller.initial_state()
+        c = self.compose()
+        controller.attach_draft(s, "草稿保留")
+        c.update(controller.do_send(s))
+        controller.finish_review(
+            s, c, {"is_ok": False, "accepted": False,
+                   "error": "Review cancelled; nothing was sent"})
+        self.assertEqual(c["send_state"], "cancelled")
+        self.assertEqual(c["error"], "已取消审阅 · 未发送")
+        self.assertEqual(s["reply"], "")            # cancelled sent nothing
+        self.assertEqual(s["reply_text"], "草稿保留")
+
+    def test_review_resend_after_cancel(self):
+        s = controller.initial_state()
+        c = self.compose()
+        controller.attach_draft(s, "再试一次")
+        c.update(controller.do_send(s))
+        controller.finish_review(
+            s, c, {"is_ok": False, "accepted": False,
+                   "error": "Review cancelled; nothing was sent"})
+        controller.retry_send(s, c)
+        controller.finish_review(s, c, {"is_ok": True, "accepted": True})
+        self.assertEqual((c["send_state"], s["reply"]), ("sent", "sent"))
+
+    def test_review_platform_and_approval_errors_classified(self):
+        s = controller.initial_state()
+        c = self.compose()
+        controller.attach_draft(s, "x")
+        c.update(controller.do_send(s))
+        controller.finish_review(
+            s, c, {"is_ok": False, "accepted": False,
+                   "error": "Physical Mail send approval is unavailable on this platform"})
+        self.assertEqual((c["send_state"], c["error"]),
+                         ("failed", "宿主不支持前台审阅发送(仅 macOS/Android)"))
+        controller.retry_send(s, c)
+        controller.finish_review(
+            s, c, {"is_ok": False, "accepted": False,
+                   "error": "approval_required: use mail.review_send …"})
+        self.assertEqual((c["send_state"], c["error"]),
+                         ("failed", "宿主要求前台审阅批准后才会发送"))
+
+    def test_review_unaccepted_ok_answer_fails_honestly(self):
+        s = controller.initial_state()
+        c = self.compose()
+        controller.attach_draft(s, "x")
+        c.update(controller.do_send(s))
+        controller.finish_review(s, c, {"is_ok": True, "accepted": False})
+        self.assertEqual((c["send_state"], c["error"], s["reply"]),
+                         ("failed", "服务未接受", "failed"))
 
     def test_demo_route_end_states(self):
         r = controller.demo_route()

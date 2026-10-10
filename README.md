@@ -10,7 +10,7 @@ OctoSense 设计原型参考重构为一部流式手机列应用(任意窗口宽
 
 | | |
 | --- | --- |
-| 应用 ID / 版本 | `vibemail` / **0.7.27** |
+| 应用 ID / 版本 | `vibemail` / **0.7.29** |
 | 门禁状态 | `hub check --allow-unsigned` — **PASSED**(可编辑源码,新可移植摘要口径) |
 | 提交通道 | **GitHub publisher 工作流**(`.github/workflows/publish-app.yml`,tag push 出证明 release;无需发行者私钥) |
 | 申请能力 | `mail` + `model` + `storage`(共三项,按最小化原则) |
@@ -49,8 +49,13 @@ OctoSense 设计原型参考重构为一部流式手机列应用(任意窗口宽
 - **写信与语气滑杆**:收件人 / 主题预填,**五档语气滑杆**(真诚随意 ↔ 轻松幽默 ↔
   自然友好 ↔ 简洁专业 ↔ 正式得体,三等分列结构对齐、任意宽度自适应)实时改写
   回信预览——练习数据内置每封邮件五档语气文案(Mira 线程与参考原型逐字一致),
-  live 邮件走 `model.complete` 实时改写,不可用时保留原文并如实标注;
-  **单击发送**(发送中… → 已随波寄出 / 失败保留草稿可重试)
+  标题与预览标注「练习文案」与详情卡「练习摘要」口径对齐(0.7.28);live 邮件走
+  `model.complete` 实时改写,不可用时保留原文并如实标注;
+  **单击发送**走宿主前台审阅通道 `mail.review_send`(0.7.28 起;`mail.send` 自
+  10-04 起在宿主侧只回 approval_required):发送/审阅中… → 已随波寄出 /
+  失败保留草稿可重试 / 取消审阅(未发送,草稿保留可重发)。物理批准
+  (Approve & Send)目前仅 macOS/Android——Windows 定位为读信 + AI + 草稿,
+  发送待平台开放 Windows 审阅
 - **「我的」设置屏**:外观主题(亮/暗快切胶囊 + 跟随系统 / 亮色 / 暗色三态,
   持久化并跟随 Shell 亮暗)、OctoSense 能力声明卡(mail / storage / model 与
   「刻意不声明」注记)、邮箱账号(添加账号走宿主 sheet / 刷新 / 两步断开 /
@@ -73,7 +78,7 @@ OctoSense 设计原型参考重构为一部流式手机列应用(任意窗口宽
 
 | 能力 | 支撑的功能 | 不可用时的行为 |
 | --- | --- | --- |
-| `mail` | 收件箱 / 阅读 / 发送全流程(`mail.accounts`、`mail.add_account`、`mail.sync`、`mail.list`、`mail.message`、`mail.mark_read`、`mail.send`、`mail.remove_account`) | 摘要卡如实显示服务状态,回退已标注的练习数据 |
+| `mail` | 收件箱 / 阅读 / 发送全流程(`mail.accounts`、`mail.add_account`、`mail.sync`、`mail.list`、`mail.message`、`mail.mark_read`、`mail.review_send`(前台审阅发送,0.7.28)、`mail.remove_account`) | 摘要卡如实显示服务状态,回退已标注的练习数据;发送错误按宿主回包分类(取消审阅 / 平台不支持 / 前台审阅要求);物理批准仅 macOS/Android——Windows 为读信 + AI + 草稿定位,发送待平台开放 Windows 审阅 |
 | `model` | AI 三行摘要、语气滑杆改写与心情播报 | 界面如实标注「服务不可用」;摘要回退正文截取或练习摘要,改写保留原文,心情播报回固定计数行 |
 | `storage` | 主题偏好(theme.json,4 MiB 上限内) | card-host 恒有存储沙箱,该声明供商店隐私摘要使用 |
 
@@ -223,7 +228,7 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 | `ev-13..16.png` | 商店形态邮件流程:未添加账号态 / 宿主登录面板 / 错误凭据真实拒绝 / 取消回未添加态 |
 | `ev-20/21.png` | 桌面 Shell 真实邮件首开实证(0.7.24):京东验证码邮件首开即出模型生成三行摘要(验证码/时效/保管要点)+ 完整正文;网易营销邮件摘要如实说明正文无可读文案 |
 | `ev-mail-log.txt` | card-host 邮件流程服务侧留痕(含服务器原文拒绝) |
-| `hub/` | 评审包:`review.json`(hub scan 问题包,0.7.27 字节生成)+ `SUBMISSION.md`(七问书面回答,已按 0.7.27 更新);`ISSUE.md` 为 submit-app.yml 表单各字段的答案底稿 |
+| `hub/` | 评审包:`review.json`(hub scan 问题包,0.7.29 字节生成)+ `SUBMISSION.md`(七问书面回答,已按 0.7.29 更新);`ISSUE.md` 为 submit-app.yml 表单各字段的答案底稿 |
 
 练习数据边界(按黑客松 FAQ):八封练习邮件(Mira 海边小屋 / 云服务账单 / Aurora
 周报 / GitHub / 读书会 / 外婆桂花 / 设计双周报 / HR 黑客松)与发送失败模拟为本地
@@ -239,7 +244,7 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
   hub stamp bundle                              # 可移植摘要(app-contract 1.x)
   hub check bundle --allow-unsigned             # 可编辑源码门禁 → PASSED
   # .github/workflows/publish-app.yml 已装(tools/octo publish-github)
-  git tag -a v0.7.27 -m "…" && git push origin main v0.7.27
+  git tag -a v0.7.29 -m "…" && git push origin main v0.7.29
   # → tag 工作流:publisher-prepare → GitHub Sigstore 证明 → publisher-verify/pack
   #   → release 资产 app.bundle.pack.json + release-receipt.json
   hub publisher-unpack app.bundle.pack.json --out review-bundle
@@ -255,10 +260,11 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
   演示用;后续按「hub 拒绝重发同版本」规则升版)
 - 机器可读的状态清单(已验证项 / 未验证边界)见 [validation.json](validation.json)
 - 剩余人工步骤(发布者本人):
-  1. 在
-     [OctoSense-App-Hub](https://github.com/OctoSense-org/OctoSense-App-Hub/issues/new?template=submit-app.yml)
-     按 **Submit an app 表单**开 `Submit vibemail 0.7.27` issue(各字段答案见
-     `evidence/hub/ISSUE.md`,工作流运行 URL / release 链接开 issue 时回填)
+  1. 提交 issue
+     [#84](https://github.com/OctoSense-org/OctoSense-App-Hub/issues/84) 已在
+     0.7.27 轮开出;按 SUBMITTING 规则,首次准入之前每个新 Release 以评论发在
+     同一 issue——附 tag `v0.7.29`、完整 commit SHA、工作流运行链接,并更新
+     issue 标题与 Version 字段(评论文底稿见 `evidence/hub/ISSUE.md`)
 
 ## 隐私
 
@@ -266,6 +272,28 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 
 ## 近期版本
 
+- **0.7.29** —— **CJK 标签行高修复 + Windows 发送定位澄清 + 版本口径统一**。
+  语气滑杆五个标签行高 20→24,修复无衬线回退字体下 9.5px 行框底部笔画被裁;
+  listing 描述 / release_notes 与 README 明确发送的物理批准(Approve & Send)仅
+  macOS/Android——Windows 定位为读信 + AI + 草稿,发送待平台开放 Windows 审阅;
+  0.7.28 轮整改先行推进时 manifest/listing 已升 0.7.29,本轮把 main.splash 头注 /
+  设置页脚 / README / validation.json 一并统一到 0.7.29 并重新 stamp。
+- **0.7.28** —— **初赛评审(#84)三条改进意见落地**。评委短评(73/100 入围)
+  肯定了状态如实标注、心情播报最小载荷、宿主登录面板三点,并提出三项改进:
+  (1) **发送通道迁移**——`mail.send` 自 10-04 起在宿主侧一律返回
+  approval_required,一键发送改为 `mail.review_send` 前台审阅通道:宿主弹出
+  原生审阅单、用户亲手批准后才发送;等待期按钮如实显示「宿主审阅中…」并注明
+  需亲手批准;回调按宿主回包分类——accepted 才标记已发送,取消审阅进入
+  **cancelled** 新状态(未发送、邮件不打失败标记、草稿保留可重发),平台
+  不支持 / 审阅要求等错误按类如实提示(与 `service/controller.py` 孪生状态机
+  及 13 个单测同步演进)。宿主的物理批准(Approve & Send)目前仅
+  macOS/Android——平台侧桌面端待 OS 级认证批准适配器;listing 描述与 README
+  同步明确 Windows 定位为读信 + AI + 草稿,发送待平台开放 Windows 审阅。(2) **练习文案标注**——练习数据下语气滑杆是固定
+  文案,滑杆标题改为「语气滑杆 · 练习文案」、预览标签显示「练习文案」,
+  与详情卡「练习摘要」口径对齐(路线测试 tone-slider-rewrite 同步断言)。
+  (3) **重新盖章并立即升版**——应用字节变更后 `hub stamp` 可移植口径重盖、
+  `hub check` 门禁复核,版本 0.7.25 → 0.7.28 一并同步(头注释 / 设置页脚 /
+  listing release_notes / validation.json)。
 - **0.7.27** —— **tag 触发竞态修正**(纯提交设施,应用与 bundle 字节与 0.7.26
   完全相同,摘要不变)。0.7.26 的 main 与 tag 在同一次 push 中推送,tag 事件
   先于新装的 publish-app.yml 工作流注册被处理,未触发任何运行;按「已推送

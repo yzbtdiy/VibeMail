@@ -2,14 +2,14 @@
   "schema_version": 1,
   "app": {
     "id": "vibemail",
-    "version": "0.7.27"
+    "version": "0.7.29"
   },
   "form": "script-app (Splash bundle, card-host / OctoSense shell)",
   "generated": "2026-10-09",
   "counts": {
     "routes": 6,
     "route_steps": 42,
-    "service_unit_tests": 8,
+    "service_unit_tests": 13,
     "bridge_unit_tests": 5,
     "listing_screenshots": 5,
     "evidence_images": 16
@@ -23,8 +23,8 @@
       "date": "2026-10-09"
     },
     {
-      "what": "compose/send state-machine twin unit tests (single-tap send)",
-      "result": "8/8 OK",
+      "what": "compose/send state-machine twin unit tests (single-tap send; 0.7.28 adds the mail.review_send callback classifier finish_review: accepted / cancelled / classified failures)",
+      "result": "13/13 OK",
       "command": "python -m unittest discover -s service",
       "where": "service/",
       "date": "2026-10-09"
@@ -38,7 +38,7 @@
     },
     {
       "what": "declarative click-through routes over the real card-host window, 412x860 phone layout, Windows 10 26100, card-host rebuilt from current source (word-wrap fix + makepad 32d6415f)",
-      "result": "6/6 routes passed (42 steps: vibe filter + detail summary, orbit bubble open + tri-state theme, tone slider five-stop rewrite, single-tap send + replied chip, outage -> keep draft -> retry, archive/restore incl. orbit)",
+      "result": "6/6 routes passed (42 steps: vibe filter + detail summary, orbit bubble open + tri-state theme, tone slider five-stop rewrite with 练习文案 labels (0.7.28), single-tap send + replied chip, outage -> keep draft -> retry, archive/restore incl. orbit)",
       "command": "python scripts/run_routes.py <port>",
       "spec": "route_test.json",
       "date": "2026-10-09"
@@ -84,13 +84,15 @@
   ],
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
-    "the GitHub release workflow run and downloaded-pack verification for v0.7.27 (executes on tag push; evidence lands in the submission issue)",
+    "the native Approve & Send flow end-to-end: mail.review_send is foreground-only on macOS/Android and the vendored reference service refuses physical approval off those platforms — the classifier (finish_review + send_live branches) is covered by unit tests, the real sheet is not driven on Windows",
+    "the GitHub release workflow run and downloaded-pack verification for v0.7.29 (executes on tag push; evidence lands in the submission issue)",
     "the OctoSense-App-Hub submission issue (human step: submit-app.yml form)"
   ],
   "runtime_notes": [
     "taps reach EVERY overlapping GestureView in this runtime — the bottom nav is docked in flow, not floating (probed)",
     "long-lived audit instances: deep-harvest scrolls arm inertia/bounce that later card taps ride onto neighbours, and nav labels need exact matches (the digest line contains 我的) — the missing audit boots a fresh instance per screen",
     "the host model service keeps a per-app budget ledger (device/.host/model/ledger.json, defaults 6/min, 100/day, 100k tokens/day, UTC reset); 0.7.25+ issues one request per open with a 30s patience and classifies rate/budget refusals honestly — local hub raises vibemail's limits for development (must edit while the shell is stopped)",
+    "since 10-04 the host's mail.send only answers approval_required; 0.7.28 sends through mail.review_send (host foreground review, physical Approve & Send, macOS/Android) — the callback settles after approval or cancellation, and a cancelled review keeps the draft with no failure mark on the mail",
     "upstream App-Hub moved the bundle digest to a portable cross-platform definition (app-contract 1.x, forward-slash relative paths, path-component order): manifests stamped with the pre-10-06 Windows-separator digest no longer pass the current gate; ci/verify.sh reimplements the portable algorithm",
     "the reference mail service no longer ships in the App-Hub repository; this dev environment vendors it at OctoSense-App-Hub/crates/mail-service (from the OctoSense repo) and registers it in card-host's host.rs — local dev wiring only, not part of any submission"
   ],

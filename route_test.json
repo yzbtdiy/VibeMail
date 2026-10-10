@@ -55,10 +55,10 @@
     },
     {
       "name": "tone-slider-rewrite",
-      "desc": "语气滑杆三档实时改写回信预览(练习数据内置三种语气)",
+      "desc": "语气滑杆三档实时改写回信预览(练习数据内置三种语气,预览标注练习文案)",
       "steps": [
-        { "tap": "写信", "exact": true, "expect": "语气滑杆" },
-        { "tap": "正式", "exact": true, "expect": "正式得体", "asserts": ["Mira 你好,感谢安排"] },
+        { "tap": "写信", "exact": true, "expect": "语气滑杆 · 练习文案", "asserts": ["练习文案"] },
+        { "tap": "正式", "exact": true, "expect": "正式得体", "asserts": ["Mira 你好,感谢安排", "练习文案"] },
         { "tap": "真诚", "exact": true, "expect": "真诚随意", "asserts": ["玻璃小屋也太棒了吧"] },
         { "tap": "友好", "exact": true, "expect": "自然友好" }
       ]

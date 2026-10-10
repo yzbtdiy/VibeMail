@@ -1,4 +1,4 @@
-// VibeMail 0.7.25 — 有情绪的邮件 (emails carry vibes)
+// VibeMail 0.7.29 — 有情绪的邮件 (emails carry vibes)
 // Complete rebuild after the OctoSense design prototype reference: a phone
 // column (412 logical px, centred) carrying five vibe moods — coral 专注 /
 // neon 愉悦 / mint 平静 / pink 灵感 / blue 连接 — on a warm-paper light theme
@@ -290,7 +290,7 @@ let tone = 2                   // 0 真诚 | 1 幽默 | 2 自然 | 3 专业 | 4 
 let tone_src = "canned"        // canned | asking | ai | unavailable
 let tone_note = ""
 let live_preview = ""          // model-rewritten preview (live targets)
-let send_state = "idle"        // idle | sending | sent | failed
+let send_state = "idle"        // idle | sending | sent | failed | cancelled
 let send_error_msg = ""
 let simulate_outage = false    // practice switch: next practice send fails
 let digest_model = ""          // model-written mood line (0.7.6)
@@ -747,18 +747,41 @@ fn mail_disconnect(){
         soft_repaint()
     }
 }
-// live sends go out through the platform service with the compose fields
+// live sends go out through the host's foreground review channel (0.7.28):
+// since 10-04 mail.send only answers approval_required — mail.review_send
+// opens the native sheet and this callback settles after physical approval
+// OR cancellation, so 发送中/审阅中 honestly covers the whole review wait.
 fn send_live(){
     let idx = reply_idx
-    host.request("mail.send", {account: account_id to: to_input
+    host.request("mail.review_send", {account: account_id to: to_input
                                subject: subject_input body: preview_text()}, fn(r){
         if r.is_ok && r.data.accepted == true {
             send_state = "sent"
             mark_sent(idx)
         } else {
-            send_state = "failed"
-            if !r.is_ok { send_error_msg = r.error } else { send_error_msg = "服务未接受" }
-            mark_failed(idx)
+            if !r.is_ok && r.error.search("Review cancelled") >= 0 {
+                // a cancelled review sent nothing and failed nothing: the
+                // draft stays, the mail keeps no failure mark, resend offered
+                send_state = "cancelled"
+                send_error_msg = "已取消审阅 · 未发送"
+            } else {
+                send_state = "failed"
+                if r.is_ok {
+                    send_error_msg = "服务未接受"
+                } else {
+                    let e = r.error
+                    if e.search("unavailable on this platform") >= 0 {
+                        send_error_msg = "宿主不支持前台审阅发送(仅 macOS/Android)"
+                    } else {
+                        if e.search("approval_required") >= 0 {
+                            send_error_msg = "宿主要求前台审阅批准后才会发送"
+                        } else {
+                            send_error_msg = e
+                        }
+                    }
+                }
+                mark_failed(idx)
+            }
         }
         soft_repaint()
     })
@@ -864,6 +887,13 @@ fn preview_text(){
     if tone == 2 { return mails[0].t1 }
     if tone == 3 { return mails[0].tp }
     return mails[0].t2
+}
+// 0.7.28: practice targets (canned dataset + fresh compose's demo defaults)
+// show fixed copy, not model output — the preview tag 练习文案 and the slider
+// header say so, mirroring the 练习摘要 label on the detail card
+fn practice_target(){
+    if reply_idx < 0 { return true }
+    return mails[reply_idx].src != "live"
 }
 
 // ---- navigation & actions ---------------------------------------------------
@@ -976,8 +1006,9 @@ fn set_tone(t){
     tone_note = ""
     repaint()
 }
-// single-tap send (reference behaviour): sending -> sent | failed; failed
-// keeps the draft on the mail and offers retry
+// single-tap send (reference behaviour): sending -> sent | failed |
+// cancelled (live review dismissed — nothing sent, draft kept); failed and
+// cancelled both keep the draft on the mail and offer a retry
 fn do_send(){
     if nav_recent() { return }
     send_state = "sending"
@@ -1953,8 +1984,10 @@ fn tone_col(k){
     }
 }
 fn tone_label_col(k, label){
-    GestureView{width: Fill height: 20 on_tap: |x, y| set_tone(k)
-        View{width: Fill height: 20 align: Align{x: 0.5 y: 0.5}
+    // 24 (was 20): the fontless release build's fallback CJK metrics make a
+    // 9.5px line box taller than 20 and the glyphs clip at the container edge
+    GestureView{width: Fill height: 24 on_tap: |x, y| set_tone(k)
+        View{width: Fill height: 24 align: Align{x: 0.5 y: 0.5}
             Label{text: label draw_text.color: pick(tone == k, ink, inkSoft)
                    draw_text.text_style.font_size: 9.5}}
     }
@@ -1990,7 +2023,8 @@ fn tone_slider(){
     }
 }
 fn send_button(){
-    // idle: neon 发送 / sending: paper / sent: mint 已随波寄出 / failed: retry
+    // idle: neon 发送 / sending: paper (live = 宿主审阅中) / sent: mint 已随波寄出
+    // failed: retry / cancelled: resend (review dismissed, nothing was sent)
     if send_state == "sent" {
         RoundedView{width: Fill height: 46 draw_bg +: {color: mintC border_radius: 23.0} align: Align{x: 0.5 y: 0.5}
             View{width: Fit height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
@@ -2011,17 +2045,29 @@ fn send_button(){
                 }
             }
         } else {
-            if send_state == "sending" {
-                RoundedView{width: Fill height: 46 draw_bg +: {color: paper3 border_radius: 23.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
-                    Label{text: "发送中…" draw_text.color: sendIdleT draw_text.text_style.font_size: 12.5}
-                }
-            } else {
-                GestureView{width: Fill height: 46 on_tap: |x, y| do_send()
-                    RoundedView{width: Fill height: 46 draw_bg +: {color: neonC border_radius: 23.0} align: Align{x: 0.5 y: 0.5}
+            if send_state == "cancelled" {
+                GestureView{width: Fill height: 46 on_tap: |x, y| retry_send()
+                    RoundedView{width: Fill height: 46 draw_bg +: {color: paper3 border_radius: 23.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
                         View{width: Fit height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
                             View{width: 14 height: 14 align: Align{x: 0.5 y: 0.5}
-                                send_icon(onC, 14)}
-                            Label{text: "发送" draw_text.color: onC draw_text.text_style: theme.font_bold{font_size: 13}}
+                                refresh_icon(inkSoft, 14, paper3)}
+                            Label{text: "已取消审阅 · 点按重发" draw_text.color: inkSoft draw_text.text_style: theme.font_bold{font_size: 12.5}}
+                        }
+                    }
+                }
+            } else {
+                if send_state == "sending" {
+                    RoundedView{width: Fill height: 46 draw_bg +: {color: paper3 border_radius: 23.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
+                        Label{text: pick(mail_link == "live", "宿主审阅中…", "发送中…") draw_text.color: sendIdleT draw_text.text_style.font_size: 12.5}
+                    }
+                } else {
+                    GestureView{width: Fill height: 46 on_tap: |x, y| do_send()
+                        RoundedView{width: Fill height: 46 draw_bg +: {color: neonC border_radius: 23.0} align: Align{x: 0.5 y: 0.5}
+                            View{width: Fit height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+                                View{width: 14 height: 14 align: Align{x: 0.5 y: 0.5}
+                                    send_icon(onC, 14)}
+                                Label{text: "发送" draw_text.color: onC draw_text.text_style: theme.font_bold{font_size: 13}}
+                            }
                         }
                     }
                 }
@@ -2053,7 +2099,7 @@ fn write_screen(){
                 // tone slider
                 View{width: Fill height: Fit flow: Down spacing: 8
                     View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
-                        Label{width: Fill text: "语气滑杆 · AI 实时改写" draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+                        Label{width: Fill text: pick(practice_target(), "语气滑杆 · 练习文案", "语气滑杆 · AI 实时改写") draw_text.color: inkSoft draw_text.text_style.font_size: 11}
                         RoundedView{width: Fit height: Fit padding: Inset{top: 3 bottom: 3 left: 10 right: 10}
                             draw_bg +: {color: pinkC border_radius: 11.0}
                             Label{text: tone_label() draw_text.color: onC draw_text.text_style.font_size: 10}}
@@ -2074,7 +2120,13 @@ fn write_screen(){
                             if tone_src == "asking" {
                                 Label{width: Fill text: "模型改写中…" draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
                             } else {
-                                Label{width: Fill text: "回信预览" draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
+                                // canned on a practice target is fixed copy,
+                                // not a model draft: tag it 练习文案 (0.7.28)
+                                if tone_src == "canned" && practice_target() {
+                                    Label{width: Fill text: "练习文案" draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
+                                } else {
+                                    Label{width: Fill text: "回信预览" draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
+                                }
                             }
                         }
                     }
@@ -2090,6 +2142,14 @@ fn write_screen(){
                 send_button()
                 if send_state == "failed" {
                     Label{width: Fill text: send_error_msg draw_text.color: failT draw_text.text_style.font_size: 9.5}
+                } else {
+                    if send_state == "cancelled" {
+                        Label{width: Fill text: send_error_msg draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                    } else {
+                        if send_state == "sending" && mail_link == "live" {
+                            Label{width: Fill text: "宿主已弹出审阅单 · 亲手批准后才会发送" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                        }
+                    }
                 }
             }
         }
@@ -2235,7 +2295,7 @@ fn set_screen(){
                         }
                     }
                 }
-                Label{width: Fill text: "VibeMail 0.7.25 · vibemail · 有情绪的邮件" draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                Label{width: Fill text: "VibeMail 0.7.29 · vibemail · 有情绪的邮件" draw_text.color: inkDim draw_text.text_style.font_size: 9}
             }
         }
     }

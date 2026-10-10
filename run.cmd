@@ -2,6 +2,10 @@
 rem VibeMail one-command runner. Everything lives in scripts\run_app.py;
 rem this wrapper only makes it double-clickable from the repo root.
 rem
+rem Binaries default to the prebuilt octoscense-builder release under
+rem ..\octosense-win (octosense-shell\octosense.exe, apphub-tools\*.exe);
+rem override with OCTOSENSE_EXE / CARD_HOST_EXE / HUB_EXE.
+rem
 rem   run.cmd              launch the app in card-host at DESKTOP width
 rem                        (1200x860: rail + card list + reader pane)
 rem   run.cmd mobile       ... at phone width (412x860, unsupported layout)
