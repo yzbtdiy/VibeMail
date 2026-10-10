@@ -47,17 +47,17 @@ GitHub release ready(可编辑源码已测试、已 stamp;tag 推送后由
 ## Tag / Full commit SHA / Bundle path
 
 - Tag:`v0.7.29`(annotated,pushed)
-- Commit:`<FILL — git rev-parse v0.7.29^{commit}>`
+- Commit:`6cc9218cf87ec251384a0836d75ff28268d33268`
 - Bundle path:`bundle/`
 
 ## GitHub workflow run URL
 
-<FILL — Actions「Publish OctoSense app」成功运行链接>
+https://github.com/yzbtdiy/VibeMail/actions/runs/38018888782
 
 ## Release and pack URL / Release pack SHA256
 
-- Release:`<FILL — v0.7.29 release 链接>`
-- `app.bundle.pack.json` SHA256:`<FILL — release-receipt.json 的 pack_sha256>`
+- Release:https://github.com/yzbtdiy/VibeMail/releases/tag/v0.7.29
+- `app.bundle.pack.json` SHA256:`fd48c9e326ce0dd220fef7b0caf65fbb5621346c3c26924aaa2b6ca7dcf7627f`
 - 下载核验:`hub publisher-unpack app.bundle.pack.json --out review-bundle`
   + `hub publisher-verify review-bundle`,输出见下。
 
@@ -94,7 +94,18 @@ vibemail 0.7.29 — PASSED
 (unsigned 警告是 GitHub provenance 路线的固有形态:可编辑源码保持未签名,
 tag 工作流的证明清单提供密封。)
 
-下载包核验:<FILL — hub publisher-verify review-bundle 的完整输出>
+下载包核验(Windows,2026-10-10,pack 取自 release 资产):
+
+```
+> hub publisher-unpack build\app.bundle.pack.json --out build\review-bundle
+{"app_id":"vibemail","digest":"d6d08e57833cdd2df5db3da6ed527648c1f27c098a5ab9bf77a9adb9ee37aae0","findings":[],"passed":true,"resources":[],"schema":1,"stage":"structural","version":"0.7.29"}
+
+> hub publisher-verify build\review-bundle
+{"app_id":"vibemail","digest":"d6d08e57833cdd2df5db3da6ed527648c1f27c098a5ab9bf77a9adb9ee37aae0","findings":[],"passed":true,"resources":[],"schema":1,"stage":"structural","version":"0.7.29"}
+```
+
+(sealed pack 的 digest 与可编辑源码 manifest 完全一致;本地 SHA256 复算与
+release-receipt.json 的 pack_sha256 相符:`fd48c9e3…7627f`。)
 
 ## Scan answers / Screenshots
 

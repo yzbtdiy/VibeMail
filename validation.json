@@ -23,6 +23,12 @@
       "date": "2026-10-09"
     },
     {
+      "what": "GitHub publisher workflow for v0.7.29 (tag push -> publisher-prepare -> Sigstore attestation -> publisher-verify/pack) and downloaded-pack verification",
+      "result": "run 38018888782 success; release assets app.bundle.pack.json + octosense-app-manifest.json + release-receipt.json; hub publisher-unpack + publisher-verify PASSED (sealed digest d6d08e57 matches the editable source; local pack SHA256 fd48c9e3 matches the receipt)",
+      "command": "hub publisher-unpack build/app.bundle.pack.json --out build/review-bundle && hub publisher-verify build/review-bundle",
+      "date": "2026-10-10"
+    },
+    {
       "what": "compose/send state-machine twin unit tests (single-tap send; 0.7.28 adds the mail.review_send callback classifier finish_review: accepted / cancelled / classified failures)",
       "result": "13/13 OK",
       "command": "python -m unittest discover -s service",
@@ -85,8 +91,7 @@
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
     "the native Approve & Send flow end-to-end: mail.review_send is foreground-only on macOS/Android and the vendored reference service refuses physical approval off those platforms — the classifier (finish_review + send_live branches) is covered by unit tests, the real sheet is not driven on Windows",
-    "the GitHub release workflow run and downloaded-pack verification for v0.7.29 (executes on tag push; evidence lands in the submission issue)",
-    "the OctoSense-App-Hub submission issue (human step: submit-app.yml form)"
+    "the release comment in submission issue #84 (human step: post tag/commit/workflow evidence and update the issue title + Version field)"
   ],
   "runtime_notes": [
     "taps reach EVERY overlapping GestureView in this runtime — the bottom nav is docked in flow, not floating (probed)",

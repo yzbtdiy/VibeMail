@@ -193,10 +193,11 @@ configured the same buttons produce real model output (ev-20/21).
 
 - [x] Editable source stamped with the portable digest, gate PASSED
 - [x] `.github/workflows/publish-app.yml` installed (`tools/octo publish-github`)
-- [ ] Commit, push main, then push tag `v0.7.29` (the tag push runs the
-      workflow; this packet is part of the tagged commit)
-- [ ] Workflow success → download the pack → `hub publisher-unpack` +
-      `hub publisher-verify` → record outputs
+- [x] Commit `6cc9218`, push main, push tag `v0.7.29` (workflow run
+      38018888782 completed successfully)
+- [x] Workflow success → download the pack → `hub publisher-unpack` +
+      `hub publisher-verify` → PASSED, digest matches, pack SHA256
+      `fd48c9e326ce0dd220fef7b0caf65fbb5621346c3c26924aaa2b6ca7dcf7627f`
 - [ ] Comment the release in submission issue
       [#84](https://github.com/OctoSense-org/OctoSense-App-Hub/issues/84)
       with the tag, full commit SHA and workflow run link; update the issue
