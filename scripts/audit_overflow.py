@@ -16,7 +16,9 @@ import urllib.request
 from pathlib import Path
 
 APP = Path(__file__).resolve().parent.parent
-CARD_HOST = r"D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe"
+CARD_HOST = os.environ.get(
+    "CARD_HOST_EXE",
+    str(APP.parent / "octosense-win" / "apphub-tools" / "card-host.exe"))
 PORT = "8145"
 BASE = f"http://127.0.0.1:{PORT}"
 

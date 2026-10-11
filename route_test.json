@@ -54,6 +54,53 @@
       ]
     },
     {
+      "name": "schedule-card-and-dismiss",
+      "desc": "0.8.0:练习数据的日程提议卡渲染、±1h 修正与忽略",
+      "steps": [
+        { "tap": "周末去海边", "expect": "mira@octomail.io",
+          "asserts": ["识别到安排", "练习数据", "与 Mira 的海边周末", "导出日程"] },
+        { "tap": "09:20", "expect": "10:20" },
+        { "tap": "忽略", "exact": true, "absent": ["识别到安排"] },
+        { "tap": "收件箱", "exact": true, "expect": "未读邮件" }
+      ]
+    },
+    {
+      "name": "orbit-segments-weekly",
+      "desc": "0.8.0:星轨 漂移/时间轴/周报 三段切换与本地周报",
+      "steps": [
+        { "tap": "星轨", "exact": true, "expect": "气泡大小" },
+        { "tap": "时间轴", "exact": true, "expect": "按时间从新到旧",
+          "asserts": ["云服务账单", "院子里的桂花开了", "08:47"] },
+        { "tap": "周报", "exact": true, "expect": "本周邮件天气",
+          "asserts": ["本地统计 · 不出设备", "最常来信", "导出周报文本"] },
+        { "tap": "漂移", "exact": true, "expect": "气泡大小" },
+        { "tap": "收件箱", "exact": true, "expect": "未读邮件" }
+      ]
+    },
+    {
+      "name": "draft-practice-save",
+      "desc": "0.8.0:练习数据存为草稿,如实标注仅保存在本应用",
+      "steps": [
+        { "tap": "写信", "exact": true, "expect": "语气滑杆" },
+        { "tap": "存为草稿", "exact": true, "expect": "已存草稿",
+          "asserts": ["练习草稿 · 仅保存在本应用"] },
+        { "tap": "收件箱", "exact": true, "expect": "未读邮件" }
+      ]
+    },
+    {
+      "name": "vibe-sweep-undo",
+      "desc": "0.8.0:批量清扫——筛选后一键归档 + 撤销",
+      "steps": [
+        { "tap": "平静", "exact": true, "expect": "已按 vibe 筛选:平静",
+          "asserts": ["归档全部"] },
+        { "tap": "归档全部", "exact": true, "expect": "确认归档" },
+        { "tap": "确认归档", "exact": true, "expect": "已归档 1 封",
+          "asserts": ["撤销"] },
+        { "tap": "撤销", "exact": true, "expect": "归档全部" },
+        { "tap": "全部", "exact": true, "expect": "周末去海边" }
+      ]
+    },
+    {
       "name": "tone-slider-rewrite",
       "desc": "语气滑杆三档实时改写回信预览(练习数据内置三种语气,预览标注练习文案)",
       "steps": [

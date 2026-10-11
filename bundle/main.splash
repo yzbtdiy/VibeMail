@@ -1,4 +1,14 @@
-// VibeMail 0.7.29 — 有情绪的邮件 (emails carry vibes)
+// VibeMail 0.8.0 — 有情绪的邮件 (emails carry vibes)
+// 0.8.0: the verifiable-execution release. 写信 gains a second button —
+// 存为草稿 via mail.compose + mail.compose_status host verification (the
+// Windows execution loop: review_send has no Windows adapter); 邮件详情
+// extracts schedule proposals (one schema-checked model.complete rides the
+// summary call) and exports .ics through files.export; 星轨 gets a
+// 漂移/时间轴/周报 segment (weekly stats are local aggregations, exportable
+// as text); 收件箱 offers batch vibe sweeping with undo; 我的 publishes a
+// template Glance card (glance.publish) and shows draft/card status rows.
+// The bundle now carries a read-only App Agent (tools.json + AGENT.md):
+// two host-service read tools (draft status, glance cards), nothing else.
 // Complete rebuild after the OctoSense design prototype reference: a phone
 // column (412 logical px, centred) carrying five vibe moods — coral 专注 /
 // neon 愉悦 / mint 平静 / pink 灵感 / blue 连接 — on a warm-paper light theme
@@ -188,7 +198,12 @@ let mails = [
      t1: "Mira,太好了,我很想去!周六 9:20 的车次方便,就这么定。"
      t2: "Mira 你好,感谢安排。我可以乘坐周六 9:20 的班次,请以此为准。期待同行。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     // 0.8.0: one practice mail carries a preset schedule proposal so the
+     // 识别到安排 card is demoable without a model service (labelled 练习数据)
+     ev: {title: "与 Mira 的海边周末" label: "周六 10/17" place: "海边玻璃小屋"
+          y: 2026 mo: 10 d: 17 h: 9 mi: 20}
+     ev_src: "practice" ev_state: "" ev_msg: "" ev_shift: 0}
     {src: "practice" id: "" sender: "云服务账单" bname: "云服务账单" handle: "billing@nimbus.cloud"
      subject: "10 月账单已生成:¥236.40,3 天后扣款"
      snippet: "本期用量超出套餐 12%,主要来自对象存储……"
@@ -201,7 +216,8 @@ let mails = [
      t1: "你好,账单已确认。对象存储超套餐的部分我会在这两天清理,请按原计划扣款。"
      t2: "您好,10 月账单已核对无误。请按计划于 10 月 6 日扣款;超量部分我方将尽快优化存储结构。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
     {src: "practice" id: "" sender: "产品周报 · Aurora" bname: "产品周报" handle: "digest@aurora.pm"
      subject: "第 42 期:北极星指标 +12%,以及一个失败的实验"
      snippet: "这周我们学会的第一件事是:别把确认弹窗做成红色……"
@@ -214,7 +230,8 @@ let mails = [
      t1: "周报写得很扎实,红色弹窗的复盘特别有启发。期待下一期。"
      t2: "您好,第 42 期周报已阅。北极星指标涨幅可观,失败实验的复盘坦诚且有价值。祝越办越好。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
     {src: "practice" id: "" sender: "GitHub" bname: "GitHub" handle: "noreply@github.com"
      subject: "[OctoSense] 你关注的仓库本周有 14 个更新"
      snippet: "OctoScript-App-Design-Flow:新增 headless 测试章节……"
@@ -227,7 +244,8 @@ let mails = [
      t1: "收到,本周抽空把 headless 测试那章读完。"
      t2: "您好,感谢周报同步。相关更新我将在工作时间统一查看。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
     {src: "practice" id: "" sender: "读书会 · 山雾小组" bname: "读书会" handle: "club@shanwu.read"
      subject: "十一月共读书目投票:《夜晚的潜水艇》领先"
      snippet: "目前《夜晚的潜水艇》7 票,《我的天才女友》5 票……"
@@ -240,7 +258,8 @@ let mails = [
      t1: "我投《夜晚的潜水艇》。十二月聚会我有空,地点到时候群里商量。"
      t2: "你好,我的投票是《夜晚的潜水艇》。十二月线下聚会如有地点征集,我随后在群里补充建议。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
     {src: "practice" id: "" sender: "外婆" bname: "外婆" handle: "grandma@family.mail"
      subject: "院子里的桂花开了"
      snippet: "今年开得早,香得很。给你留了一罐糖桂花……"
@@ -253,7 +272,8 @@ let mails = [
      t1: "外婆,收到啦。糖桂花谢谢您,让妈妈下周寄来。您也注意保暖。"
      t2: "外婆您好,糖桂花有劳您费心。请母亲下周按地址寄出即可。天气转凉,请您保重身体。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
     {src: "practice" id: "" sender: "设计系统双周报" bname: "设计双周报" handle: "ds@letter.design"
      subject: "Vol.19 高斯模糊正在回归界面设计"
      snippet: "从 aurora 渐变到毛玻璃,柔焦材质的复兴……"
@@ -266,7 +286,8 @@ let mails = [
      t1: "柔焦材质那篇很受用,附的实现代码我跑了一遍,效果很好。"
      t2: "您好,Vol.19 已阅。柔焦材质回归的趋势分析与案例拆解均很有价值,感谢整理。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
     {src: "practice" id: "" sender: "HR · OctoSense" bname: "HR" handle: "hr@octosense.org"
      subject: "【需回复】黑客松作品提交确认 — 10 月 8 日截止"
      snippet: "请在周三前确认你的提交信息:应用 id、版本号……"
@@ -279,7 +300,8 @@ let mails = [
      t1: "你好,确认提交。应用 id、版本号和 key 指纹我会整理好在本周三前回复。"
      t2: "您好,确认参加本次黑客松评审。提交信息(应用 id、版本号、publisher key 指纹及 hub check 输出)将于 10 月 8 日前完整回复本邮件。"
      reply: "" reply_text: "" send_error: "" boxed: ""
-     summary_src: "practice" ai_points: []}
+     summary_src: "practice" ai_points: []
+     ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
 ]
 
 // ---- compose state (tone slider + send lifecycle) -------------------------
@@ -296,6 +318,54 @@ let simulate_outage = false    // practice switch: next practice send fails
 let digest_model = ""          // model-written mood line (0.7.6)
 let digest_src = "template"    // template | asking | ai
 let restored_note = ""         // transient settings feedback after a restore
+
+// ---- 0.8.0 state: drafts, glance card, schedule proposals, weekly, sweep ----
+// Draft loop (mail.compose + mail.compose_status, Windows-supported): the
+// compose screen's second button. The host assigns compose_id/revision; a
+// save is only claimed 宿主核验 once compose_status answers.
+let draft_state = ""           // "" | composing | drafted | draft_failed
+let draft_msg = ""
+let draft_id = ""              // host compose_id of the current draft
+let draft_rev = 0
+let draft_count = 0            // host-verified drafts this session
+let draft_last = ""            // "HH:MM" of the last verified save
+let want_draft = false         // poller-queued mail.compose
+let want_draft_verify = false  // poller-queued mail.compose_status
+// Glance 速览卡 (template + initial; script cards are rejected for apps)
+let glance_state = ""          // "" | queued | published | failed | unsupported
+let glance_msg = ""
+let glance_last = ""
+let want_glance = false
+// files.export probe (.ics / 周报 export); buttons grey out honestly without it
+let files_known = false
+let files_ok = false
+// 星轨 segments: drift is the 0.7.x constellation; timeline parks bubbles on
+// a recency arc; weekly is a local-stats report (zero new capabilities)
+let orbit_mode = "drift"       // drift | timeline | weekly
+let weekly_line = ""
+let weekly_src = "template"    // template | asking | ai | budget
+let weekly_inflight = false
+let want_weekly = false
+let wexp_state = ""            // "" | exporting | done | failed (周报导出)
+let wexp_msg = ""
+let want_wexp = false
+// batch vibe sweep (inbox): confirm card -> archive all -> undo window
+let sweep = ""                 // "" | confirm | done
+let sweep_set = []             // indices archived by the active sweep
+let sweep_n = 0
+let want_export_ev = -1        // mail index awaiting .ics export
+
+fn pad2(n){
+    if n < 10 { return "0" + n }
+    return "" + n
+}
+// local clock as "HH:MM" (+8 like the greeting: card-host reports UTC)
+fn now_hhmm(){
+    let t = mod.std.local_time()
+    let h = t.hour + 8
+    if h >= 24 { h = h - 24 }
+    return pad2(h) + ":" + pad2(t.minute)
+}
 
 // ---- palette (warm paper light / charcoal dark) ---------------------------
 // Values mirror the reference tokens; hairlines and glass are the reference
@@ -665,7 +735,8 @@ fn live_mail(m){
             imp: vibe_imp(v)
             summary: [] t0: "" th: "" t1: "" tp: "" t2: ""
             reply: "" reply_text: "" send_error: "" boxed: ""
-            summary_src: "none" ai_points: []}
+            summary_src: "none" ai_points: []
+            ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
 }
 fn mail_load(){
     // sync FIRST (mail.list only reads the local cache; mail.sync fills it),
@@ -786,6 +857,46 @@ fn send_live(){
         soft_repaint()
     })
 }
+// 0.8.0 draft loop (Windows-supported execution): mail.compose saves the
+// draft host-side WITHOUT any sheet or send; the claim 宿主核验 is only made
+// after mail.compose_status answers (issued by the poller — nested requests
+// inside a host-reply callback are not pumped by the shell runner). Updating
+// the same draft passes compose_id + expected_revision; the UI copy keeps
+// the text on any failure.
+fn draft_live(){
+    let args = {account: account_id to: to_input
+                subject: subject_input body: preview_text()}
+    if draft_id != "" {
+        args.compose_id = draft_id
+        args.expected_revision = draft_rev
+    }
+    host.request("mail.compose", args, fn(r){
+        if r.is_ok {
+            draft_id = r.data.compose_id
+            draft_rev = r.data.revision
+            want_draft_verify = true
+        } else {
+            draft_state = "draft_failed"
+            draft_msg = "草稿保存失败:" + r.error
+        }
+        soft_repaint()
+    })
+}
+fn draft_verify(){
+    host.request("mail.compose_status", {account: account_id compose_id: draft_id}, fn(r){
+        if r.is_ok {
+            draft_state = "drafted"
+            draft_msg = "已存入草稿箱 · 宿主核验"
+            draft_count = draft_count + 1
+            draft_last = now_hhmm()
+        } else {
+            // the save itself succeeded; only the receipt check failed
+            draft_state = "drafted"
+            draft_msg = "已存草稿 · 状态核验未回:" + r.error
+        }
+        soft_repaint()
+    })
+}
 // MARKER:ADAPTER-END
 
 // ---- AI generation (one-shot model.complete, schema-checked) ---------------
@@ -797,10 +908,17 @@ fn gen_summary(i){
     mails[i].summary_src = "asking"
     repaint()
     host.request("model.complete", {
-        task: "阅读这封中文邮件,给出最多3条要点,简洁客观,不编造原文没有的事实。"
+        task: "阅读这封中文邮件,做两件事。1)给出最多3条要点,简洁客观,不编造原文没有的事实。2)若正文包含确定的日程安排(会议/聚会/出行等),提取为 event:title 一句话名称,label 人类可读的日期时间(如「周六 10/17 14:00」),place 地点,y/mo/d/h/mi 为开始的年月日时分整数;没有确定安排时 title 留空字符串,其余字段给 0 或空。不猜测正文没有的时间。"
         input: {subject: m.subject sender: m.sender body: m.body}
-        schema: {type: "object" required: ["points"] additionalProperties: false
-                 properties: {points: {type: "array" maxItems: 3 items: {type: "string" maxLength: 60}}}}
+        schema: {type: "object" required: ["points", "event"] additionalProperties: false
+                 properties: {points: {type: "array" maxItems: 3 items: {type: "string" maxLength: 60}}
+                              event: {type: "object" additionalProperties: false
+                                      required: ["title", "label", "place", "y", "mo", "d", "h", "mi"]
+                                      properties: {title: {type: "string" maxLength: 40}
+                                                   label: {type: "string" maxLength: 30}
+                                                   place: {type: "string" maxLength: 40}
+                                                   y: {type: "integer"} mo: {type: "integer"} d: {type: "integer"}
+                                                   h: {type: "integer"} mi: {type: "integer"}}}}}
         class: "fast"
     }, fn(r){
         if !r.is_ok {
@@ -824,6 +942,32 @@ fn gen_summary(i){
         }
         mails[i].ai_points = r.data.output.points
         mails[i].summary_src = "ai"
+        // 0.8.0: the same one call also carries the schedule proposal. The
+        // card appears only when every field validates — a guessed or
+        // half-empty event never renders (缺字段的行直接不显示).
+        let ev = r.data.output.event
+        if ev.title != "" {
+            if ev.y >= 2026 {
+                if ev.mo >= 1 {
+                    if ev.mo <= 12 {
+                        if ev.d >= 1 {
+                            if ev.d <= 31 {
+                                if ev.h >= 0 {
+                                    if ev.h <= 23 {
+                                        if ev.mi >= 0 {
+                                            if ev.mi <= 59 {
+                                                mails[i].ev = ev
+                                                mails[i].ev_src = "ai"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // NOTE no meta read: the shell's model service answers meta with
         // {class, requested, attempts, usage, budget} — NO model name.
         // Reading r.data.meta.model threw property-not-found (0.7.24 shell
@@ -913,6 +1057,22 @@ fn go(s){
     open_idx = -1
     send_state = "idle"
     send_error_msg = ""
+    // 0.8.0: nav entry to 写信 always means FRESH compose. A nav tap passes
+    // through to whatever lies under the pill (0.7.5 finding) — if that was
+    // a detail screen's 回复, open_compose fires in the same dispatch and its
+    // reply_idx survives go(), silently binding the next write to the wrong
+    // thread (route forensics: 写信 showing 外婆's subject). Resetting here
+    // converges both dispatch orders: 回复-first is wiped, go-first gates it.
+    if s == "write" {
+        reply_idx = -1
+        to_input = mails[0].handle
+        subject_input = "Re: 周末去海边吗?"
+        live_preview = ""
+        tone = 2
+        tone_src = "canned"
+        tone_note = ""
+        open_compose_reset_draft()
+    }
     repaint()
 }
 fn open_mail(i){
@@ -941,6 +1101,10 @@ fn close_detail(){
 }
 fn set_filter(v){
     filter = v
+    // switching the filter abandons any pending sweep (the count it quoted
+    // no longer matches what the list shows)
+    sweep = ""
+    sweep_set = []
     repaint()
 }
 fn toggle_star(i){
@@ -989,6 +1153,7 @@ fn open_compose(idx){
     tone = 2
     send_state = "idle"
     send_error_msg = ""
+    open_compose_reset_draft()
     screen = "write"
     open_idx = -1
     repaint()
@@ -1052,6 +1217,318 @@ fn toggle_outage(){
     repaint()
 }
 
+// ---- 0.8.0 actions: drafts, glance, schedule export, weekly, sweep ---------
+// 存为草稿:live goes through mail.compose (poller-queued); practice data
+// keeps a local-only draft and says so (练习草稿 · 仅保存在本应用).
+fn do_draft(){
+    if nav_recent() { return }
+    draft_state = "composing"
+    draft_msg = ""
+    repaint()
+    if mail_link == "live" {
+        want_draft = true
+        return
+    }
+    start_timeout(0.9, || finish_draft_practice())
+}
+fn finish_draft_practice(){
+    draft_state = "drafted"
+    draft_msg = "练习草稿 · 仅保存在本应用"
+    repaint()
+}
+fn open_compose_reset_draft(){
+    // entering a fresh compose clears the previous draft session marks
+    draft_state = ""
+    draft_msg = ""
+    draft_id = ""
+    draft_rev = 0
+}
+// files.export support probe (boot): buttons grey out honestly when the host
+// has no file adapter (card-host) instead of failing on tap
+fn files_probe(){
+    if !host.has("files") {
+        files_known = true
+        files_ok = false
+        return
+    }
+    host.request("files.status", {}, fn(r){
+        files_known = true
+        if r.is_ok {
+            files_ok = r.data.export_supported
+        }
+        soft_repaint()
+    })
+}
+// Glance 速览卡: template + initial only (executable script cards are
+// refused for store apps). Card content is the same honest data the inbox
+// shows: unread count, per-vibe counts, the labelled mood line.
+fn publish_glance(){
+    if nav_recent() { return }
+    if !host.has("glance") {
+        glance_state = "unsupported"
+        glance_msg = "当前环境无速览服务"
+        repaint()
+        return
+    }
+    glance_state = "queued"
+    glance_msg = ""
+    want_glance = true
+    repaint()
+}
+fn glance_go(){
+    host.request("glance.publish", {
+        card_id: "vibemail.daily"
+        title: "VibeMail"
+        summary: digest_shown()
+        template: "glance-vibemail.splash"
+        initial: {unread: unread_cnt()
+                  focus: vibe_count("focus") joy: vibe_count("joy")
+                  calm: vibe_count("calm") spark: vibe_count("spark")
+                  link: vibe_count("link")
+                  line: digest_shown()}
+        priority: 50
+        expires: 86400
+    }, fn(r){
+        if r.is_ok {
+            glance_state = "published"
+            glance_last = now_hhmm()
+        } else {
+            glance_state = "failed"
+            glance_msg = r.error
+        }
+        soft_repaint()
+    })
+}
+// schedule proposal (.ics): the export file is written to the app sandbox
+// first, then handed to the host's export sheet; DTSTART shifts with the
+// in-card ±1h correction
+fn ev_stamp(m){
+    let e = m.ev
+    let h = e.h + m.ev_shift
+    if h < 0 { h = 0 }
+    if h > 23 { h = 23 }
+    return "" + e.y + pad2(e.mo) + pad2(e.d) + "T" + pad2(h) + pad2(e.mi) + "00"
+}
+fn ev_time_shown(m){
+    let h = m.ev.h + m.ev_shift
+    if h < 0 { h = 0 }
+    if h > 23 { h = 23 }
+    return pad2(h) + ":" + pad2(m.ev.mi)
+}
+fn shift_ev(i){
+    if nav_recent() { return }
+    let s = mails[i].ev_shift + 1
+    if s > 1 { s = -1 }
+    mails[i].ev_shift = s
+    repaint()
+}
+fn dismiss_ev(i){
+    if nav_recent() { return }
+    mails[i].ev_state = "dismissed"
+    repaint()
+}
+fn export_ev(i){
+    if nav_recent() { return }
+    if !files_ok {
+        mails[i].ev_state = "failed"
+        mails[i].ev_msg = "导出不可用 · 宿主不支持文件导出"
+        repaint()
+        return
+    }
+    mails[i].ev_state = "exporting"
+    mails[i].ev_msg = ""
+    want_export_ev = i
+    repaint()
+}
+fn export_ev_go(i){
+    let m = mails[i]
+    let ics = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//VibeMail//Event//CN\nBEGIN:VEVENT\nUID:vibemail-"
+            + i + "-" + ev_stamp(m) + "@vibemail\nDTSTART:" + ev_stamp(m)
+            + "\nSUMMARY:" + m.ev.title + "\nLOCATION:" + m.ev.place
+            + "\nDESCRIPTION:由 VibeMail 从邮件识别导出(" + m.ev.label + ")\nEND:VEVENT\nEND:VCALENDAR\n"
+    fs.write("vibemail-event.ics", ics)
+    host.request("files.export", {path: "vibemail-event.ics" name: m.ev.title + ".ics"}, fn(r){
+        if r.is_ok {
+            if r.data["cancelled"] == true {
+                mails[i].ev_state = ""
+                mails[i].ev_msg = "已取消导出"
+            } else {
+                mails[i].ev_state = "exported"
+                mails[i].ev_msg = "已导出 " + m.ev.title + ".ics · " + now_hhmm()
+            }
+        } else {
+            mails[i].ev_state = "failed"
+            mails[i].ev_msg = "导出失败:" + r.error
+        }
+        soft_repaint()
+    })
+}
+// weekly report: local aggregation only (counts live in the list, zero new
+// capabilities, nothing leaves the device); the one-line summary asks the
+// model ONCE per entering the segment, cached until the data shifts
+fn top_sender(){
+    let best = ""
+    let best_n = 0
+    for i in mails.len() {
+        if mails[i].boxed == "" {
+            let n = 0
+            for j in mails.len() {
+                if mails[j].boxed == "" {
+                    if mails[j].bname == mails[i].bname { n = n + 1 }
+                }
+            }
+            if n > best_n { best_n = n best = mails[i].bname }
+        }
+    }
+    if best == "" { return "暂无" }
+    return best + "(" + best_n + " 封)"
+}
+fn ask_weekly(){
+    if !host.has("model") { weekly_src = "template" return }
+    weekly_src = "asking"
+    weekly_inflight = true
+    soft_repaint()
+    host.request("model.complete", {
+        task: "根据本周邮件统计写一句 30 字内的周报短语,温暖口语,提到最多的 vibe;不要列清单。"
+        input: {focus: vibe_count("focus") joy: vibe_count("joy") calm: vibe_count("calm")
+                spark: vibe_count("spark") link: vibe_count("link")
+                unread: unread_cnt() top: top_sender()}
+        schema: {type: "object" required: ["line"] additionalProperties: false
+                 properties: {line: {type: "string" maxLength: 60}}}
+        class: "fast"
+    }, fn(r){
+        weekly_inflight = false
+        if r.is_ok {
+            weekly_line = r.data.output.line
+            weekly_src = "ai"
+        } else {
+            weekly_src = "template"
+            if r.error.search("for today") >= 0 { weekly_src = "budget" }
+        }
+        soft_repaint()
+    })
+}
+fn weekly_shown(){
+    if weekly_src == "ai" {
+        if weekly_line != "" { return weekly_line }
+    }
+    return "本周最多的是「" + vibe_label(top_vibe()) + "」,共 " + visible_count() + " 封在收件箱。"
+}
+fn top_vibe(){
+    let best = "calm"
+    let best_n = -1
+    if vibe_count("focus") > best_n { best_n = vibe_count("focus") best = "focus" }
+    if vibe_count("joy")   > best_n { best_n = vibe_count("joy")   best = "joy" }
+    if vibe_count("calm")  > best_n { best_n = vibe_count("calm")  best = "calm" }
+    if vibe_count("spark") > best_n { best_n = vibe_count("spark") best = "spark" }
+    if vibe_count("link")  > best_n { best_n = vibe_count("link")  best = "link" }
+    return best
+}
+fn weekly_src_word(){
+    if weekly_src == "asking" { return "生成中…" }
+    if weekly_src == "ai" { return "模型生成" }
+    if weekly_src == "budget" { return "今日额度用完" }
+    return "固定文案"
+}
+fn set_orbit_mode(m){
+    orbit_mode = m
+    if m == "weekly" {
+        if weekly_line == "" {
+            if !weekly_inflight { want_weekly = true }
+        }
+    }
+    repaint()
+}
+fn export_weekly(){
+    if nav_recent() { return }
+    if !files_ok {
+        wexp_state = "failed"
+        wexp_msg = "导出不可用 · 宿主不支持文件导出"
+        repaint()
+        return
+    }
+    wexp_state = "exporting"
+    wexp_msg = ""
+    want_wexp = true
+    repaint()
+}
+fn export_weekly_go(){
+    let t = "VibeMail 本周邮件天气\n========================\n专注 " + vibe_count("focus")
+          + " · 愉悦 " + vibe_count("joy") + " · 平静 " + vibe_count("calm")
+          + " · 灵感 " + vibe_count("spark") + " · 连接 " + vibe_count("link")
+          + "\n未读 " + unread_cnt() + " 封 · 已归档 " + archived_cnt() + " 封"
+          + "\n最常来信:" + top_sender()
+          + "\n" + weekly_shown() + "(" + weekly_src_word() + ")"
+          + "\n导出于 " + now_hhmm() + "\n"
+    fs.write("vibemail-weekly.txt", t)
+    host.request("files.export", {path: "vibemail-weekly.txt" name: "VibeMail周报.txt"}, fn(r){
+        if r.is_ok {
+            if r.data["cancelled"] == true {
+                wexp_state = ""
+                wexp_msg = "已取消导出"
+            } else {
+                wexp_state = "done"
+                wexp_msg = "已导出 VibeMail周报.txt · " + now_hhmm()
+            }
+        } else {
+            wexp_state = "failed"
+            wexp_msg = "导出失败:" + r.error
+        }
+        soft_repaint()
+    })
+}
+// batch vibe sweep: archive every visible mail of the active filter, with an
+// in-app confirm card and a short undo window (恢复归档 stays the永久 path)
+fn sweep_ask(){
+    if nav_recent() { return }
+    nav_gate_t = anim_t
+    if vibe_count(filter) == 0 { return }
+    sweep = "confirm"
+    repaint()
+}
+fn sweep_cancel(){
+    if nav_recent() { return }
+    nav_gate_t = anim_t
+    sweep = ""
+    repaint()
+}
+fn sweep_do(){
+    if nav_recent() { return }
+    nav_gate_t = anim_t
+    sweep_set = []
+    for i in mails.len() {
+        if mails[i].boxed == "" {
+            if mails[i].vibe == filter {
+                mails[i].boxed = "archive"
+                sweep_set.push(i)
+            }
+        }
+    }
+    sweep_n = sweep_set.len()
+    sweep = "done"
+    want_insight = true
+    start_timeout(5.0, || sweep_expire())
+    repaint()
+}
+fn sweep_expire(){
+    if sweep == "done" {
+        sweep = ""
+        sweep_set = []
+        soft_repaint()
+    }
+}
+fn sweep_undo(){
+    if nav_recent() { return }
+    nav_gate_t = anim_t
+    for j in sweep_set.len() {
+        mails[sweep_set[j]].boxed = ""
+    }
+    sweep = ""
+    sweep_set = []
+    want_insight = true
+    repaint()
+}
+
 // ---- boot, poller, drift clock ----------------------------------------------
 let mail_poll = nil
 let anim_poll = nil
@@ -1105,6 +1582,33 @@ fn poll_step(){
     if want_send {
         want_send = false
         send_live()
+    }
+    if want_draft {
+        want_draft = false
+        draft_live()
+    }
+    if want_draft_verify {
+        want_draft_verify = false
+        draft_verify()
+    }
+    if want_glance {
+        want_glance = false
+        glance_go()
+    }
+    if want_export_ev >= 0 {
+        let i = want_export_ev
+        want_export_ev = -1
+        export_ev_go(i)
+    }
+    if want_weekly {
+        if !weekly_inflight {
+            want_weekly = false
+            ask_weekly()
+        }
+    }
+    if want_wexp {
+        want_wexp = false
+        export_weekly_go()
     }
     if want_insight {
         if !insight_inflight {
@@ -1191,10 +1695,13 @@ fn anim_step(){
     // repaint on state changes only. An inbox re-mint on the beat breaks an
     // in-flight scroll drag (0.7.1 route finding: routes 5/6 could not scroll
     // the list any more) — so the greeting aura stays static, unlike the
-    // reference's drifting blur balls.
+    // reference's drifting blur balls. 0.8.0: timeline/weekly segments are
+    // static — only the drift segment animates.
     anim_t = anim_t + 0.15
     if screen == "orbit" {
-        if open_idx < 0 { repaint() }
+        if open_idx < 0 {
+            if orbit_mode == "drift" { repaint() }
+        }
     }
 }
 fn boot(){
@@ -1204,6 +1711,7 @@ fn boot(){
     repaint()
     want_insight = true
     mail_check()
+    files_probe()
     mail_poll = start_interval(0.4, || poll_step())
     anim_poll = start_interval(0.15, || anim_step())
 }
@@ -1732,6 +2240,51 @@ fn inbox_empty(){
         }
     }
 }
+// 0.8.0 batch sweep bar: floats above the nav pill while a vibe filter is
+// active. Taps stamp the nav gate so a mail card scrolling under the bar is
+// not opened by the same dispatch (the floating-pill guard's rule).
+fn sweep_bar(){
+    RoundedView{width: Fill height: Fit padding: Inset{top: 10 bottom: 10 left: 14 right: 14}
+        draw_bg +: {color: paper3 border_radius: 18.0 border_size: 1.0 border_color: line2}
+        if sweep == "confirm" {
+            View{width: Fill height: Fit flow: Down spacing: 8
+                Label{width: Fill text: "将归档 " + vibe_count(filter) + " 封「" + vibe_label(filter) + "」邮件,可随时在「我的 → 归档恢复」找回" draw_text.color: ink draw_text.text_style.font_size: 11}
+                View{width: Fill height: Fit flow: Right spacing: 9
+                    GestureView{width: Fill height: 32 on_tap: |x, y| sweep_do()
+                        RoundedView{width: Fill height: 32 draw_bg +: {color: ink border_radius: 16.0} align: Align{x: 0.5 y: 0.5}
+                            Label{text: "确认归档" draw_text.color: paper draw_text.text_style: theme.font_bold{font_size: 11}}
+                        }
+                    }
+                    GestureView{width: Fill height: 32 on_tap: |x, y| sweep_cancel()
+                        RoundedView{width: Fill height: 32 draw_bg +: {color: paper2 border_radius: 16.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
+                            Label{text: "取消" draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+                        }
+                    }
+                }
+            }
+        } else {
+            if sweep == "done" {
+                View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
+                    Label{width: Fill text: "已归档 " + sweep_n + " 封" draw_text.color: chipFgCalm draw_text.text_style.font_size: 11}
+                    GestureView{width: Fit height: 32 on_tap: |x, y| sweep_undo()
+                        RoundedView{width: Fit height: 32 padding: Inset{left: 14 right: 14} draw_bg +: {color: paper2 border_radius: 16.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
+                            Label{text: "撤销" draw_text.color: ink draw_text.text_style.font_size: 11}
+                        }
+                    }
+                }
+            } else {
+                View{width: Fill height: Fit flow: Right spacing: 10 align: Align{y: 0.5}
+                    Label{width: Fill text: "把 " + vibe_count(filter) + " 封「" + vibe_label(filter) + "」邮件归档" draw_text.color: ink draw_text.text_style.font_size: 11}
+                    GestureView{width: Fit height: 32 on_tap: |x, y| sweep_ask()
+                        RoundedView{width: Fit height: 32 padding: Inset{left: 14 right: 14} draw_bg +: {color: ink border_radius: 16.0} align: Align{x: 0.5 y: 0.5}
+                            Label{text: "归档全部" draw_text.color: paper draw_text.text_style.font_size: 11}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 fn inbox_screen(){
     ScrollYView{width: Fill height: Fill flow: Down
         View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 92 left: 16 right: 16}
@@ -1812,10 +2365,61 @@ fn action_capsule(icon_key, label, bg, fg, border, cut){
         }
     }
 }
+// 0.8.0 识别到安排 card (detail, between summary and body): one schema-checked
+// schedule proposal per mail, blue 连接 accent, honest source line, in-card
+// ±1h correction, .ics export through files.export (greyed without a file
+// adapter), dismiss leaves no trace.
+fn schedule_card(i){
+    let m = mails[i]
+    RoundedView{width: Fill height: Fit padding: Inset{top: 12 bottom: 12 left: 12 right: 12}
+        draw_bg +: {color: paper2 border_radius: 16.0 border_size: 1.0 border_color: chipBgLink} flow: Down spacing: 6
+        View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
+            View{width: 12 height: 12 align: Align{x: 0.5 y: 0.5}
+                spark_icon(chipFgLink, 11)}
+            Label{width: Fill text: "识别到安排" draw_text.color: chipFgLink draw_text.text_style.font_size: 11}
+            Label{text: pick(m.ev_src == "ai", "模型识别 · 请核对", "练习数据") draw_text.color: inkDim draw_text.text_style.font_size: 9}
+        }
+        View{width: Fill height: Fit flow: Right spacing: 8 padding: Inset{top: 2 bottom: 2}
+            Label{width: 40 text: "事项" draw_text.color: inkDim draw_text.text_style.font_size: 11}
+            Label{width: Fill text: m.ev.title draw_text.color: ink draw_text.text_style.font_size: 12}
+        }
+        View{width: Fill height: Fit flow: Right spacing: 8 padding: Inset{top: 2 bottom: 2}
+            Label{width: 40 text: "日期" draw_text.color: inkDim draw_text.text_style.font_size: 11}
+            Label{width: Fill text: m.ev.label draw_text.color: ink draw_text.text_style.font_size: 12}
+        }
+        GestureView{width: Fill height: Fit on_tap: |x, y| shift_ev(i)
+            View{width: Fill height: Fit flow: Right spacing: 8 padding: Inset{top: 2 bottom: 2}
+                Label{width: 40 text: "时间" draw_text.color: inkDim draw_text.text_style.font_size: 11}
+                Label{width: Fill text: ev_time_shown(m) + pick(m.ev_shift == 0, " · 点按 ±1h 修正", pick(m.ev_shift > 0, " · 已 +1h · 再按回到 -1h", " · 已 -1h · 再按回原样")) draw_text.color: ink draw_text.text_style.font_size: 12}
+            }
+        }
+        if m.ev.place != "" {
+            View{width: Fill height: Fit flow: Right spacing: 8 padding: Inset{top: 2 bottom: 2}
+                Label{width: 40 text: "地点" draw_text.color: inkDim draw_text.text_style.font_size: 11}
+                Label{width: Fill text: m.ev.place draw_text.color: ink draw_text.text_style.font_size: 12}
+            }
+        }
+        View{width: Fill height: Fit flow: Right spacing: 9 padding: Inset{top: 4}
+            GestureView{width: Fill height: 34 on_tap: |x, y| export_ev(i)
+                RoundedView{width: Fill height: 34 draw_bg +: {color: pick(files_known && !files_ok, paper3, blueC) border_radius: 17.0 border_size: pick(files_known && !files_ok, 1.0, 0.0) border_color: line2} align: Align{x: 0.5 y: 0.5}
+                    Label{text: "导出日程" draw_text.color: pick(files_known && !files_ok, inkDim, #xffffff) draw_text.text_style: theme.font_bold{font_size: 11.5}}
+                }
+            }
+            GestureView{width: Fill height: 34 on_tap: |x, y| dismiss_ev(i)
+                RoundedView{width: Fill height: 34 draw_bg +: {color: paper3 border_radius: 17.0 border_size: 1.0 border_color: line} align: Align{x: 0.5 y: 0.5}
+                    Label{text: "忽略" draw_text.color: inkSoft draw_text.text_style.font_size: 11.5}
+                }
+            }
+        }
+        if m.ev_msg != "" {
+            Label{width: Fill text: m.ev_msg draw_text.color: pick(m.ev_state == "failed", failT, pick(m.ev_state == "exported", chipFgCalm, inkDim)) draw_text.text_style.font_size: 9.5}
+        }
+    }
+}
 fn detail_screen(){
     let m = mails[open_idx]
     ScrollYView{width: Fill height: Fill flow: Down
-        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 12 bottom: 92 left: 16 right: 16}
+        View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 12 bottom: 120 left: 16 right: 16}
             GestureView{width: Fit height: Fit on_tap: |x, y| close_detail()
                 View{width: Fit height: Fit flow: Right spacing: 5 align: Align{y: 0.5} padding: Inset{top: 4 bottom: 4}
                     View{width: 15 height: 15 align: Align{x: 0.5 y: 0.5}
@@ -1848,6 +2452,13 @@ fn detail_screen(){
                                     summary_row(summary_lines(m)[pi], m.vibe)
                                 }
                             }
+                        }
+                    }
+                    // 0.8.0 识别到安排:schedule proposal card (only when a
+                    // validated event exists and it wasn't dismissed)
+                    if m.ev != "" {
+                        if m.ev_state != "dismissed" {
+                            schedule_card(open_idx)
                         }
                     }
                     if m.src == "live" {
@@ -1948,15 +2559,148 @@ fn bubble(i){
         }
     }
 }
+// 0.8.0 时间轴 (rebuilt): a real timeline, not shrunk bubbles — a left spine
+// with one vibe-coloured node per mail, time on the left gutter, and a
+// compact card on the right. Newest on top; every row opens the mail. The
+// spine segments are per-row 2px rects, so the line reads continuous at any
+// row height (no drawing primitives beyond rounded rects exist).
+fn timeline_node(i){
+    let m = mails[i]
+    View{width: 18 height: Fill flow: Overlay
+        // spine segment (continuous across rows)
+        View{width: 18 height: Fill align: Align{x: 0.5}
+            RoundedView{width: 2 height: Fill draw_bg +: {color: line border_radius: 1.0}}}
+        // the node: vibe dot, ringed + halo when unread
+        View{width: 18 height: Fill align: Align{x: 0.5 y: 0.5}
+            View{width: 18 height: 18 align: Align{x: 0.5 y: 0.5}
+                RoundedView{width: pick(m.unread, 16, 10) height: pick(m.unread, 16, 10)
+                    draw_bg +: {color: pick(m.unread, chip_bg(m.vibe), vibe_color(m.vibe))
+                               border_radius: pick(m.unread, 8.0, 5.0)
+                               border_size: pick(m.unread, 2.0, 0.0)
+                               border_color: vibe_color(m.vibe)}}}
+        }
+    }
+}
+fn timeline_row(i){
+    let m = mails[i]
+    GestureView{width: Fill height: Fit on_tap: |x, y| open_mail(i)
+        View{width: Fill height: Fit flow: Right spacing: 0
+            // time gutter (right padding keeps the last glyph clear of the
+            // spine column — flush-right text was clipped at the view edge)
+            View{width: 46 height: Fit padding: Inset{top: 14 right: 8}
+                Label{width: Fill text: m.time draw_text.color: pick(m.unread, ink, inkDim) draw_text.text_style.font_size: 9.5 align: Align{x: 1.0}}
+            }
+            timeline_node(i)
+            // the card
+            View{width: Fill height: Fit padding: Inset{top: 4 bottom: 8 left: 8}
+                RoundedView{width: Fill height: Fit padding: Inset{top: 10 bottom: 10 left: 12 right: 12}
+                    draw_bg +: {color: paper3 border_radius: 16.0 border_size: 1.0 border_color: pick(m.unread, vibe_color(m.vibe), line)}
+                    View{width: Fill height: Fit flow: Down spacing: 3
+                        View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
+                            Label{width: Fill text: m.sender draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 11.5}}
+                            vibe_chip(m.vibe)
+                        }
+                        Label{width: Fill text: m.subject draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+                    }
+                }
+            }
+        }
+    }
+}
+// vibe distribution bar row for the weekly report
+fn weekly_bar(v){
+    let n = vibe_count(v)
+    // bar length is normalised by the top vibe: an uncapped n*26 overflows
+    // the card when one vibe dominates a busy week
+    let maxc = vibe_count(top_vibe())
+    let unit = 26
+    if maxc > 8 { unit = 208 / maxc }
+    View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5} padding: Inset{top: 3 bottom: 3}
+        Label{width: 34 text: vibe_label(v) draw_text.color: inkSoft draw_text.text_style.font_size: 10.5}
+        RoundedView{width: 8 + n * unit height: 10 draw_bg +: {color: vibe_color(v) border_radius: 5.0}}
+        Label{text: "" + n draw_text.color: ink draw_text.text_style.font_size: 10.5}
+    }
+}
+// 周报 segment: local stats only — counts come from the in-memory list, the
+// one-line summary rides a single cached model call (labelled), export goes
+// through files.export when the host offers it
+fn weekly_view(){
+    View{width: Fill height: Fit flow: Down spacing: 12
+        RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 14 left: 14 right: 14}
+            draw_bg +: {color: paper3 border_radius: 20.0 border_size: 1.0 border_color: line} flow: Down spacing: 6
+            View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
+                Label{width: Fill text: "本周邮件天气" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 14}}
+                Label{text: "本地统计 · 不出设备" draw_text.color: inkDim draw_text.text_style.font_size: 9}
+            }
+            weekly_bar("focus")
+            weekly_bar("joy")
+            weekly_bar("calm")
+            weekly_bar("spark")
+            weekly_bar("link")
+            RoundedView{width: Fill height: 1 draw_bg +: {color: line border_radius: 0.0}}
+            Label{width: Fill text: "最常来信:" + top_sender() draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+            Label{width: Fill text: "未读 " + unread_cnt() + " 封 · 已归档 " + archived_cnt() + " 封" draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+        }
+        RoundedView{width: Fill height: Fit padding: Inset{top: 10 bottom: 10 left: 12 right: 12}
+            draw_bg +: {color: paper3 border_radius: 16.0 border_size: 1.0 border_color: line} flow: Down spacing: 4
+            View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
+                View{width: 12 height: 12 align: Align{x: 0.5 y: 0.5}
+                    spark_icon(inkSoft, 11)}
+                Label{width: Fill text: weekly_shown() draw_text.color: inkSoft draw_text.text_style.font_size: 11}
+                Label{text: weekly_src_word() draw_text.color: inkDim draw_text.text_style.font_size: 9}
+            }
+        }
+        GestureView{width: Fill height: 40 on_tap: |x, y| export_weekly()
+            RoundedView{width: Fill height: 40 draw_bg +: {color: pick(files_known && !files_ok, paper3, ink) border_radius: 20.0 border_size: pick(files_known && !files_ok, 1.0, 0.0) border_color: line2} align: Align{x: 0.5 y: 0.5}
+                Label{text: pick(wexp_state == "exporting", "导出中…", "导出周报文本") draw_text.color: pick(files_known && !files_ok, inkDim, paper) draw_text.text_style: theme.font_bold{font_size: 12}}
+            }
+        }
+        if wexp_msg != "" {
+            Label{width: Fill text: wexp_msg draw_text.color: pick(wexp_state == "failed", failT, pick(wexp_state == "done", chipFgCalm, inkDim)) draw_text.text_style.font_size: 9.5}
+        }
+    }
+}
+fn seg_chip(key, label){
+    let act = orbit_mode == key
+    GestureView{width: Fill height: Fit on_tap: |x, y| set_orbit_mode(key)
+        RoundedView{width: Fill height: Fit padding: Inset{top: 6 bottom: 6 left: 4 right: 4}
+            draw_bg +: {color: pick(act, ink, paper3) border_radius: 15.0
+                       border_size: pick(act, 0.0, 1.0) border_color: line} align: Align{x: 0.5}
+            Label{text: label draw_text.color: pick(act, paper, inkSoft)
+                   draw_text.text_style.font_size: 11 align: Align{x: 0.5}}
+        }
+    }
+}
 fn orbit_screen(){
     ScrollYView{width: Fill height: Fill flow: Down
         View{width: Fill height: Fit flow: Down spacing: 10 padding: Inset{top: 14 bottom: 92 left: 16 right: 16}
             screen_title("星轨")
-            soft_note("气泡大小 = 重要度 · 颜色 = vibe · 点按打开", 11)
-            // star map: full-width field, anchors are fractions of it
-            View{width: Fill height: 560 flow: Overlay
-                for i in mails.len() {
-                    if mails[i].boxed == "" { bubble(i) }
+            soft_note(pick(orbit_mode == "drift", "气泡大小 = 重要度 · 颜色 = vibe · 点按打开",
+                      pick(orbit_mode == "timeline", "按时间从新到旧 · 点按打开",
+                           "vibe 分布 · 最常来信 · 可导出的本地周报")), 11)
+            // 漂移 / 时间轴 / 周报 segment (0.8.0)
+            View{width: Fill height: Fit flow: Right spacing: 4 padding: Inset{top: 2 bottom: 2}
+                seg_chip("drift", "漂移")
+                seg_chip("timeline", "时间轴")
+                seg_chip("weekly", "周报")
+            }
+            if orbit_mode == "weekly" {
+                weekly_view()
+            } else {
+                if orbit_mode == "timeline" {
+                    View{width: Fill height: Fit flow: Down
+                        for i in mails.len() {
+                            if mails[i].boxed == "" { timeline_row(i) }
+                        }
+                        if visible_count() == 0 { inbox_empty() }
+                    }
+                } else {
+                    // star map: full-width field, anchors are fractions of it
+                    View{width: Fill height: 560 flow: Overlay
+                        for i in mails.len() {
+                            if mails[i].boxed == "" { bubble(i) }
+                        }
+                    }
                 }
             }
         }
@@ -2075,6 +2819,44 @@ fn send_button(){
         }
     }
 }
+// 0.8.0: 存为草稿 second button — the Windows execution loop (mail.compose
+// saves host-side, no sheet, no send; compose_status verifies). Faces mirror
+// the send button's state discipline.
+fn draft_button(){
+    if draft_state == "drafted" {
+        RoundedView{width: Fill height: 46 draw_bg +: {color: #x7de88840 border_radius: 23.0} align: Align{x: 0.5 y: 0.5}
+            View{width: Fit height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+                View{width: 14 height: 14 align: Align{x: 0.5 y: 0.5}
+                    check_icon(chipFgCalm, 14)}
+                Label{text: "已存草稿" draw_text.color: chipFgCalm draw_text.text_style: theme.font_bold{font_size: 12.5}}
+            }
+        }
+    } else {
+        if draft_state == "composing" {
+            RoundedView{width: Fill height: 46 draw_bg +: {color: paper3 border_radius: 23.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
+                Label{text: "保存中…" draw_text.color: sendIdleT draw_text.text_style.font_size: 12.5}
+            }
+        } else {
+            if draft_state == "draft_failed" {
+                GestureView{width: Fill height: 46 on_tap: |x, y| do_draft()
+                    RoundedView{width: Fill height: 46 draw_bg +: {color: failBg border_radius: 23.0 border_size: 1.0 border_color: failT} align: Align{x: 0.5 y: 0.5}
+                        View{width: Fit height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
+                            View{width: 14 height: 14 align: Align{x: 0.5 y: 0.5}
+                                refresh_icon(failT, 14, failBg)}
+                            Label{text: "保存失败 · 重试" draw_text.color: failT draw_text.text_style: theme.font_bold{font_size: 12.5}}
+                        }
+                    }
+                }
+            } else {
+                GestureView{width: Fill height: 46 on_tap: |x, y| do_draft()
+                    RoundedView{width: Fill height: 46 draw_bg +: {color: paper2 border_radius: 23.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
+                        Label{text: "存为草稿" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 13}}
+                    }
+                }
+            }
+        }
+    }
+}
 fn write_screen(){
     ScrollYView{width: Fill height: Fill flow: Down
         View{width: Fill height: Fit flow: Down spacing: 12 padding: Inset{top: 14 bottom: 92 left: 16 right: 16}
@@ -2139,7 +2921,13 @@ fn write_screen(){
                         }
                     }
                 }
-                send_button()
+                View{width: Fill height: Fit flow: Right spacing: 9
+                    send_button()
+                    draft_button()
+                }
+                if draft_msg != "" {
+                    Label{width: Fill text: draft_msg draw_text.color: pick(draft_state == "draft_failed", failT, inkSoft) draw_text.text_style.font_size: 9.5}
+                }
                 if send_state == "failed" {
                     Label{width: Fill text: send_error_msg draw_text.color: failT draw_text.text_style.font_size: 9.5}
                 } else {
@@ -2206,19 +2994,9 @@ fn set_screen(){
                     Label{text: theme_now_note() draw_text.color: inkSoft draw_text.text_style.font_size: 9.5}
                 }
             }
-            // OctoSense 能力声明
-            RoundedView{width: Fill height: Fit padding: Inset{top: 15 bottom: 13 left: 16 right: 16}
-                draw_bg +: {color: paper3 border_radius: 20.0 border_size: 1.0 border_color: line} flow: Down spacing: 5
-                View{width: Fill height: Fit flow: Down spacing: 2
-                    Label{text: "OctoSense 能力声明" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 12.5}}
-                    Label{text: "最小权限 · 密码由平台保管" draw_text.color: inkSoft draw_text.text_style.font_size: 10.5}
-                }
-                capability_row("mail", "读取与发送邮件(host service)")
-                capability_row("storage", "保存 vibe 标注与偏好(4 MiB)")
-                capability_row("model", "AI 摘要与语气改写")
-                Label{width: Fill text: "刻意不声明:net / web / camera / location —— 不需要" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
-            }
-            // 邮箱账号 (real host-service state)
+            // 邮箱账号 (real host-service state) — 0.8.0: actionable cards
+            // (account, glance) now precede the declarative capability card;
+            // the account actions no longer sit below the fold
             RoundedView{width: Fill height: Fit padding: Inset{top: 15 bottom: 13 left: 16 right: 16}
                 draw_bg +: {color: paper3 border_radius: 20.0 border_size: 1.0 border_color: line} flow: Down spacing: 8
                 View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
@@ -2238,8 +3016,15 @@ fn set_screen(){
                 if mail_link == "live" {
                     Label{width: Fill text: account_addr + " · 已通过 OctoSense 邮件服务登录" draw_text.color: inkSoft draw_text.text_style.font_size: 10.5}
                     Label{width: Fill text: banner_line() draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                    // 0.8.0 draft status row: only host-verified saves count
+                    if draft_count > 0 {
+                        Label{width: Fill text: "草稿 " + draft_count + " 封 · 最近一封 " + draft_last + "(宿主核验)" draw_text.color: chipFgCalm draw_text.text_style.font_size: 9.5}
+                    } else {
+                        Label{width: Fill text: "草稿箱 · 本次会话暂无草稿" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                    }
                 } else {
                     Label{width: Fill text: banner_line() draw_text.color: inkSoft draw_text.text_style.font_size: 10.5}
+                    Label{width: Fill text: "草稿箱不可用 · 未连接邮箱" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
                 }
                 View{width: Fill height: Fit flow: Right spacing: 8
                     if mail_link == "no_account" {
@@ -2278,6 +3063,46 @@ fn set_screen(){
                         draw_text +: {color: pick(simulate_outage, failT, inkSoft) text_style.font_size: 10}}
                 }
             }
+            // 0.8.0 桌面速览卡 (Glance): template + initial, no script cards
+            RoundedView{width: Fill height: Fit padding: Inset{top: 15 bottom: 13 left: 16 right: 16}
+                draw_bg +: {color: paper3 border_radius: 20.0 border_size: 1.0 border_color: line} flow: Down spacing: 8
+                View{width: Fill height: Fit flow: Right spacing: 8 align: Align{y: 0.5}
+                    View{width: 15 height: 15 align: Align{x: 0.5 y: 0.5}
+                        aura_brand(15)}
+                    Label{width: Fill text: "桌面速览卡" draw_text.color: ink draw_text.text_style.font_size: 12.5}
+                    Label{text: pick(glance_state == "published", "已发布", pick(glance_state == "queued", "发布中…", pick(glance_state == "failed", "发布失败", pick(glance_state == "unsupported", "不可用", "未发布")))) draw_text.color: pick(glance_state == "published", chipFgCalm, pick(glance_state == "failed", failT, inkSoft)) draw_text.text_style.font_size: 10.5}
+                }
+                Label{width: Fill text: "未读数 · vibe 分布 · 心情播报,有效期 24 小时(template + initial,不含脚本)" draw_text.color: inkSoft draw_text.text_style.font_size: 10.5}
+                if glance_state == "published" {
+                    Label{width: Fill text: "最近更新 " + glance_last draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                }
+                if glance_msg != "" {
+                    Label{width: Fill text: glance_msg draw_text.color: pick(glance_state == "failed", failT, inkDim) draw_text.text_style.font_size: 9.5}
+                }
+                View{width: Fill height: Fit flow: Right spacing: 8
+                    ButtonFlat{height: 30 padding: Inset{left: 12 right: 12} text: pick(glance_state == "published", "更新", "发布") on_click: || publish_glance()
+                        draw_bg +: {color: ink color_hover: ink color_down: inkSoft border_radius: 15.0 border_size: 0.0}
+                        draw_text +: {color: paper text_style.font_size: 11}}
+                    View{width: Fill height: 1}
+                    if wexp_state == "done" {
+                        Label{text: wexp_msg draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                    }
+                }
+            }
+            // OctoSense 能力声明
+            RoundedView{width: Fill height: Fit padding: Inset{top: 15 bottom: 13 left: 16 right: 16}
+                draw_bg +: {color: paper3 border_radius: 20.0 border_size: 1.0 border_color: line} flow: Down spacing: 5
+                View{width: Fill height: Fit flow: Down spacing: 2
+                    Label{text: "OctoSense 能力声明" draw_text.color: ink draw_text.text_style: theme.font_bold{font_size: 12.5}}
+                    Label{text: "最小权限 · 密码由平台保管" draw_text.color: inkSoft draw_text.text_style.font_size: 10.5}
+                }
+                capability_row("mail", "读取、发送邮件与草稿(host service)")
+                capability_row("storage", "保存 vibe 标注与偏好(4 MiB)")
+                capability_row("model", "AI 摘要、语气改写与安排识别")
+                capability_row("files", "导出 .ics 日程与周报文本")
+                capability_row("glance", "发布桌面速览卡")
+                Label{width: Fill text: "刻意不声明:net / web / camera / location —— 不需要" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+            }
             // 账号 identity card
             RoundedView{width: Fill height: Fit padding: Inset{top: 14 bottom: 14 left: 16 right: 16}
                 draw_bg +: {color: paper3 border_radius: 20.0 border_size: 1.0 border_color: line} flow: Down spacing: 4
@@ -2295,7 +3120,7 @@ fn set_screen(){
                         }
                     }
                 }
-                Label{width: Fill text: "VibeMail 0.7.29 · vibemail · 有情绪的邮件" draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                Label{width: Fill text: "VibeMail 0.8.0 · vibemail · 有情绪的邮件 · 带只读助手" draw_text.color: inkDim draw_text.text_style.font_size: 9}
             }
         }
     }
@@ -2372,6 +3197,19 @@ SolidView{width: Fill height: Fill flow: Overlay draw_bg.color: #xeaeae3
                         if screen == "orbit" { orbit_screen() }
                         if screen == "write" { write_screen() }
                         if screen == "set" { set_screen() }
+                    }
+                }
+            }
+            // 0.8.0: batch sweep bar floats above the nav pill while a vibe
+            // filter is active (hidden again once the sweep settles)
+            if screen == "inbox" {
+                if open_idx < 0 {
+                    if filter != "all" {
+                        if sweep != "" || vibe_count(filter) > 0 {
+                            View{width: Fill height: Fill align: Align{x: 0.5 y: 1.0} padding: Inset{bottom: 84 left: 16 right: 16}
+                                sweep_bar()
+                            }
+                        }
                     }
                 }
             }

@@ -1,9 +1,22 @@
 {
-  "agent": null,
+  "agent": {
+    "background": false,
+    "instructions": "AGENT.md",
+    "model": {
+      "needs": [
+        "tool_calling"
+      ]
+    },
+    "profile": "read-only",
+    "skills": [],
+    "tools": []
+  },
   "capabilities": [
     "mail",
     "model",
-    "storage"
+    "storage",
+    "files",
+    "glance"
   ],
   "compute": {
     "instruction_budget": null,
@@ -11,7 +24,7 @@
   },
   "id": "vibemail",
   "integrity": {
-    "bundle_blake3": "d6d08e57833cdd2df5db3da6ed527648c1f27c098a5ab9bf77a9adb9ee37aae0",
+    "bundle_blake3": "9cc767283341970cc049bdef275d24b2bd49e21bf984a07cf41e7122e8940dbc",
     "signature": null
   },
   "name": "VibeMail",
@@ -20,7 +33,8 @@
   },
   "schema": 1,
   "storage": {
+    "accounts": true,
     "max_bytes": 4194304
   },
-  "version": "0.7.29"
+  "version": "0.8.0"
 }

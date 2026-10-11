@@ -226,8 +226,23 @@ def run_step(base, step):
     if "type" in step:
         type_text(base, step["type"])
     if "tap" in step:
-        click_expect(base, step["tap"], step.get("expect", step["tap"]),
-                     exact=step.get("exact", False))
+        if "expect" not in step and step.get("absent"):
+            # effect-checked tap (0.8.0): with no positive `expect`, the old
+            # default expected the TAP TARGET ITSELF — so a dropped click went
+            # unnoticed and check_absent caught it afterwards. Retry the tap
+            # until every forbidden text clears instead.
+            cleared = False
+            for _ in range(4):
+                tap(base, step["tap"], exact=step.get("exact", False))
+                if all(not has(base, t) for t in step["absent"]):
+                    cleared = True
+                    break
+            if not cleared:
+                raise RouteError(
+                    f"tap '{step['tap']}' never cleared {step['absent']}")
+        else:
+            click_expect(base, step["tap"], step.get("expect", step["tap"]),
+                         exact=step.get("exact", False))
     elif "tap_offset" in step:
         spec = step["tap_offset"]
         pos = find(base, spec["find"])

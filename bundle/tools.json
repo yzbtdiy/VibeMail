@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "tools": [
+    {
+      "name": "vibemail.draft_status",
+      "description": "Read VibeMail's saved mail drafts and the last submission record for the current account (host-verified compose ledger). Read-only: it never composes, sends or deletes. The Shell binds the app's current account; stale or cross-account parameters are refused.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "compose_id": {
+            "type": "string",
+            "maxLength": 256
+          }
+        },
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "risk": "read",
+      "background": true,
+      "private_data": true,
+      "shareable": false,
+      "implemented_by": "host-service",
+      "host_method": "mail.compose_status"
+    },
+    {
+      "name": "vibemail.glance_cards",
+      "description": "List the Glance cards this app has published (card_id, title, priority, published_at, expires_at). Read-only: publication and withdrawal stay with the app's foreground UI.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object"
+      },
+      "risk": "read",
+      "background": true,
+      "private_data": true,
+      "shareable": false,
+      "implemented_by": "host-service",
+      "host_method": "glance.list"
+    }
+  ]
+}

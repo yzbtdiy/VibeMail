@@ -2,25 +2,25 @@
   "schema_version": 1,
   "app": {
     "id": "vibemail",
-    "version": "0.7.29"
+    "version": "0.8.0"
   },
   "form": "script-app (Splash bundle, card-host / OctoSense shell)",
-  "generated": "2026-10-09",
+  "generated": "2026-10-11",
   "counts": {
-    "routes": 6,
-    "route_steps": 42,
-    "service_unit_tests": 13,
+    "routes": 10,
+    "route_steps": 59,
+    "service_unit_tests": 25,
     "bridge_unit_tests": 5,
     "listing_screenshots": 5,
     "evidence_images": 16
   },
   "verified": [
     {
-      "what": "App Hub gate on the editable source, portable digest (app-contract 1.x), current main hub build",
-      "result": "PASSED (unsigned warning inherent to the GitHub-provenance editable source)",
-      "command": "hub check bundle --allow-unsigned",
+      "what": "App Hub gate on the editable source, portable digest (app-contract 1.x), current main hub build — 0.8.0 adds files/glance capabilities, the glance template, tools.json + AGENT.md (scan packet now carries the 8th agent question)",
+      "result": "PASSED, declarations line: capabilities {files, glance, mail, model, storage}, agent read-only (unsigned warning inherent to the GitHub-provenance editable source)",
+      "command": "hub check bundle --allow-unsigned; hub scan bundle --packet evidence/hub/review.json",
       "where": "bundle/",
-      "date": "2026-10-09"
+      "date": "2026-10-11"
     },
     {
       "what": "GitHub publisher workflow for v0.7.29 (tag push -> publisher-prepare -> Sigstore attestation -> publisher-verify/pack) and downloaded-pack verification",
@@ -29,11 +29,11 @@
       "date": "2026-10-10"
     },
     {
-      "what": "compose/send state-machine twin unit tests (single-tap send; 0.7.28 adds the mail.review_send callback classifier finish_review: accepted / cancelled / classified failures)",
-      "result": "13/13 OK",
+      "what": "compose/send state-machine twin unit tests (single-tap send; mail.review_send classifier; 0.8.0 adds the draft loop do_draft/finish_draft_*/verify_draft, batch sweep + exact undo, and schedule-event range validation + ev_stamp ±1h)",
+      "result": "25/25 OK",
       "command": "python -m unittest discover -s service",
       "where": "service/",
-      "date": "2026-10-09"
+      "date": "2026-10-11"
     },
     {
       "what": "dev bridge parsing unit tests",
@@ -43,23 +43,23 @@
       "date": "2026-10-09"
     },
     {
-      "what": "declarative click-through routes over the real card-host window, 412x860 phone layout, Windows 10 26100, card-host rebuilt from current source (word-wrap fix + makepad 32d6415f)",
-      "result": "6/6 routes passed (42 steps: vibe filter + detail summary, orbit bubble open + tri-state theme, tone slider five-stop rewrite with 练习文案 labels (0.7.28), single-tap send + replied chip, outage -> keep draft -> retry, archive/restore incl. orbit)",
+      "what": "declarative click-through routes over the real card-host window, 412x860 phone layout, Windows 10 26100, prebuilt octoscense-builder card-host (win-20261009-131233)",
+      "result": "10/10 routes passed (59 steps; 0.8.0 adds schedule-card-and-dismiss, orbit-segments-weekly, draft-practice-save, vibe-sweep-undo). Route forensics also fixed two real bugs: go() now resets compose context (a nav tap passing through to a detail 回复 had silently rebound 写信 to 外婆), and absent-only steps now retry the tap (the bridge drops clicks)",
       "command": "python scripts/run_routes.py <port>",
       "spec": "route_test.json",
-      "date": "2026-10-09"
+      "date": "2026-10-11"
     },
     {
-      "what": "layout audits, three widths (fresh instance per screen for missing), on the rebuilt card-host with the reference mail service wired",
-      "result": "412 / 700 / 1200 clean (overflow) and complete (5 screens x 3 widths)",
+      "what": "layout audits, three widths (fresh instance per screen for missing), prebuilt card-host",
+      "result": "412 / 700 / 1200 clean (overflow) and complete (5 screens x 3 widths); 0.8.0 fixes: timeline bubbles serpentine (first-cut diagonal overlapped), detail bottom inset 92->120 (action row no longer under the nav pill), weekly bars normalised by the top vibe, set-screen actionable cards above the capability card, timeline time gutter right-padded 8px (flush-right 08:47 was clipped at the view edge)",
       "command": "python scripts/audit_overflow.py 412 700 1200; python scripts/audit_missing.py 412 700 1200",
-      "date": "2026-10-09"
+      "date": "2026-10-11"
     },
     {
       "what": "listing screenshots + evidence drive over the real window, current runtime",
-      "result": "01-inbox..05-dark captured with per-step text assertions; ev-01..10 cover boot/filter/detail/tone x2/sent/replied-chip/outage/retry/dark",
+      "result": "01-inbox..05-dark re-captured at 0.8.0 (segmented orbit, double-button compose) with per-step text assertions; ev-01..10 cover boot/filter/detail/tone x2/sent/replied-chip/outage/retry/dark",
       "command": "python scripts/drive-demo.py <port>",
-      "date": "2026-10-09"
+      "date": "2026-10-11"
     },
     {
       "what": "mail flow with a real server rejection in card-host (reference mail service re-wired: vendored crates/mail-service + host.rs register)",
@@ -91,15 +91,18 @@
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
     "the native Approve & Send flow end-to-end: mail.review_send is foreground-only on macOS/Android and the vendored reference service refuses physical approval off those platforms — the classifier (finish_review + send_live branches) is covered by unit tests, the real sheet is not driven on Windows",
+    "0.8.0 against a REAL mailbox/host: mail.compose + mail.compose_status (draft ledger, revision lock), glance.publish on the shell's glance screen, files.export's native save sheet (.ics / weekly txt), and model schedule extraction on live bodies are all wired to the documented contracts and unit/route-tested in practice mode, but not yet driven end-to-end in run.cmd shell with a live account",
     "the release comment in submission issue #84 (human step: post tag/commit/workflow evidence and update the issue title + Version field)"
   ],
   "runtime_notes": [
-    "taps reach EVERY overlapping GestureView in this runtime — the bottom nav is docked in flow, not floating (probed)",
+    "taps reach EVERY overlapping GestureView in this runtime — the bottom nav is docked in flow, not floating (probed); 0.8.0: the sweep bar stamps the same nav gate so its taps never open a card underneath, and go() resets the compose context (a pass-through nav tap on a detail screen's 回复 had silently rebound 写信 to the wrong thread — route forensics 0.8.0)",
     "long-lived audit instances: deep-harvest scrolls arm inertia/bounce that later card taps ride onto neighbours, and nav labels need exact matches (the digest line contains 我的) — the missing audit boots a fresh instance per screen",
-    "the host model service keeps a per-app budget ledger (device/.host/model/ledger.json, defaults 6/min, 100/day, 100k tokens/day, UTC reset); 0.7.25+ issues one request per open with a 30s patience and classifies rate/budget refusals honestly — local hub raises vibemail's limits for development (must edit while the shell is stopped)",
-    "since 10-04 the host's mail.send only answers approval_required; 0.7.28 sends through mail.review_send (host foreground review, physical Approve & Send, macOS/Android) — the callback settles after approval or cancellation, and a cancelled review keeps the draft with no failure mark on the mail",
+    "the host model service keeps a per-app budget ledger (device/.host/model/ledger.json, defaults 6/min, 100/day, 100k tokens/day, UTC reset); 0.7.25+ issues one request per open with a 30s patience and classifies rate/budget refusals honestly — 0.8.0 keeps that discipline: schedule extraction rides the SAME summary call, the weekly phrase is one cached call per segment entry",
+    "since 10-04 the host's mail.send only answers approval_required; 0.7.28 sends through mail.review_send (host foreground review, physical Approve & Send, macOS/Android) — the callback settles after approval or cancellation, and a cancelled review keeps the draft with no failure mark on the mail; 0.8.0 adds the Windows-runnable loop: mail.compose saves the draft host-side and only mail.compose_status's receipt lights the 宿主核验 capsule",
     "upstream App-Hub moved the bundle digest to a portable cross-platform definition (app-contract 1.x, forward-slash relative paths, path-component order): manifests stamped with the pre-10-06 Windows-separator digest no longer pass the current gate; ci/verify.sh reimplements the portable algorithm",
-    "the reference mail service no longer ships in the App-Hub repository; this dev environment vendors it at OctoSense-App-Hub/crates/mail-service (from the OctoSense repo) and registers it in card-host's host.rs — local dev wiring only, not part of any submission"
+    "the reference mail service no longer ships in the App-Hub repository; this dev environment vendors it at OctoSense-App-Hub/crates/mail-service (from the OctoSense repo) and registers it in card-host's host.rs — local dev wiring only, not part of any submission",
+    "0.8.0: optional model-output keys are read with bracket access (r.data.output[\"event\"] style) — plain dot access on a missing key throws property-not-found and kills the callback before soft_repaint (0.7.24 lesson)",
+    "0.8.0: host_api.optional for mail.review_send was considered and dropped — declaring host_api requires requires:[host-api-v1], which card-host refuses, breaking every local preview; the listing claims windows only and the review_send path already degrades honestly at runtime"
   ],
   "practice_data": "the eight practice mails (with five tone variants each), the importance scores and the send-failure switch are labelled local practice data; the mail and model paths are real host-service calls",
   "design_reference": "OctoSense design prototype showcase (warm paper #eaeae3 / charcoal #151413, five vibes with aura palettes, orbit inbox, tone slider, capability declaration) — extracted to docs/design-brief.md"

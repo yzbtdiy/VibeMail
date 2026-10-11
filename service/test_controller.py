@@ -159,5 +159,119 @@ class ComposeSendTests(unittest.TestCase):
         self.assertEqual(r["outage"]["reply"], "sent")
 
 
+class DraftLoopTests(unittest.TestCase):
+    """0.8.0: mail.compose + mail.compose_status host-verified drafts."""
+
+    def compose(self):
+        return {"send_state": controller.IDLE, "error": ""}
+
+    def test_practice_draft_is_local_and_labelled(self):
+        c = self.compose()
+        controller.do_draft(c)
+        self.assertEqual(c["draft_state"], "composing")
+        controller.finish_draft_practice(c)
+        self.assertEqual(c["draft_state"], "drafted")
+        self.assertEqual(c["draft_msg"], "练习草稿 · 仅保存在本应用")
+
+    def test_live_draft_verified_counts_session(self):
+        c = self.compose()
+        session = {}
+        controller.do_draft(c)
+        controller.finish_draft_live(
+            c, {"is_ok": True, "compose_id": "c-1", "revision": 1})
+        self.assertEqual(c["compose_id"], "c-1")
+        controller.verify_draft(c, session, {"is_ok": True, "at": "14:32"})
+        self.assertEqual(c["draft_state"], "drafted")
+        self.assertEqual(c["draft_msg"], "已存入草稿箱 · 宿主核验")
+        self.assertEqual(session["draft_count"], 1)
+        self.assertEqual(session["draft_last"], "14:32")
+
+    def test_live_draft_unverified_receipt_still_saved(self):
+        c = self.compose()
+        session = {}
+        controller.do_draft(c)
+        controller.finish_draft_live(
+            c, {"is_ok": True, "compose_id": "c-2", "revision": 1})
+        controller.verify_draft(c, session, {"is_ok": False, "error": "timeout"})
+        self.assertEqual(c["draft_state"], "drafted")
+        self.assertIn("核验未回", c["draft_msg"])
+        self.assertEqual(session.get("draft_count", 0), 0)   # not verified
+
+    def test_live_draft_compose_error_fails_and_retries(self):
+        c = self.compose()
+        controller.do_draft(c)
+        controller.finish_draft_live(c, {"is_ok": False, "error": "resource_limit"})
+        self.assertEqual(c["draft_state"], "draft_failed")
+        self.assertIn("resource_limit", c["draft_msg"])
+        controller.do_draft(c)                                # retry
+        controller.finish_draft_live(
+            c, {"is_ok": True, "compose_id": "c-3", "revision": 1})
+        controller.verify_draft(c, {}, {"is_ok": True, "at": "15:01"})
+        self.assertEqual(c["draft_state"], "drafted")
+
+    def test_draft_button_faces(self):
+        c = self.compose()
+        s = controller.initial_state()
+        self.assertEqual(controller.view_model(s, c)["draft"], "存为草稿")
+        controller.do_draft(c)
+        self.assertEqual(controller.view_model(s, c)["draft"], "保存中…")
+        controller.finish_draft_practice(c)
+        self.assertEqual(controller.view_model(s, c)["draft"], "已存草稿")
+        controller.do_draft(c)
+        controller.finish_draft_live(c, {"is_ok": False, "error": "x"})
+        self.assertEqual(controller.view_model(s, c)["draft"], "保存失败 · 重试")
+
+
+class SweepTests(unittest.TestCase):
+    """0.8.0: batch vibe sweep with exact undo."""
+
+    def mails(self):
+        return [{"vibe": v, "boxed": ""} for v in
+                ("calm", "focus", "calm", "joy", "calm")]
+
+    def test_sweep_archives_only_matching_visible(self):
+        ms = self.mails()
+        ms[1]["boxed"] = "archive"          # already archived: untouched
+        swept = controller.sweep_by_vibe(ms, "calm")
+        self.assertEqual(swept, [0, 2, 4])
+        self.assertEqual([m["boxed"] for m in ms],
+                         ["archive", "archive", "archive", "", "archive"])
+
+    def test_undo_restores_exactly_the_swept_set(self):
+        ms = self.mails()
+        swept = controller.sweep_by_vibe(ms, "calm")
+        controller.undo_sweep(ms, swept)
+        self.assertEqual([m["boxed"] for m in ms], ["", "", "", "", ""])
+
+    def test_sweep_empty_vibe_is_noop(self):
+        ms = self.mails()
+        self.assertEqual(controller.sweep_by_vibe(ms, "spark"), [])
+
+
+class EventValidationTests(unittest.TestCase):
+    """0.8.0: schedule proposals render only when every field validates."""
+
+    GOOD = {"title": "与 Mira 的海边周末", "label": "周六 10/17",
+            "place": "海边玻璃小屋", "y": 2026, "mo": 10, "d": 17, "h": 9, "mi": 20}
+
+    def test_good_event_passes(self):
+        self.assertTrue(controller.valid_event(self.GOOD))
+
+    def test_empty_title_never_renders(self):
+        ev = dict(self.GOOD, title="")
+        self.assertFalse(controller.valid_event(ev))
+
+    def test_out_of_range_fields_never_render(self):
+        for bad in (dict(self.GOOD, y=1999), dict(self.GOOD, mo=13),
+                    dict(self.GOOD, d=0), dict(self.GOOD, h=24),
+                    dict(self.GOOD, mi=-1)):
+            self.assertFalse(controller.valid_event(bad))
+
+    def test_stamp_zero_pads_and_shifts(self):
+        self.assertEqual(controller.ev_stamp(self.GOOD), "20261017T092000")
+        self.assertEqual(controller.ev_stamp(self.GOOD, shift=1), "20261017T102000")
+        self.assertEqual(controller.ev_stamp(self.GOOD, shift=-20), "20261017T002000")
+
+
 if __name__ == "__main__":
     unittest.main()

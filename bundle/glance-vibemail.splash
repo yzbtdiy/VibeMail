@@ -1,0 +1,80 @@
+// VibeMail Glance card template (0.8.0) — admitted with the bundle and named
+// by manifest-side publish calls (template + initial only; executable script
+// cards are refused for store apps). The host injects `initial`:
+// {unread, focus, joy, calm, spark, link, line} — unread count, per-vibe
+// counts and the app's honestly-labelled mood line. The card paints the
+// VibeMail brand tokens (warm paper ground, five vibe colours) statically:
+// a Glance card has no theme-following duty.
+let unread = 0
+let c_focus = 0
+let c_joy = 0
+let c_calm = 0
+let c_spark = 0
+let c_link = 0
+let line = ""
+let lit = 0
+let dom_name = "暂无邮件"
+let dom_color = #x7de888
+
+fn pick(c, a, b){ if c { return a } return b }
+
+fn vibe_dot_color(k){
+    if k == 0 { return #xff6a3d }
+    if k == 1 { return #xf6ff91 }
+    if k == 2 { return #x7de888 }
+    if k == 3 { return #xff90ff }
+    return #x2a7dfa
+}
+fn vibe_word(k){
+    if k == 0 { return "专注" }
+    if k == 1 { return "愉悦" }
+    if k == 2 { return "平静" }
+    if k == 3 { return "灵感" }
+    return "连接"
+}
+fn load(){
+    if initial != nil {
+        unread = initial.unread
+        c_focus = initial.focus
+        c_joy = initial.joy
+        c_calm = initial.calm
+        c_spark = initial.spark
+        c_link = initial.link
+        line = initial.line
+    }
+    // dominant vibe -> lit dots (share of five) + 「X 居多」
+    let best = 2
+    let best_n = -1
+    if c_focus > best_n { best_n = c_focus best = 0 }
+    if c_joy   > best_n { best_n = c_joy   best = 1 }
+    if c_calm  > best_n { best_n = c_calm  best = 2 }
+    if c_spark > best_n { best_n = c_spark best = 3 }
+    if c_link  > best_n { best_n = c_link  best = 4 }
+    let total = c_focus + c_joy + c_calm + c_spark + c_link
+    if total > 0 {
+        lit = best_n * 5 / total
+        if lit < 1 { lit = 1 }
+        dom_name = vibe_word(best) + "居多"
+        dom_color = vibe_dot_color(best)
+    }
+    ui.count.set_text("" + unread + " 封未读")
+    ui.dom.set_text(dom_name)
+    ui.line.set_text(line)
+    ui.dots.render()
+}
+start_timeout(0.05, || load())
+SolidView{width: Fill height: Fill draw_bg.color: #xeaeae3
+    View{width: Fill height: Fill flow: Down padding: Inset{top: 12 bottom: 12 left: 14 right: 14} spacing: 5
+        Label{text: "VibeMail" draw_text.color: #x2a2a2a draw_text.text_style: theme.font_bold{font_size: 13}}
+        count := Label{text: "0 封未读" draw_text.color: #x2a2a2a draw_text.text_style: theme.font_bold{font_size: 18}}
+        View{width: Fill height: Fit flow: Right spacing: 6 align: Align{y: 0.5}
+            dots := View{width: Fit height: Fit flow: Right spacing: 3 on_render: ||{
+                for k in 5 {
+                    RoundedView{width: 7 height: 7 draw_bg +: {color: pick(k < lit, dom_color, #x2a2a2a18) border_radius: 3.5}}
+                }
+            }}
+            dom := Label{text: "" draw_text.color: #x75736b draw_text.text_style.font_size: 10}
+        }
+        line := Label{width: Fill text: "" draw_text.color: #x75736b draw_text.text_style.font_size: 10.5}
+    }
+}

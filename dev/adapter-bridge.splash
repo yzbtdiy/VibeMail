@@ -75,7 +75,8 @@ fn live_mail(m){
             imp: vibe_imp(v)
             summary: [] t0: "" t1: "" t2: ""
             reply: "" reply_text: "" send_error: "" boxed: ""
-            summary_src: "none" ai_points: []}
+            summary_src: "none" ai_points: []
+            ev: "" ev_src: "" ev_state: "" ev_msg: "" ev_shift: 0}
 }
 fn mail_load(){
     let p = bridge_fetch(net.HttpMethod.GET, "http://127.0.0.1:8443/list?limit=20", "")
@@ -150,5 +151,15 @@ fn send_live(){
         mark_failed(idx)
     }
     ui.appc.render()
+}
+// 0.8.0 dev stand-ins for the host draft loop: the bridge has no compose
+// endpoint, so a dev "draft" is local-only and says so (never submitted).
+fn draft_live(){
+    draft_state = "drafted"
+    draft_msg = "网桥本地草稿(dev)· 未进宿主草稿箱"
+    ui.appc.render()
+}
+fn draft_verify(){
+    // no host ledger behind the bridge; nothing to verify
 }
 // MARKER:ADAPTER-END

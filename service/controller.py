@@ -27,6 +27,19 @@ and offers retry. State machine:
     cancelled --retry_send--> sending (review dismissed, nothing was sent;
                                  the mail keeps no failure mark)
 
+0.8.0 adds the Windows-runnable execution loop — host-side drafts via
+``mail.compose`` with a ``mail.compose_status`` receipt check:
+
+    "" --do_draft--> composing --finish_draft--> drafted | draft_failed
+    draft_failed --do_draft--> composing (text retained, retry)
+    drafted counts as host-verified only after verify_draft succeeds;
+    a failed receipt check still means the save landed (copy says so)
+
+plus two local-only transitions that mirror the UI: batch vibe sweeps
+(archive every visible mail of one vibe, undo restores exactly the swept
+set) and schedule-proposal validation (a model-extracted event renders only
+when every field passes range checks — half-empty events never render).
+
 Per-mail state lives on the mail object (``reply`` / ``reply_text``), the
 compose-local state (``send_state``) drives the button face. Nothing here
 talks to a real mail service: practice ``send`` is simulated, exactly as
@@ -42,6 +55,14 @@ CANCELLED = "cancelled"
 
 VALID_SEND_STATES = (IDLE, SENDING, SENT, FAILED, CANCELLED)
 VALID_REPLY_STATES = ("", SENT, FAILED)
+
+# 0.8.0 draft loop
+DRAFT_IDLE = ""
+DRAFT_COMPOSING = "composing"
+DRAFT_DRAFTED = "drafted"
+DRAFT_FAILED = "draft_failed"
+
+VALID_DRAFT_STATES = (DRAFT_IDLE, DRAFT_COMPOSING, DRAFT_DRAFTED, DRAFT_FAILED)
 
 
 def initial_state():
@@ -136,14 +157,111 @@ def set_outage(state, on):
     return state
 
 
+# ---- 0.8.0: host-verified drafts ---------------------------------------------
+
+def do_draft(compose):
+    """Single tap on 存为草稿: straight to composing, the draft text is only
+    read — never cleared — by the save attempt."""
+    if compose.get("draft_state", DRAFT_IDLE) == DRAFT_COMPOSING:
+        raise ValueError("do_draft while composing")
+    compose["draft_state"] = DRAFT_COMPOSING
+    compose["draft_msg"] = ""
+    return compose
+
+
+def finish_draft_practice(compose):
+    """Practice data keeps a local-only draft and says so."""
+    if compose["draft_state"] != DRAFT_COMPOSING:
+        raise ValueError(f"finish_draft_practice from {compose['draft_state']!r}")
+    compose["draft_state"] = DRAFT_DRAFTED
+    compose["draft_msg"] = "练习草稿 · 仅保存在本应用"
+    return compose
+
+
+def finish_draft_live(compose, reply):
+    """The mail.compose reply lands here. ``reply`` mirrors the host answer:
+    ``{"is_ok": bool, "compose_id": str, "revision": int, "error": str}``.
+    A save is not claimed host-verified until verify_draft succeeds."""
+    if compose["draft_state"] != DRAFT_COMPOSING:
+        raise ValueError(f"finish_draft_live from {compose['draft_state']!r}")
+    if reply.get("is_ok"):
+        compose["draft_state"] = DRAFT_COMPOSING + ":verify"  # awaiting receipt
+        compose["compose_id"] = reply.get("compose_id", "")
+        compose["revision"] = reply.get("revision", 0)
+    else:
+        compose["draft_state"] = DRAFT_FAILED
+        compose["draft_msg"] = "草稿保存失败:" + reply.get("error", "")
+    return compose
+
+
+def verify_draft(compose, session, reply):
+    """The mail.compose_status receipt check. Verified drafts increment the
+    session counter shown in 我的; a failed receipt still leaves the save
+    itself intact — the copy distinguishes the two honestly."""
+    if compose["draft_state"] != DRAFT_COMPOSING + ":verify":
+        raise ValueError(f"verify_draft from {compose['draft_state']!r}")
+    compose["draft_state"] = DRAFT_DRAFTED
+    if reply.get("is_ok"):
+        compose["draft_msg"] = "已存入草稿箱 · 宿主核验"
+        session["draft_count"] = session.get("draft_count", 0) + 1
+        session["draft_last"] = reply.get("at", "")
+    else:
+        compose["draft_msg"] = "已存草稿 · 状态核验未回:" + reply.get("error", "")
+    return compose
+
+
+# ---- 0.8.0: batch vibe sweep -------------------------------------------------
+
+def sweep_by_vibe(mails, vibe):
+    """Archive every visible mail of one vibe; returns the swept index set so
+    undo restores exactly those (归档恢复 stays the permanent path)."""
+    swept = []
+    for i, m in enumerate(mails):
+        if m.get("boxed", "") == "" and m.get("vibe") == vibe:
+            m["boxed"] = "archive"
+            swept.append(i)
+    return swept
+
+
+def undo_sweep(mails, swept):
+    for i in swept:
+        mails[i]["boxed"] = ""
+    return mails
+
+
+# ---- 0.8.0: schedule proposal validation -------------------------------------
+
+def valid_event(ev):
+    """Mirror of the main.splash range checks: a model-extracted event only
+    renders when every field validates — guessed or half-empty events never
+    reach the card."""
+    if not isinstance(ev, dict):
+        return False
+    if not ev.get("title"):
+        return False
+    return (ev.get("y", 0) >= 2026
+            and 1 <= ev.get("mo", 0) <= 12
+            and 1 <= ev.get("d", 0) <= 31
+            and 0 <= ev.get("h", -1) <= 23
+            and 0 <= ev.get("mi", -1) <= 59)
+
+
+def ev_stamp(ev, shift=0):
+    """DTSTART digits, with the in-card ±1h correction applied (clamped)."""
+    h = min(23, max(0, ev["h"] + shift))
+    return (f"{ev['y']}{ev['mo']:02d}{ev['d']:02d}"
+            f"T{h:02d}{ev['mi']:02d}00")
+
+
 def view_model(state, compose=None, live=False):
     """What every surface shows for this mail — the same rules as
-    ``reply_state_chip`` and ``send_button`` in main.splash: the mail's
-    live reply state outranks everything on list rows; the compose button
-    face follows the compose-local send state. A live compose waits on the
-    host review sheet, so sending says 宿主审阅中 (0.7.28)."""
+    ``reply_state_chip`` and ``send_button``/``draft_button`` in main.splash:
+    the mail's live reply state outranks everything on list rows; the compose
+    button faces follow the compose-local send/draft states. A live compose
+    waits on the host review sheet, so sending says 宿主审阅中 (0.7.28)."""
     pill = {SENT: "已回复", FAILED: "发送失败"}.get(state["reply"])
     button = None
+    draft = None
     if compose is not None:
         button = {
             IDLE: "发送",
@@ -152,7 +270,14 @@ def view_model(state, compose=None, live=False):
             FAILED: "发送失败 · 点按重试",
             CANCELLED: "已取消审阅 · 点按重发",
         }[compose["send_state"]]
-    return {"pill": pill, "button": button}
+        draft = {
+            DRAFT_IDLE: "存为草稿",
+            DRAFT_COMPOSING: "保存中…",
+            DRAFT_COMPOSING + ":verify": "保存中…",
+            DRAFT_DRAFTED: "已存草稿",
+            DRAFT_FAILED: "保存失败 · 重试",
+        }[compose.get("draft_state", DRAFT_IDLE)]
+    return {"pill": pill, "button": button, "draft": draft}
 
 
 def demo_route():

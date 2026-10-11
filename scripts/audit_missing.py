@@ -22,7 +22,9 @@ import urllib.request
 from pathlib import Path
 
 APP = Path(__file__).resolve().parent.parent
-CARD_HOST = r"D:\Users\yzbtdiy\Cache\CARGO_TARGET\release\card-host.exe"
+CARD_HOST = os.environ.get(
+    "CARD_HOST_EXE",
+    str(APP.parent / "octosense-win" / "apphub-tools" / "card-host.exe"))
 PORT = "8145"
 BASE = f"http://127.0.0.1:{PORT}"
 
@@ -133,7 +135,10 @@ def harvest(sx):
 
 EXPECTED = {
     "inbox": [
-        "未读邮件", "今天有", "未添加邮箱账号",
+        "未读邮件", "今天有",
+        # the prebuilt card-host has no mail service (邮件服务不可用); the
+        # rebuilt one with the vendored reference service answers no_account
+        ("未添加邮箱账号", "邮件服务不可用"),
         "全部", "专注", "愉悦", "平静", "灵感", "连接",
         # every card: sender + subject + snippet head + vibe chip + score
         "Mira", "周末去海边", "就是上次你说想住的那家",
@@ -156,11 +161,15 @@ EXPECTED = {
         "Mira 订到了心仪的海边玻璃小屋",
         "周六早出发、周日傍晚返回",
         "需要你回复选择哪一班火车",
+        # 0.8.0: the practice schedule proposal card on the Mira mail
+        "识别到安排", "练习数据", "与 Mira 的海边周末", "导出日程", "忽略",
         "就是上次你说想住的那家,推开窗就是海。",
         "星标", "归档", "回复",
     ],
     "orbit": [
         "星轨", "气泡大小 = 重要度 · 颜色 = vibe · 点按打开",
+        # 0.8.0: the 漂移/时间轴/周报 segment control
+        "漂移", "时间轴", "周报",
         # 0.7.1: bubbles show the short display name (bname), like the
         # reference's sender.slice(0, 6)
         "Mira", "云服务账单", "产品周报", "GitHub",
@@ -168,19 +177,23 @@ EXPECTED = {
     ],
     "write": [
         "写信", "收件人", "mira@octomail.io", "主题", "Re: 周末去海边吗?",
-        "语气滑杆 · AI 实时改写", "真诚", "友好", "正式", "回信预览",
-        "发送",
+        # card-host is practice mode: the slider header and the preview tag
+        # are the honest canned-copy labels (0.7.28); 存为草稿 is 0.8.0
+        "语气滑杆 · 练习文案", "真诚", "友好", "正式", "练习文案",
+        "发送", "存为草稿",
     ],
     "set": [
         "设置", "外观主题", "暖纸亮色 / 炭黑暗色",
         "跟随系统", "亮色", "暗色", "当前:",
         "OctoSense 能力声明", "最小权限 · 密码由平台保管",
-        "mail", "storage", "model", "刻意不声明",
-        # card-host: the reference mail service answers with no account ->
-        # 添加账号; the 重试连接 button only exists in the error states
-        "邮箱账号", "添加账号",
+        "mail", "storage", "model", "files", "glance", "刻意不声明",
+        # card-host without a mail service offers 重试连接; the rebuilt one
+        # with the reference service answers no_account -> 添加账号
+        "邮箱账号", ("添加账号", "重试连接"), "草稿箱不可用",
+        # 0.8.0: glance card status row
+        "桌面速览卡", "未发布",
         "练习:模拟发送失败", "账号", "me@octomail.io",
-        "VibeMail 0.7.25",
+        "VibeMail 0.8.0",
     ],
 }
 
@@ -209,7 +222,15 @@ def audit_width(width):
             continue
         seen = harvest(sx)
         proc.kill()
-        absent = [e for e in EXPECTED[name] if not any(e in t for t in seen)]
+
+        def hit(e):
+            # a tuple entry is an any-of alternative (environment-dependent
+            # states, e.g. no mail service vs no account)
+            if isinstance(e, tuple):
+                return any(any(alt in t for alt in e) for t in seen)
+            return any(e in t for t in seen)
+
+        absent = [e for e in EXPECTED[name] if not hit(e)]
         missing[name] = absent
         print(f"  [{name}] {'complete' if not absent else 'MISSING ' + str(len(absent))}",
               flush=True)
