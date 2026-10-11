@@ -55,6 +55,24 @@ def grabber(frames, stamps):
             time.sleep(0.2)
 
 
+def write_concat(stamps, n):
+    """Concat-demuxer file with PER-FRAME durations: the grabber's rate is
+    variable (a grab during an animated transition takes longer), so a
+    constant -framerate presentation would warp narration sync. With real
+    durations the video plays in true wall-clock time and the recorded
+    segment marks map exactly."""
+    lines = []
+    for i in range(n):
+        lines.append(f"file 'rec_frames/frame_{i:05d}.png'")
+        if i + 1 < n:
+            d = max(0.01, stamps[i + 1] - stamps[i])
+        else:
+            d = 0.1
+        lines.append(f"duration {d:.3f}")
+    lines.append(f"file 'rec_frames/frame_{n - 1:05d}.png'")  # concat last-frame quirk
+    (BUILD / "rec_concat.txt").write_text("\n".join(lines), encoding="utf-8")
+
+
 def snap():
     with io_lock:
         return json.loads(get("/snap").decode("utf-8"))["s"]
@@ -173,56 +191,78 @@ def make_card(path, lines):
 
 # ---- the demo arc -----------------------------------------------------------
 
+marks = []          # (segment key, seconds since capture start)
+_t_start = [0.0]
+
+
+def mark(key):
+    marks.append((key, time.monotonic() - _t_start[0]))
+
+
 def arc():
-    hold(4.0)                                   # inbox: greeting + mood line
+    mark("inbox")
+    hold(5.0)                                   # inbox: greeting + mood line
+    mark("filter")
     click_expect("专注", "已按 vibe 筛选", exact=True)
-    hold(2.5)
+    hold(3.0)
     click_expect("全部", "周末去海边", exact=True)
     hold(1.5)
+    mark("detail")
     click_expect("周末去海边", "AI 三行摘要")     # detail: summary + schedule card
-    hold(3.0)
+    hold(4.0)
+    mark("schedule")
     search_for("点按 ±1h", timeout=4)
     hold(1.0)
     click_expect("±1h", "已 +1h")               # schedule: user can adjust
-    hold(1.5)
+    hold(2.0)
+    mark("compose")
     click_expect("回复", "语气滑杆", exact=True)  # compose
     hold(2.0)
+    mark("tone")
     tap("幽默", exact=True)
-    hold(1.4)
-    tap("专业", exact=True)
-    hold(1.4)
-    click_expect("正式", "正式得体", exact=True)
     hold(1.6)
-    click_expect("存为草稿", "已存草稿")          # draft loop (练习标注)
+    tap("专业", exact=True)
+    hold(1.6)
+    click_expect("正式", "正式得体", exact=True)
     hold(2.0)
+    mark("draft")
+    click_expect("存为草稿", "已存草稿")          # draft loop (练习标注)
+    hold(2.5)
     click_expect("收件箱", "未读邮件", exact=True)
     hold(1.2)
+    mark("orbit")
     click_expect("星轨", "气泡大小", exact=True)  # drift star map
-    hold(3.5)
+    hold(4.0)
+    mark("timeline")
     click_expect("时间轴", "按时间从新到旧", exact=True)
-    hold(3.0)
+    hold(3.5)
+    mark("weekly")
     click_expect("周报", "本周邮件天气", exact=True)
-    hold(3.0)
+    hold(3.5)
+    mark("dark")
     click_expect("我的", "外观主题", exact=True)
     tap("暗色", exact=True)                      # dark theme (visual flip)
     hold(2.5)
     click_expect("星轨", "漂移", exact=True)     # orbit remembers the segment:
     click_expect("漂移", "气泡大小", exact=True)  # land (any mode), then drift
     hold(2.5)
+    mark("outro")
     click_expect("我的", "外观主题", exact=True)
     tap("亮色", exact=True)                      # back to light for the outro
     hold(1.2)
     click_expect("收件箱", "未读邮件", exact=True)
-    hold(1.5)
+    hold(2.5)
+    mark("end")
 
 
 def main():
     assemble_only = "--assemble" in sys.argv
     if assemble_only and FRAMES.exists():
-        frames = sorted(int(p.stem.split("_")[1]) for p in FRAMES.glob("frame_*.png"))
-        n, span = len(frames), 87.9   # span logged by the capture run
-        fps = min(10.0, max(4.0, n / span))
-        print(f"[assemble] reusing {n} captured frames at {fps:.1f} fps")
+        meta = json.loads((BUILD / "rec_marks.json").read_text(encoding="utf-8"))
+        stamps = json.loads((BUILD / "rec_stamps.json").read_text(encoding="utf-8"))
+        n = len(stamps)
+        write_concat(stamps, n)
+        print(f"[assemble] reusing {n} captured frames, per-frame timing")
     else:
         if FRAMES.exists():
             shutil.rmtree(FRAMES)
@@ -238,13 +278,21 @@ def main():
         th = threading.Thread(target=grabber, args=(frames, stamps), daemon=True)
         th.start()
         t_start = time.monotonic()
+        _t_start[0] = t_start
         arc()
         stop_flag.set()
         th.join(timeout=5)
         span = time.monotonic() - t_start
         n = len(frames)
-        fps = min(10.0, max(4.0, n / span)) if span > 0 else 6.0
-        print(f"[rec] captured {n} frames over {span:.1f}s -> presenting at {fps:.1f} fps")
+        stamps = [s - t_start for s in stamps]          # video-relative seconds
+        (BUILD / "rec_stamps.json").write_text(json.dumps(stamps), encoding="utf-8")
+        (BUILD / "rec_marks.json").write_text(
+            json.dumps({"fps": n / span if span > 0 else 6.0, "span": span,
+                        "marks": marks}, ensure_ascii=False, indent=1),
+            encoding="utf-8")
+        write_concat(stamps, n)
+        print(f"[rec] captured {n} frames over {span:.1f}s, per-frame timing")
+        print(f"[rec] {len(marks)} segment marks -> build/rec_marks.json")
 
     title = BUILD / "rec_title.png"
     end = BUILD / "rec_end.png"
@@ -261,7 +309,7 @@ def main():
             "[v0][v1][v2]concat=n=3:v=1[v]")
     cmd = ["ffmpeg", "-y",
            "-loop", "1", "-t", "3", "-i", str(title),
-           "-framerate", f"{fps:.3f}", "-i", str(FRAMES / "frame_%05d.png"),
+           "-f", "concat", "-safe", "0", "-i", str(BUILD / "rec_concat.txt"),
            "-loop", "1", "-t", "2.5", "-i", str(end),
            "-filter_complex", filt, "-map", "[v]",
            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", str(OUT)]
