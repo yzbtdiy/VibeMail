@@ -35,7 +35,10 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           repository: OctoSense-org/OctoSense-App-Hub
-          ref: 655114c4943cd2490daaefa2173e7b5aaa20669f
+          # 0.8.1: the old pin (655114c4, Oct 7) predates the reviewed
+          # mail.compose_status tool contract and the files capability —
+          # publisher-verify REFUSED 0.8.0 on both. This pin carries them.
+          ref: 8d3853c9f9b6604fa1d095e7aff20911093e273a
           path: tools/app-hub
           persist-credentials: false
       - name: Read the pinned native runtime

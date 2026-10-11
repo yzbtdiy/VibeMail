@@ -2,7 +2,7 @@
   "schema_version": 1,
   "app": {
     "id": "vibemail",
-    "version": "0.8.0"
+    "version": "0.8.1"
   },
   "form": "script-app (Splash bundle, card-host / OctoSense shell)",
   "generated": "2026-10-11",
