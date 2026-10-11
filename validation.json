@@ -9,7 +9,7 @@
   "counts": {
     "routes": 10,
     "route_steps": 59,
-    "service_unit_tests": 25,
+    "service_unit_tests": 26,
     "bridge_unit_tests": 5,
     "listing_screenshots": 5,
     "evidence_images": 16
@@ -30,7 +30,7 @@
     },
     {
       "what": "compose/send state-machine twin unit tests (single-tap send; mail.review_send classifier; 0.8.0 adds the draft loop do_draft/finish_draft_*/verify_draft, batch sweep + exact undo, and schedule-event range validation + ev_stamp ±1h)",
-      "result": "25/25 OK",
+      "result": "26/26 OK",
       "command": "python -m unittest discover -s service",
       "where": "service/",
       "date": "2026-10-11"
