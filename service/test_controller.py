@@ -85,6 +85,8 @@ class ComposeSendTests(unittest.TestCase):
         self.assertEqual(controller.view_model(s, c)["button"], "发送中…")
         c["send_state"] = "cancelled"
         self.assertEqual(controller.view_model(s, c)["button"], "已取消审阅 · 点按重发")
+        c["send_state"] = "unsupported"
+        self.assertEqual(controller.view_model(s, c)["button"], "本平台不可发送")
         c["send_state"] = "sending"
         self.assertEqual(controller.view_model(s, c, live=True)["button"], "宿主审阅中…")
         c["send_state"] = "sent"
@@ -134,15 +136,31 @@ class ComposeSendTests(unittest.TestCase):
         c.update(controller.do_send(s))
         controller.finish_review(
             s, c, {"is_ok": False, "accepted": False,
-                   "error": "Physical Mail send approval is unavailable on this platform"})
-        self.assertEqual((c["send_state"], c["error"]),
-                         ("failed", "宿主不支持前台审阅发送(仅 macOS/Android)"))
-        controller.retry_send(s, c)
-        controller.finish_review(
-            s, c, {"is_ok": False, "accepted": False,
                    "error": "approval_required: use mail.review_send …"})
         self.assertEqual((c["send_state"], c["error"]),
                          ("failed", "宿主要求前台审阅批准后才会发送"))
+
+    def test_review_platform_gate_is_terminal_and_unmarked(self):
+        # the host's review sheet is compiled in only on macOS/Android —
+        # on Windows/Linux the send lands in the terminal "unsupported"
+        # state: no retry (retry_send refuses), no failure mark on the mail
+        # (nothing was sent), keep_draft still leaves cleanly
+        s = controller.initial_state()
+        c = self.compose()
+        controller.attach_draft(s, "草稿保留")
+        c.update(controller.do_send(s))
+        controller.finish_review(
+            s, c, {"is_ok": False, "accepted": False,
+                   "error": "Physical Mail send approval is unavailable on this platform"})
+        self.assertEqual(c["send_state"], "unsupported")
+        self.assertEqual(c["error"],
+                         "发送审阅仅 macOS/Android · 存为草稿后可到系统邮箱发出")
+        self.assertEqual(s["reply"], "")
+        self.assertEqual(s["reply_text"], "草稿保留")
+        with self.assertRaises(ValueError):
+            controller.retry_send(s, c)
+        controller.keep_draft(s, c)
+        self.assertEqual(c["send_state"], "idle")
 
     def test_review_unaccepted_ok_answer_fails_honestly(self):
         s = controller.initial_state()

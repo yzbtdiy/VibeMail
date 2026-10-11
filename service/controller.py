@@ -23,9 +23,12 @@ and offers retry. State machine:
 ``mail.review_send`` (``mail.send`` only answers approval_required since
 10-04). The review callback settles after physical approval or dismissal:
 
-    sending --finish_review-->  sent | failed | cancelled
+    sending --finish_review-->  sent | failed | cancelled | unsupported
     cancelled --retry_send--> sending (review dismissed, nothing was sent;
                                  the mail keeps no failure mark)
+    unsupported is terminal in-app: the review sheet is compiled in only on
+    macOS/Android (host public_review.rs platform gate), so no retry is
+    offered; like cancelled, nothing was sent and the mail keeps no mark
 
 0.8.0 adds the Windows-runnable execution loop — host-side drafts via
 ``mail.compose`` with a ``mail.compose_status`` receipt check:
@@ -52,8 +55,9 @@ SENDING = "sending"
 SENT = "sent"
 FAILED = "failed"
 CANCELLED = "cancelled"
+UNSUPPORTED = "unsupported"
 
-VALID_SEND_STATES = (IDLE, SENDING, SENT, FAILED, CANCELLED)
+VALID_SEND_STATES = (IDLE, SENDING, SENT, FAILED, CANCELLED, UNSUPPORTED)
 VALID_REPLY_STATES = ("", SENT, FAILED)
 
 # 0.8.0 draft loop
@@ -133,7 +137,12 @@ def finish_review(state, compose, reply):
     if reply.get("is_ok"):
         compose["error"] = "服务未接受"
     elif "unavailable on this platform" in error:
-        compose["error"] = "宿主不支持前台审阅发送(仅 macOS/Android)"
+        # the review surface is compiled in only on macOS/Android — a
+        # terminal state with no retry affordance (the mail keeps no mark,
+        # like a cancelled review: nothing was sent)
+        compose["send_state"] = UNSUPPORTED
+        compose["error"] = "发送审阅仅 macOS/Android · 存为草稿后可到系统邮箱发出"
+        return compose
     elif "approval_required" in error:
         compose["error"] = "宿主要求前台审阅批准后才会发送"
     else:
@@ -143,9 +152,10 @@ def finish_review(state, compose, reply):
 
 
 def keep_draft(state, compose):
-    """Leaving a failed/cancelled compose keeps the text and the mail's mark
-    as it was (failed cleared; cancelled never had one)."""
-    if compose["send_state"] not in (FAILED, CANCELLED):
+    """Leaving a failed/cancelled/unsupported compose keeps the text and the
+    mail's mark as it was (failed cleared; cancelled/unsupported never had
+    one)."""
+    if compose["send_state"] not in (FAILED, CANCELLED, UNSUPPORTED):
         raise ValueError(f"keep_draft from {compose['send_state']!r}")
     compose["send_state"] = IDLE
     state["reply"] = ""
@@ -269,6 +279,7 @@ def view_model(state, compose=None, live=False):
             SENT: "已随波寄出",
             FAILED: "发送失败 · 点按重试",
             CANCELLED: "已取消审阅 · 点按重发",
+            UNSUPPORTED: "本平台不可发送",
         }[compose["send_state"]]
         draft = {
             DRAFT_IDLE: "存为草稿",

@@ -312,7 +312,7 @@ let tone = 2                   // 0 真诚 | 1 幽默 | 2 自然 | 3 专业 | 4 
 let tone_src = "canned"        // canned | asking | ai | unavailable
 let tone_note = ""
 let live_preview = ""          // model-rewritten preview (live targets)
-let send_state = "idle"        // idle | sending | sent | failed | cancelled
+let send_state = "idle"        // idle | sending | sent | failed | cancelled | unsupported
 let send_error_msg = ""
 let simulate_outage = false    // practice switch: next practice send fails
 let digest_model = ""          // model-written mood line (0.7.6)
@@ -842,7 +842,11 @@ fn send_live(){
                 } else {
                     let e = r.error
                     if e.search("unavailable on this platform") >= 0 {
-                        send_error_msg = "宿主不支持前台审阅发送(仅 macOS/Android)"
+                        // the review surface is compiled in only on
+                        // macOS/Android (host public_review.rs) — retrying
+                        // can never succeed here, so no retry is offered
+                        send_state = "unsupported"
+                        send_error_msg = "发送审阅仅 macOS/Android · 存为草稿后可到系统邮箱发出"
                     } else {
                         if e.search("approval_required") >= 0 {
                             send_error_msg = "宿主要求前台审阅批准后才会发送"
@@ -851,7 +855,7 @@ fn send_live(){
                         }
                     }
                 }
-                mark_failed(idx)
+                if send_state != "unsupported" { mark_failed(idx) }
             }
         }
         soft_repaint()
@@ -2789,7 +2793,15 @@ fn send_button(){
                 }
             }
         } else {
-            if send_state == "cancelled" {
+            if send_state == "unsupported" {
+                // platform gate (the review sheet is compiled in only on
+                // macOS/Android): nothing was sent and retrying can never
+                // succeed here — a calm dead-end signpost, no tap target
+                RoundedView{width: Fill height: 46 draw_bg +: {color: paper3 border_radius: 23.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
+                    Label{text: "本平台不可发送" draw_text.color: inkSoft draw_text.text_style: theme.font_bold{font_size: 12.5}}
+                }
+            } else {
+                if send_state == "cancelled" {
                 GestureView{width: Fill height: 46 on_tap: |x, y| retry_send()
                     RoundedView{width: Fill height: 46 draw_bg +: {color: paper3 border_radius: 23.0 border_size: 1.0 border_color: line2} align: Align{x: 0.5 y: 0.5}
                         View{width: Fit height: Fit flow: Right spacing: 7 align: Align{y: 0.5}
@@ -2816,6 +2828,7 @@ fn send_button(){
                     }
                 }
             }
+        }
         }
     }
 }
@@ -2934,8 +2947,12 @@ fn write_screen(){
                     if send_state == "cancelled" {
                         Label{width: Fill text: send_error_msg draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
                     } else {
-                        if send_state == "sending" && mail_link == "live" {
-                            Label{width: Fill text: "宿主已弹出审阅单 · 亲手批准后才会发送" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                        if send_state == "unsupported" {
+                            Label{width: Fill text: send_error_msg draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                        } else {
+                            if send_state == "sending" && mail_link == "live" {
+                                Label{width: Fill text: "宿主已弹出审阅单 · 亲手批准后才会发送" draw_text.color: inkDim draw_text.text_style.font_size: 9.5}
+                            }
                         }
                     }
                 }
