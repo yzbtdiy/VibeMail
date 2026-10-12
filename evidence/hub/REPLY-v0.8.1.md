@@ -13,7 +13,7 @@ Update: v0.8.1 — 评审意见全部落地 + 可核验执行升级
 
 - Tag: `v0.8.1`(附注标签)
 - Commit: 见本仓库 main 顶端(评论发出时以 `git rev-parse v0.8.1^{commit}` 为准)
-- Workflow run: https://github.com/yzbtdiy/VibeMail/actions (publish-app.yml,取 v0.8.1 的成功 run)
+- Workflow run: https://github.com/yzbtdiy/VibeMail/actions/runs/38142728001 (publish-app.yml:prepare + publish 均 success)
 - Gate: `hub check bundle --allow-unsigned` → vibemail 0.8.1 PASSED(capabilities {files, glance, mail, model, storage},agent read-only;unsigned 警告为 GitHub 来源证明路径的固有项)
 
 > 版本说明:v0.8.0 的 run

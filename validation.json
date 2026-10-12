@@ -23,10 +23,10 @@
       "date": "2026-10-11"
     },
     {
-      "what": "GitHub publisher workflow for v0.7.29 (tag push -> publisher-prepare -> Sigstore attestation -> publisher-verify/pack) and downloaded-pack verification",
-      "result": "run 38018888782 success; release assets app.bundle.pack.json + octosense-app-manifest.json + release-receipt.json; hub publisher-unpack + publisher-verify PASSED (sealed digest d6d08e57 matches the editable source; local pack SHA256 fd48c9e3 matches the receipt)",
-      "command": "hub publisher-unpack build/app.bundle.pack.json --out build/review-bundle && hub publisher-verify build/review-bundle",
-      "date": "2026-10-10"
+      "what": "GitHub publisher workflow for v0.8.1 (tag push -> publisher-prepare -> Sigstore attestation -> publisher-verify/pack) and downloaded-pack verification; v0.8.0's run was REFUSED because the workflow's pinned App-Hub tools (655114c4) predated the mail.compose_status tool contract and the files capability — 0.8.1 raised the pin to 8d3853c instead of moving the tag",
+      "result": "run 38142728001 success; release assets app.bundle.pack.json + octosense-app-manifest.json + release-receipt.json; local pack SHA256 9b25e60f matches the receipt; hub publisher-unpack + publisher-verify PASSED (sealed digest 75c028f3 matches the editable source stamp)",
+      "command": "hub publisher-unpack build/rel-check/app.bundle.pack.json --out build/rel-check/unpacked && hub publisher-verify build/rel-check/unpacked",
+      "date": "2026-10-11"
     },
     {
       "what": "compose/send state-machine twin unit tests (single-tap send; mail.review_send classifier; 0.8.0 adds the draft loop do_draft/finish_draft_*/verify_draft, batch sweep + exact undo, and schedule-event range validation + ev_stamp ±1h)",
