@@ -118,14 +118,17 @@ OctoSense 设计原型参考重构为一部流式手机列应用(任意窗口宽
 ## 目录结构
 
 ```text
-route_test.json 声明式路线测试:6 条点击路线(vibe 筛选与详情 / 星轨与三态主题 /
-               语气滑杆五档改写 / 单击发送 / 故障-保留-重试 / 归档与恢复)
+route_test.json 声明式路线测试:10 条点击路线(vibe 筛选与详情 / 星轨与三态主题 /
+               日程卡 / 三段切换 / 练习草稿 / 批量清扫 / 语气滑杆五档改写 /
+               单击发送 / 故障-保留-重试 / 归档与恢复)
 validation.json 机器可读状态清单:已验证项与未验证边界(诚实记录)
 BRIEF.md       设计简报(OctoScript-App-Design-Flow 第 1 步;不入提交包)
 docs/          design-brief.md:设计系统与实现映射(调色板、组件语言、
                布局数学、与参考原型的取舍)
+               testing-splash-apps.md:可复用的卡应用验收管线(路线/审计/
+               录屏/解说)+ 运行时坑位目录
 service/       写信/发送 reducer(controller.py,main.splash 状态机的
-               验证孪生)+ unittest(test_controller.py,8 用例)
+               验证孪生)+ unittest(test_controller.py,26 用例)
 bridge/        开发层(现为可选):IMAP/SMTP ↔ 本机 HTTP 网桥(凭据只存
                config.json,已 gitignore;5 个解析单测)——已被平台服务
                路线取代,不进提交包
@@ -140,6 +143,8 @@ scripts/       run_app.py:run.cmd 的内核(启动前生成运行副本 build/ru
                audit_missing / audit_overflow:宽度审计(412 / 700 / 1200;
                缺失审计每屏全新实例——长生命周期实例的采集与点击会
                相互干扰,均为实测结论)
+               record-demo.py / narrate-demo.py:桥接抓帧录演示视频
+               (逐帧真实时长)+ edge-tts 中文解说字幕
                mailbox_probe.py:只读 IMAP 自检(列出服务器各文件夹件数)
                check_splash.py:main.splash 括号平衡静态检查
                dev_bundle.py:组装 build/dev-bundle(仅开发,不入库)
@@ -195,9 +200,9 @@ cd ../OctoSense-App-Hub && cargo build --release -p octosense-card-host
 再以提交包运行(路线回归与证据流各用一个全新实例;原生宽度 412×860):
 
 ```sh
-python -m unittest discover -s service      # 状态机单测(8/8)
+python -m unittest discover -s service      # 状态机单测(26/26)
 run.cmd mobile                              # 启动(自动生成去签名运行副本)
-python scripts/run_routes.py 8146           # 6/6 路线通过则退出码 0
+python scripts/run_routes.py 8146           # 10/10 路线通过则退出码 0
 run.cmd stop
 run.cmd demo                                # 重写 bundle/screenshots 与 evidence/
 python scripts/drive-mail.py 8146           # 商店形态邮件:面板/真实拒绝/取消
