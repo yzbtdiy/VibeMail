@@ -24,7 +24,7 @@
   },
   "id": "vibemail",
   "integrity": {
-    "bundle_blake3": "75c028f32ebe17b2232b38945079c357a05916e9a0da03c007f7d051704340c6",
+    "bundle_blake3": "9ede12ad2a54a12df9164e31d00c05ed6a0faef840d66f431853926f2b213f2d",
     "signature": null
   },
   "name": "VibeMail",
@@ -37,7 +37,7 @@
     "accounts": true,
     "max_bytes": 4194304
   },
-  "version": "0.8.1",
+  "version": "0.8.2",
   "window": {
     "height": 860,
     "width": 412

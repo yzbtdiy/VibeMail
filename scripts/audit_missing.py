@@ -193,7 +193,7 @@ EXPECTED = {
         # 0.8.0: glance card status row
         "桌面速览卡", "未发布",
         "练习:模拟发送失败", "账号", "me@octomail.io",
-        "VibeMail 0.8.1",
+        "VibeMail 0.8.2",
     ],
 }
 

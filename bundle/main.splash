@@ -1,4 +1,4 @@
-// VibeMail 0.8.1 — 有情绪的邮件 (emails carry vibes)
+// VibeMail 0.8.2 — 有情绪的邮件 (emails carry vibes)
 // 0.8.0: the verifiable-execution release. 写信 gains a second button —
 // 存为草稿 via mail.compose + mail.compose_status host verification (the
 // Windows execution loop: review_send has no Windows adapter); 邮件详情
@@ -3137,7 +3137,7 @@ fn set_screen(){
                         }
                     }
                 }
-                Label{width: Fill text: "VibeMail 0.8.1 · vibemail · 有情绪的邮件 · 带只读助手" draw_text.color: inkDim draw_text.text_style.font_size: 9}
+                Label{width: Fill text: "VibeMail 0.8.2 · vibemail · 有情绪的邮件 · 带只读助手" draw_text.color: inkDim draw_text.text_style.font_size: 9}
             }
         }
     }
