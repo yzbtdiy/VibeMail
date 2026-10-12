@@ -32,9 +32,14 @@
     "hosts": []
   },
   "schema": 1,
+  "schema_minor": 1,
   "storage": {
     "accounts": true,
     "max_bytes": 4194304
   },
-  "version": "0.8.1"
+  "version": "0.8.1",
+  "window": {
+    "height": 860,
+    "width": 412
+  }
 }
