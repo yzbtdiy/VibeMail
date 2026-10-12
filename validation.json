@@ -91,8 +91,7 @@
   "not_verified": [
     "platforms other than Windows 10 26100 (the listing claims windows only)",
     "the native Approve & Send flow end-to-end: mail.review_send is foreground-only on macOS/Android and the vendored reference service refuses physical approval off those platforms — the classifier (finish_review + send_live branches) is covered by unit tests, the real sheet is not driven on Windows",
-    "0.8.0 against a REAL mailbox/host: mail.compose + mail.compose_status (draft ledger, revision lock), glance.publish on the shell's glance screen, files.export's native save sheet (.ics / weekly txt), and model schedule extraction on live bodies are all wired to the documented contracts and unit/route-tested in practice mode, but not yet driven end-to-end in run.cmd shell with a live account",
-    "the release comment in submission issue #84 (human step: post tag/commit/workflow evidence and update the issue title + Version field)"
+    "0.8.0 against a REAL mailbox/host: mail.compose + mail.compose_status (draft ledger, revision lock), glance.publish on the shell's glance screen, files.export's native save sheet (.ics / weekly txt), and model schedule extraction on live bodies are all wired to the documented contracts and unit/route-tested in practice mode, but not yet driven end-to-end in run.cmd shell with a live account"
   ],
   "runtime_notes": [
     "taps reach EVERY overlapping GestureView in this runtime — the bottom nav is docked in flow, not floating (probed); 0.8.0: the sweep bar stamps the same nav gate so its taps never open a card underneath, and go() resets the compose context (a pass-through nav tap on a detail screen's 回复 had silently rebound 写信 to the wrong thread — route forensics 0.8.0)",

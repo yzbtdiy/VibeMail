@@ -10,7 +10,7 @@ OctoSense 设计原型参考重构为一部流式手机列应用(任意窗口宽
 
 | | |
 | --- | --- |
-| 应用 ID / 版本 | `vibemail` / **0.8.0** |
+| 应用 ID / 版本 | `vibemail` / **0.8.2** |
 | 门禁状态 | `hub check --allow-unsigned` — **PASSED**(可编辑源码,新可移植摘要口径) |
 | 提交通道 | **GitHub publisher 工作流**(`.github/workflows/publish-app.yml`,tag push 出证明 release;无需发行者私钥) |
 | 申请能力 | `mail` + `model` + `storage` + `files` + `glance`(共五项,按最小化原则);自带**只读 App Agent**(bundle 内 `tools.json` + `AGENT.md`,两个 read 级宿主工具) |
@@ -295,12 +295,13 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 - 本地演示 hub:`../octosense-local-hub/` 收录 0.7.25(legacy 目录;`run.cmd shell`
   演示用;后续按「hub 拒绝重发同版本」规则升版)
 - 机器可读的状态清单(已验证项 / 未验证边界)见 [validation.json](validation.json)
-- 剩余人工步骤(发布者本人):
+- 提交流程(已完成至 0.8.2):
   1. 提交 issue
      [#84](https://github.com/OctoSense-org/OctoSense-App-Hub/issues/84) 已在
      0.7.27 轮开出;按 SUBMITTING 规则,首次准入之前每个新 Release 以评论发在
-     同一 issue——附 tag `v0.7.29`、完整 commit SHA、工作流运行链接,并更新
-     issue 标题与 Version 字段(评论文底稿见 `evidence/hub/ISSUE.md`)
+     同一 issue——附 tag、完整 commit SHA、工作流运行链接,并更新
+     issue 标题与 Version 字段(0.8.2 的评论与标题「Submit vibemail 0.8.2」
+     已发布,底稿 `evidence/hub/REPLY-v0.8.1.md`)
 
 ## 隐私
 
@@ -308,6 +309,14 @@ ev-13..16 均为 2026-10-09 在当前 card-host 重建版上重截):
 
 ## 近期版本
 
+- **0.8.2** —— **窗口提示**。清单声明 `window` 412x860(schema_minor 1,
+  契约 1.12.0):桌面 shell 直接以手机列尺寸开窗;旧宿主按 growth 规则忽略,
+  不受影响。
+- **0.8.1** —— **发布修正**。发送在宿主无前台审阅适配器的平台(Windows/Linux)
+  进入终态「本平台不可发送」,不再提供永远失败的重试,回复卡不留失败标记
+  (孪生 + 测试同步);发布工作流的 App-Hub 工具钉升至 8d3853c——旧钉 655114c4
+  早于 `mail.compose_status` 工具契约与 `files` 能力,v0.8.0 的 run 被
+  publisher-verify 拒收,按「不移动已推送 tag」规则升版本号重发。
 - **0.8.0** —— **可核验执行 + 创意集合,一次到位**。按评审框架把「生成摘要」
   升级为「完成可核对的事」:(1) **草稿闭环**——写信屏新增「存为草稿」,
   live 走 `mail.compose` 保存 + `mail.compose_status` 回查(宿主核验才亮绿灯),
